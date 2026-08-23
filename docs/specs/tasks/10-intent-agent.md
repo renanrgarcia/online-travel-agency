@@ -2,33 +2,43 @@
 
 **Roadmap step:** 5. AI layer, offline first
 **Source doc:** `docs/05-agents-and-intent.md`
-**Depends on:** 09 (offline chat client), 04 (for the `SearchRequest`-adjacent shape, if not already
-defined)
+**Depends on:** 09 (offline chat client), 04 (`SearchRequest` shape)
 
 ## Goal
 
-Build `IntentAgentFactory`: natural language in, a typed, schema-validated `SearchRequest` out. This is
-the first of the system's two AI touchpoints, and the one that turns free text into something the rest
-of the pipeline (which never reads free text again) can trust.
+Build `IntentAgentFactory`: natural language in, a typed, schema-validated `SearchRequest` out. The
+first AI touchpoint, and the boundary past which nothing reads free text again.
 
 ## Scope
 
-- A `SearchRequest` type capturing whatever the pipeline needs (origin, destination, dates, passenger
-  count — scope to what tasks 04–08 actually consume).
-- `IntentAgentFactory.Create(IChatClient)` wiring an agent that uses the framework's typed-result call
-  (`RunAsync<T>`, per `docs/08-package-versions.md`'s confirmed API surface) to produce a validated
-  `SearchRequest`.
-- Run it against `OfflineChatClient` from task 09 for now.
+- `SearchRequest` covering what tasks 04–08 consume.
+- `IntentAgentFactory.Create(IChatClient)` using the framework's typed call (`RunAsync<T>`, per
+  `docs/08-package-versions.md`).
+- Run against `OfflineChatClient`.
 
-## Out of scope (comes later)
+## Out of scope
 
-- Real model calls — task 17.
-- The explanation agent — task 11, separate factory, separate concerns.
+- Real models — task 17. The explanation agent — task 11.
+
+## Evals
+
+| ID | Input | Expected | Why it matters |
+|---|---|---|---|
+| E1 | `"cheapest flight from São Paulo to Lisbon on 12 March for 2 people"` | `SearchRequest` with origin, destination, date and passenger count populated correctly | Baseline extraction |
+| E2 | The same input twice | Identical `SearchRequest` | Determinism through the agent layer |
+| E3 | Input missing a destination | Rejected as invalid — **not** a `SearchRequest` with a null or guessed destination | A half-filled request flowing downstream would produce a confidently wrong search |
+| E4 | Model returns malformed/unparseable output | Surfaced as a failure, not an exception escaping to the caller | Real models return junk sometimes; this is expected, not exceptional |
+| E5 | Input with a past date | Rejected by validation | Schema validation includes semantic validity, not just shape |
+| E6 | Any successful result | Is the typed `SearchRequest` — no free-text field survives into it | The boundary claim from `docs/01-architecture-overview.md`, made testable |
+| E7 | Input in Portuguese | Parses equivalently to E1's English | The target market is Brazilian; monolingual intent parsing would be a product bug |
+
+### Locked decisions
+
+- **Missing required fields fail loudly** (E3). No defaults, no inference. A guessed destination is
+  worse than an error, because the user cannot tell it was guessed.
+- Validation happens after the typed parse, in deterministic code — never delegated to the model's own
+  judgement.
 
 ## Done when
 
-- A unit test proves that a fixed natural-language input, run through `OfflineChatClient`, produces a
-  `SearchRequest` with the expected fields populated.
-- A unit test proves malformed/incomplete input is rejected or handled in a defined way (decide and
-  document what "handled" means here — this is a real design decision, not a detail) rather than
-  producing a garbage `SearchRequest` that silently flows downstream.
+All seven evals pass.

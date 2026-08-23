@@ -2,34 +2,44 @@
 
 **Roadmap step:** 6. API + SSE
 **Source doc:** `docs/06-api-sse-contract.md`
-**Depends on:** 12 (SSE skeleton), 08 (pipeline), 10–11 (agents)
+**Depends on:** 12, 08, 10, 11
 
 ## Goal
 
-Wire the real pipeline (suppliers → ranking → intent/explanation agents) through the SSE endpoint from
-task 12, emitting the four event types in true completion order as each stage of the pipeline finishes —
-not buffered and dumped at the end.
+Stream the real pipeline through the SSE endpoint: four event types, emitted as each stage completes
+rather than buffered to the end.
 
 ## Scope
 
-- `parsed-intent` — emitted once `IntentAgentFactory`'s agent (task 10) resolves the request.
-- `supplier-result` × N — one per connector as `SupplierFanOutOrchestrator` (task 06) reports each
-  connector's result, including failed/timed-out connectors per task 06's reporting.
-- `ranked-offers` — emitted once `OfferScorer` (task 03) has ranked the combined results.
-- `explanation` — emitted once `ExplanationAgentFactory`'s agent (task 11) has produced prose, rendered
-  through task 02's renderer before it leaves the server (the client should only ever see resolved
-  prices, never a token).
-- Match the exact payload shapes documented in `docs/06-api-sse-contract.md`.
+- `parsed-intent` (task 10), `supplier-result` × N (task 06), `ranked-offers` (task 03), `explanation`
+  (task 11, rendered through task 02 before it leaves the server).
+- Payload shapes exactly per `docs/06-api-sse-contract.md`.
 
-## Out of scope (comes later)
+## Out of scope
 
-- The booking saga — tasks 14–16, a separate Functions app entirely.
-- A real model — still `OfflineChatClient` for this task; task 17 swaps it.
+- Booking — tasks 14–16. Real model — task 17.
+
+## Evals
+
+| ID | Setup | Expected | Why it matters |
+|---|---|---|---|
+| E1 | Normal search via `curl -N` | All four event types arrive in documented order | The contract |
+| E2 | Connectors with different delays (200ms, 800ms) | `supplier-result` events arrive ≈200ms and ≈800ms in — not together | Per-stage streaming is real, the reason for SSE at all |
+| E3 | `explanation` event payload | Contains resolved prices, zero `{{TOKEN}}` strings | Nothing half-rendered reaches a browser |
+| E4 | `explanation` payload versus store values | Every price matches the registered value exactly | End-to-end price integrity over HTTP |
+| E5 | One connector fails | Its `supplier-result` reports the failure; the stream still completes with `ranked-offers` and `explanation` | Degradation survives the transport layer |
+| E6 | Model emits a raw digit (task 09 misbehaving mode) | Server does **not** emit a malformed `explanation`; the violation is handled server-side | The guard protects the client, not just the test suite |
+| E7 | Every connector registered | Exactly one `supplier-result` per connector | Task 06 E8 over the wire |
+| E8 | Client disconnects after `parsed-intent` | Remaining pipeline work is cancelled | Task 12 E5, with real cost attached |
+| E9 | Two identical searches | Identical event sequences and payloads | Determinism end to end, offline model |
+
+### Locked decisions
+
+- **Rendering happens server-side, always.** The browser never receives a token and never learns the
+  token vocabulary exists.
+- A guard violation (E6) degrades that one event; it does not fail the whole search — offers already
+  streamed are still useful.
 
 ## Done when
 
-- `curl -N` against the real endpoint shows all four event types arrive in the documented order, with
-  `supplier-result` events arriving as each connector finishes rather than all at once at the end (you
-  should be able to see this timing with connectors that have different artificial delays, from task 05).
-- A test (integration-level, not necessarily a full HTTP test) proves a resolved price never appears as
-  an unresolved token in the `explanation` event payload.
+All nine evals pass.

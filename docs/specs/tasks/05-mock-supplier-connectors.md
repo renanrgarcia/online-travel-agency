@@ -2,33 +2,43 @@
 
 **Roadmap step:** 3. Suppliers
 **Source doc:** `docs/03-suppliers-and-budget.md`
-**Depends on:** 04 (supplier connector interface)
+**Depends on:** 04 (connector interface)
 
 ## Goal
 
-Implement two mock connectors against the interface from task 04 — enough variety (e.g. an NDC-style and
-an LCC-style connector) to exercise fan-out logic in task 06 realistically, without needing any real
-supplier credentials.
+Implement mock connectors against task 04's interface — enough variety to exercise fan-out realistically
+in task 06, with no supplier credentials and fully reproducible behaviour.
 
 ## Scope
 
-- Two implementations of `ISupplierConnector`, each returning a small set of deterministic, hand-built
-  `Offer`s so tests are reproducible.
-- A deliberate failure-injection convention: a request containing a specific marker (e.g. an offer ID
-  substring) should deterministically fail. This mirrors the same convention used later in the booking
-  saga (`FAIL-ORDER` / `FAIL-TICKET`, see `docs/07-booking-saga.md`) — pick your own marker strings now,
-  consistent between the two connectors.
-- Realistic-enough latency variance if you want to exercise timeout behavior in task 06 (e.g. an
-  optional artificial delay), but don't over-engineer this — a `Task.Delay` is enough.
+- Two or three implementations (e.g. NDC-style and LCC-style) returning deterministic, hand-built offers.
+- A deliberate failure-injection convention, mirroring the booking saga's (`docs/07-booking-saga.md`).
+- Configurable artificial latency so task 06's timeout can be tested.
 
 ## Out of scope (comes later)
 
-- Calling both connectors in parallel — task 06.
-- Any real supplier's actual wire format — deliberately out of scope for the whole system per
-  `docs/01-architecture-overview.md`'s "what's deliberately not here."
+- Parallel invocation — task 06. Real wire formats — out of scope for the whole system, per
+  `docs/01-architecture-overview.md`.
+
+## Evals
+
+| ID | Input | Expected | Why it matters |
+|---|---|---|---|
+| E1 | Ordinary request, run twice | Byte-identical offer sets both runs | Reproducibility is the reason these exist |
+| E2 | Two different connectors, same request | Different offer sets, no ID collisions between them | Task 06 merges these; colliding IDs would corrupt task 01's per-offer tokens |
+| E3 | Request carrying `FAIL-SEARCH` | Failure result with a reason, no exception thrown | Task 04 E3, exercised for real |
+| E4 | Request carrying `FAIL-SEARCH` | The *other* connector still succeeds | Failure is per-connector, never global |
+| E5 | Connector configured with a 5s delay, called with a token cancelled at 100ms | Returns promptly as cancelled, not after 5s | Cancellation is honoured, not merely accepted — task 06's timeout depends on this |
+| E6 | Every offer returned | Has a unique, stable ID and every field task 03's scorer reads | Feeds tasks 06–08 without surprises |
+| E7 | Offer prices | Vary enough that ranking order differs by weight (as in task 03's fixtures) | A demo where every offer scores alike proves nothing in task 08 |
+
+### Locked decisions
+
+- **Failure markers:** `FAIL-SEARCH` in a search request fails that connector. Task 16 uses
+  `FAIL-ORDER` and `FAIL-TICKET` for the booking saga — same convention, different stage.
+- Offer IDs are prefixed per connector (e.g. `NDC-`, `LCC-`) to guarantee E2.
+- Latency is injected via `Task.Delay` honouring the `CancellationToken`. Nothing more elaborate.
 
 ## Done when
 
-- A unit test proves each connector returns its expected offers for a normal request.
-- A unit test proves each connector deterministically fails for a request carrying your failure marker,
-  and succeeds otherwise — reproducible failure on demand is the entire point of this convention.
+All seven evals pass.

@@ -74,3 +74,6 @@ Not a numbered step, but worth doing alongside the roadmap: the frontend (React)
 after step 6, in parallel, if you want a visual target sooner than the roadmap otherwise gives you.
 `docs/09-lessons-learned.md` is worth (re-)reading right before step 6 and step 7 specifically — three of
 the four documented bugs live there, and they're cheaper to avoid than to rediscover.
+
+Deployment is covered separately in [`deployment.md`](deployment.md) — Azure end to end on free tiers.
+Nothing is deployable until step 6, so read it then rather than now.

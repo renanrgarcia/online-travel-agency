@@ -2,33 +2,50 @@
 
 **Roadmap step:** 3. Suppliers
 **Source doc:** `docs/03-suppliers-and-budget.md`
-**Depends on:** nothing new (can reuse the `Offer` shape you'll now make canonical)
+**Depends on:** nothing new
 
 ## Goal
 
-Define the shape every supplier integration talks through: `ISupplierConnector` and the canonical
-`Offer` model. This is the seam that lets you add a real supplier later without touching anything above
-it in the pipeline.
+Define the seam every supplier integration talks through: `ISupplierConnector` and the canonical
+`Offer`. Getting this contract right is what lets a real supplier be added later without touching
+anything above it.
 
 ## Scope
 
-- The canonical `Offer` model — the real one this time, replacing task 03's stub. Include whatever
-  fields the rest of the system actually needs (price, currency, duration, stops, carrier, fare rules —
-  scope it to what `docs/03-suppliers-and-budget.md` and `docs/04-ranking.md` actually require, not
-  everything a real GDS response might contain).
-- `ISupplierConnector`: an interface with an async search method that takes a request and returns a list
-  of `Offer`s (or a result type that can represent partial failure — decide this deliberately, since task
-  06 depends on it).
-- No implementation yet — this task is the contract only.
+- The canonical `Offer` — the real one, replacing task 03's stub. Scope to what
+  `docs/03-suppliers-and-budget.md` and `docs/04-ranking.md` actually consume.
+- `ISupplierConnector` with an async search method returning a result type that can express **partial
+  failure** — a connector that returned some offers and then failed is a real case.
+- Contract only. No implementations beyond a test double.
 
 ## Out of scope (comes later)
 
-- Actual connector implementations — task 05.
-- Calling multiple connectors in parallel — task 06.
+- Real connectors — task 05. Fan-out — task 06.
+
+## Evals
+
+Since this task is mostly a contract, the evals are about the contract's *expressiveness*: write a
+throwaway test double and prove each state below is representable without exceptions or nulls.
+
+| ID | Scenario the result type must express | Why it matters |
+|---|---|---|
+| E1 | Full success with N offers | The baseline |
+| E2 | Success with **zero** offers (supplier had nothing, but answered fine) | Must be distinguishable from failure — "no flights" is a valid answer, not an error |
+| E3 | Outright failure with a reason, zero offers | Task 06 needs the reason to report per-supplier status |
+| E4 | Partial success — some offers **and** a failure reason | The case most easily designed out by accident; a connector that pages results can fail midway |
+| E5 | A cancelled call (caller's `CancellationToken` fired) distinguishable from a supplier failure | Task 06 enforces timeouts via cancellation; conflating the two would misattribute the fault to the supplier |
+| E6 | Every state above is representable **without throwing** | Exceptions as control flow would make task 06's partial-degradation logic unreadable |
+| E7 | `Offer` carries every field `OfferScorer` (task 03) reads, and every field `PriceReferenceStore` (task 01) registers | Prevents discovering a missing field three tasks later |
+
+### Locked decisions
+
+- **Failures are returned, not thrown.** A supplier failing is an expected outcome in this system, not
+  an exceptional one. Reserve exceptions for programmer error.
+- `ISupplierConnector` exposes a stable `Name` used as the key in task 06's per-supplier reporting and
+  task 07's circuit-breaker state.
+- Every search method takes a `CancellationToken`.
 
 ## Done when
 
-- The interface compiles and is used nowhere yet except a throwaway test double.
-- A short written note (comment or this task file, your choice) on the decision you made for
-  representing partial failure in the return type — this decision shapes task 06, so make it consciously
-  rather than defaulting to "throws an exception."
+All seven evals are demonstrated against a test double, and the interface is referenced nowhere else
+yet.

@@ -1,38 +1,41 @@
 # 17 — Swap in a real model
 
 **Roadmap step:** 8. Real model
-**Source doc:** `docs/05-agents-and-intent.md`, `docs/08-package-versions.md`
-**Depends on:** 09–11 (offline AI layer), 13 (SSE pipeline, so you have somewhere to see real output)
+**Source doc:** `docs/05-agents-and-intent.md`, `docs/08-package-versions.md`, `docs/specs/deployment.md`
+**Depends on:** 09–11, 13
 
 ## Goal
 
-Replace `OfflineChatClient` with a real model-backed `IChatClient`, using either Gemini's free tier or
-the Microsoft Foundry pattern documented in `docs/05-agents-and-intent.md`. Confirm nothing above
-`OfflineChatClient` needed to change — that's the payoff of the interface boundary from task 09.
+Replace `OfflineChatClient` with a real model-backed `IChatClient` and confirm nothing above it needed
+to change. That's the payoff of task 09's boundary — and the first time the price-integrity guard faces
+genuinely unpredictable text.
 
 ## Scope
 
-- Pick one path (both are documented and compile-verified):
-  - **Gemini free tier**, via the OpenAI-compatible-endpoint pattern in `docs/08-package-versions.md`.
-  - **Microsoft Foundry**, via the `Azure.AI.Projects` pattern in `docs/05-agents-and-intent.md`.
-- Get an API key (Gemini) or a Foundry project + deployment (Foundry), and wire it into
-  `IntentAgentFactory` and `ExplanationAgentFactory` in place of `OfflineChatClient` — via configuration,
-  not a code change to either factory.
-- Re-run the console demo (task 08) and the SSE pipeline (task 13) against the real model.
+- Gemini free tier via the OpenAI-compatible endpoint pattern (`docs/08-package-versions.md`), or
+  Microsoft Foundry via `Azure.AI.Projects` (`docs/05-agents-and-intent.md`). See
+  `docs/specs/deployment.md` for why Gemini is the free choice and Foundry the production one.
+- Wire it in by **configuration**, not by editing either agent factory.
 
-## Out of scope
+## Evals
 
-- Nothing further in this roadmap — this is the last task. Optional stretch: try swapping *between*
-  Gemini and Foundry (or an Anthropic model hosted in Foundry) to directly confirm the model choice and
-  the agent-framework choice really are independent, as `docs/05-agents-and-intent.md` claims.
+| ID | Setup | Expected | Why it matters |
+|---|---|---|---|
+| E1 | `git diff` on `IntentAgentFactory` and `ExplanationAgentFactory` after the swap | No changes | If either needed editing, task 09's seam leaked and is worth fixing before continuing |
+| E2 | Console demo with the real model | Real prose, all prices resolved, task 02's guard passes | The boundary holds against real model output, not just a fixture's |
+| E3 | Run the same search 20 times | Every run either renders cleanly or is caught by the guard; **no run leaks a raw number to output** | The real test of tasks 01–02. A model *will* eventually type a digit; the system must stay correct when it does |
+| E4 | Any run where the guard fires | Logged with the offending text | You need to *see* the failure mode you designed for actually occur |
+| E5 | Intent parsing, Portuguese input | Correct `SearchRequest` (task 10 E7 against a real model) | The target market |
+| E6 | SSE endpoint (task 13) with the real model | `explanation` event streams correctly, no tokens leak | End to end over the real transport |
+| E7 | API key handling | Never in source, never in the SSE payload, never reaching the browser | The model is called server-side only |
+| E8 | Swap Gemini ↔ Foundry (stretch) | Both work; only configuration differs | Proves the model choice and framework choice are genuinely independent |
+
+### Locked decisions
+
+- The key lives in configuration/environment, never in the repository.
+- The offline client stays in the codebase permanently — tests keep running against it, so the suite
+  remains free, fast, and deterministic.
 
 ## Done when
 
-- The console demo (task 08) produces real, non-canned explanation prose, and task 02's structural guard
-  still passes — a real model's free-text output going through the trust boundary built in tasks 01–02
-  is the real test of whether that boundary actually holds, not just a mock's.
-- The SSE pipeline (task 13) streams a real `explanation` event with correctly resolved prices, end to
-  end, through a browser or `curl`, with no leaked tokens and no leaked raw prices from the model.
-- Neither `IntentAgentFactory` nor `ExplanationAgentFactory`'s own code changed to make this work — only
-  what `IChatClient` they were constructed with. If you had to touch the factories, that's a sign task 09
-  didn't fully isolate the offline/online seam, worth going back to fix.
+E1–E7 pass. E3 is the one that retroactively justifies tasks 01 and 02 having come first.

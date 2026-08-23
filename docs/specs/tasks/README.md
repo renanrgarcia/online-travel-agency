@@ -5,6 +5,22 @@ Seventeen tasks, numbered in the order to implement them — the same order as
 own before moving to the next; each names the `docs/0N-*.md` file that is its source of truth, what's
 explicitly out of scope (because a later task owns it), and how to know you're done.
 
+## The eval discipline
+
+Every task carries an **Evals** table: numbered acceptance criteria, each a fixed input and an expected
+observable output, written *before* the implementation exists. Tests assert exactly these, and test
+names carry the eval ID (`E1_...`, `E2_...`) so a failure points at the criterion it violates.
+
+This ordering is the whole point. A test written after the code tends to assert whatever the code
+already does — it passes by construction and proves nothing. An eval written first is an external
+target the implementation has to meet, so when the two disagree, **the implementation is wrong, not
+the eval.**
+
+Each task also has a **Locked decisions** section recording choices the source docs left open (display
+formats, tie-breaks, sign conventions). These exist so the evals have something concrete to assert
+against instead of deferring to whatever the code produces. If you disagree with a locked decision,
+change it in the task note first, then let the failing test drive the code change.
+
 | # | Task | Roadmap step |
 |---|---|---|
 | [01](01-price-reference-tokens.md) | Price reference tokens | 1. Price integrity core |

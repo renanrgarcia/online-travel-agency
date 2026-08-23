@@ -2,40 +2,43 @@
 
 **Roadmap step:** 7. Booking saga
 **Source doc:** `docs/07-booking-saga.md`
-**Depends on:** 15 (booking saga orchestrator)
+**Depends on:** 15
 
 ## Goal
 
-Add the saga's defining feature — compensating actions on failure — and its idempotency mechanism. This
-is the task that turns the orchestrator from "a sequence of steps" into an actual saga.
+Add compensating actions and the idempotency mechanism — what turns a sequence of steps into an actual
+saga.
 
 ## Scope
 
-- Deterministic failure injection: an offer ID containing `FAIL-ORDER` fails order creation, one
-  containing `FAIL-TICKET` fails ticketing, matching the convention from task 05's supplier mocks.
-- Compensating actions, exactly per `docs/07-booking-saga.md`'s table:
-  - `CreateOrder` failing → compensate with `VoidPayment`.
-  - `IssueTicket` failing → compensate with `CancelOrder`, then `VoidPayment`, in that order.
-  - `SendConfirmation` failing → **not** compensated (the ticket is already real).
-- Idempotency: `bookingId` **is** the orchestration instance ID, so a retried/duplicated `POST` with the
-  same `bookingId` lands on the same saga instance instead of double-authorizing payment — no separate
-  deduplication table.
-- The `customStatus` shape's `compensated` / `warning` fields (per `docs/07-booking-saga.md`) so a caller
-  polling status can see that compensation happened, not just that the orchestration ended.
+- Failure injection: `FAIL-ORDER` fails order creation, `FAIL-TICKET` fails ticketing (same convention
+  as task 05).
+- Compensation per `docs/07-booking-saga.md`'s table.
+- `bookingId` **is** the orchestration instance ID.
+- `customStatus` gains `compensated` / `warning` fields.
 
-## Out of scope (comes later)
+## Evals
 
-- Nothing — this is the last task in the booking saga step. Task 17 is a different part of the system
-  (the AI layer).
+| ID | Setup | Expected | Why it matters |
+|---|---|---|---|
+| E1 | `FAIL-ORDER` booking | `VoidPayment` called exactly once; `AuthorizationId` populated, `OrderId` null; `FailedStage` = order creation | The simplest compensation path |
+| E2 | `FAIL-TICKET` booking | `CancelOrder` then `VoidPayment`, **in that order**, each exactly once | Compensation order is not arbitrary — releasing the order before voting payment mirrors how the booking was built up |
+| E3 | `AuthorizePayment` fails | **No** compensation called at all | Nothing to undo; calling `VoidPayment` on a payment that never existed is its own bug |
+| E4 | `SendConfirmation` fails | **No** compensation; result still reports overall success with a warning | The ticket is real; a failed email must not unwind a valid booking |
+| E5 | Same `bookingId` POSTed twice rapidly | One orchestration instance; `AuthorizePayment` called exactly once | The idempotency guarantee — double-charging is the worst outcome in this system |
+| E6 | Same `bookingId` POSTed after the first completed | Returns the existing instance's status, does not restart it | Idempotency holds beyond the concurrent case |
+| E7 | Any compensated run's `customStatus` | Shows `compensating` then a terminal state with `compensated` set | Callers can distinguish "failed and rolled back" from "failed, state unknown" |
+| E8 | Compensated run's `output` | `AuthorizationId`/`OrderId` populated up to the point reached, `FailedStage` and `FailureReason` set | The output records how far it got, which is exactly what was undone |
+| E9 | A compensating activity itself fails | Surfaced explicitly (warning/dead-letter), never silently swallowed | A failed rollback is the worst state in the system — it must be loud |
+| E10 | Compensation activities called twice with the same input | Second call is a no-op | Durable retries compensations too; non-idempotent compensation double-refunds |
+
+### Locked decisions
+
+- **Compensation runs in reverse order of completion** (E2).
+- **`SendConfirmation` is never compensated** (E4).
+- **Compensating activities must themselves be idempotent** (E10) — they run under the same retry
+  policy as everything else.
 
 ## Done when
 
-- The compensation-path curl example from `docs/07-booking-saga.md` (an offer ID containing
-  `FAIL-TICKET`) results in a `FailedStage`/`FailureReason` output, with `OrderId` and
-  `AuthorizationId` populated (proving they existed) but the booking correctly rolled back — walk through
-  the `output` JSON and confirm it tells you exactly how far the booking got and what was undone.
-- A test proves that POSTing the same `bookingId` twice in quick succession does not authorize payment
-  twice — it lands on the same orchestration instance both times.
-- A test proves `AuthorizePayment` failing (the first step) triggers no compensation calls at all, since
-  there's nothing to undo yet — confirm your compensation logic doesn't call `VoidPayment` on a payment
-  that was never authorized.
+All ten evals pass. E5 and E9 are the ones with real money attached.
