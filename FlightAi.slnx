@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/FlightAi.Core/FlightAi.Core.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/FlightAi.Tests/FlightAi.Tests.csproj" />
+  </Folder>
+</Solution>
