@@ -1,0 +1,83 @@
+using System.Text.RegularExpressions;
+
+namespace FlightAi.Core.Pricing;
+
+/// <summary>
+/// The result of a render attempt. <see cref="Violations"/> non-empty means the model's raw text
+/// bypassed the token mechanism (a digit or spelled-out number outside any token) — <see cref="Text"/>
+/// is the original, unrendered input in that case, and must never be shown to a user.
+/// </summary>
+public sealed record RenderResult(
+    bool Success,
+    string Text,
+    IReadOnlyList<string> UnresolvedTokens,
+    IReadOnlyList<string> Violations);
+
+/// <summary>
+/// The only code allowed to turn a price-reference token into a digit. See docs/02-price-integrity.md.
+/// Resolves every token via <see cref="PriceReferenceStore"/>, and rejects raw text where the model
+/// wrote a number itself — as a digit or spelled out — instead of referencing a token. The digit/word
+/// scan runs on the model's raw input, before any resolution, since resolution itself legitimately
+/// introduces digits into the final text.
+/// </summary>
+public sealed class ExplanationPlaceholderRenderer
+{
+    private static readonly Regex TokenPattern = new(@"\{\{[A-Za-z0-9_]+\}\}", RegexOptions.Compiled);
+    private static readonly Regex DigitPattern = new(@"\d+", RegexOptions.Compiled);
+
+    // Magnitude words only -- deliberately excludes one-to-twenty spelled out ("one", "two", "um",
+    // "dois", ...), which are common pronouns/adjectives in both languages and would produce an
+    // unacceptable false-positive rate. See task 02's Locked decisions for the disclosed gap this
+    // leaves: a model writing "five stops" instead of a STOPS token is not caught.
+    private static readonly Regex MagnitudeWordPattern = new(
+        @"\b(hundred|thousand|million|billion|cem|cento|duzentos|trezentos|quatrocentos|quinhentos|" +
+        @"seiscentos|setecentos|oitocentos|novecentos|mil|milh(?:a|õ)o|milh(?:a|õ)es|bilh(?:a|õ)o|bilh(?:a|õ)es)\b",
+        RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+    private readonly PriceReferenceStore _store;
+
+    public ExplanationPlaceholderRenderer(PriceReferenceStore store) => _store = store;
+
+    public RenderResult Render(string rawText)
+    {
+        var masked = MaskTokens(rawText);
+        var violations = new List<string>();
+
+        CollectMatches(DigitPattern, rawText, masked, "raw digit outside a token", violations);
+        CollectMatches(MagnitudeWordPattern, rawText, masked, "spelled-out number outside a token", violations);
+
+        if (violations.Count > 0)
+            return new RenderResult(Success: false, Text: rawText, UnresolvedTokens: [], Violations: violations);
+
+        var unresolved = new List<string>();
+        var rendered = TokenPattern.Replace(rawText, match =>
+        {
+            if (_store.TryResolve(match.Value, out var value))
+                return value;
+            unresolved.Add(match.Value);
+            return match.Value; // left visibly unresolved, never silently dropped
+        });
+
+        return new RenderResult(Success: unresolved.Count == 0, Text: rendered, UnresolvedTokens: unresolved, Violations: []);
+    }
+
+    /// <summary>Replaces every token span with spaces of the same length, so later scans can treat
+    /// token contents (which may legitimately contain digits, e.g. an offer ID like OFF8812) as
+    /// invisible while preserving character offsets for diagnostic snippets.</summary>
+    private static string MaskTokens(string text) => TokenPattern.Replace(text, m => new string(' ', m.Length));
+
+    private static void CollectMatches(Regex pattern, string rawText, string masked, string label, List<string> violations)
+    {
+        foreach (Match match in pattern.Matches(masked))
+        {
+            violations.Add($"{label}: \"{Snippet(rawText, match.Index, match.Length)}\"");
+        }
+    }
+
+    private static string Snippet(string text, int index, int length)
+    {
+        var start = Math.Max(0, index - 12);
+        var end = Math.Min(text.Length, index + length + 12);
+        return text[start..end];
+    }
+}

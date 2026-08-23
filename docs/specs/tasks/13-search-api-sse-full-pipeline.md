@@ -43,3 +43,18 @@ rather than buffered to the end.
 ## Done when
 
 All nine evals pass.
+
+## Deployment gate
+
+Task 13 is the first point in the roadmap where there's something real to deploy. See
+[`../deployment.md`](../deployment.md), step 1 (and step 2, once `frontend/` exists to point at it).
+
+| ID | Requirement |
+|---|---|
+| D1 | `FlightAi.Api` deployed to Azure App Service (Free F1 tier) |
+| D2 | `curl -N` against the **deployed** URL — not localhost — shows all four SSE event types arriving in order with per-stage timing preserved (E2's proof, repeated against the real deployment). App Service's proxy layer can buffer streaming responses in ways localhost never does, so this cannot be assumed from local tests passing |
+| D3 | `frontend/`, once scaffolded, deployed to Azure Static Web Apps (Free tier) and pointed at the deployed API |
+
+If this is your first time deploying anything to Azure for real rather than running it locally, say so
+when you reach this point and ask for a guided, step-by-step walkthrough rather than working from this
+table alone — the table is the acceptance bar, not the how-to.

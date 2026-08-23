@@ -57,6 +57,11 @@ dependency in an otherwise Azure-native system. If Azure purity matters more tha
 with a spending cap and accept a small bill. If you want to compare both, task 17's stretch goal is
 exactly that experiment.
 
+Tasks 13, 16, and 17 each carry a **Deployment gate** section with the specific acceptance criteria for
+that step. If this is your first real Azure deployment — not just running services locally — say so
+when you reach one and ask for a guided walkthrough rather than working from the gate's table alone;
+the table is the acceptance bar for "done," not instructions for how to get there.
+
 ## Deployment order
 
 Deploy in the same order you build. Don't try to deploy anything before task 13 — there's nothing

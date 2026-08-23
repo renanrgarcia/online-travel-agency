@@ -39,3 +39,16 @@ genuinely unpredictable text.
 ## Done when
 
 E1–E7 pass. E3 is the one that retroactively justifies tasks 01 and 02 having come first.
+
+## Deployment gate
+
+See [`../deployment.md`](../deployment.md), step 4.
+
+| ID | Requirement |
+|---|---|
+| D1 | The model API key lives in App Service Configuration (or Key Vault) — never in source control, never shipped to the browser |
+| D2 | The **deployed** `FlightAi.Api` (not local) streams a real-model explanation end to end, per E6 above |
+| D3 | Rotate the key once and redeploy without a code change — confirms the key is read from configuration at runtime, not baked into a build |
+
+This is the deployment step with the most consequence if done wrong — a leaked key is billable to you
+directly. Ask for a guided walkthrough and don't skip D3.
