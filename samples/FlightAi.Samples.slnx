@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/FlightAi.Agents/FlightAi.Agents.csproj" />
+    <Project Path="src/FlightAi.Api/FlightAi.Api.csproj" />
+    <Project Path="src/FlightAi.Booking.Functions/FlightAi.Booking.Functions.csproj" />
+    <Project Path="src/FlightAi.Core/FlightAi.Core.csproj" />
+    <Project Path="src/FlightAi.Demo/FlightAi.Demo.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/FlightAi.Tests/FlightAi.Tests.csproj" />
+  </Folder>
+</Solution>

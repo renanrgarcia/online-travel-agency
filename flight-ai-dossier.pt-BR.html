@@ -1,0 +1,1963 @@
+<title>Oferta, Pedido, Agente</title>
+
+<style>
+  :root {
+    --ground:      #E9EBE8;
+    --surface:     #F5F6F4;
+    --surface-2:   #DEE2DD;
+    --ink:         #151B19;
+    --ink-2:       #45514D;
+    --ink-3:       #6D7A75;
+    --rule:        #C4CCC7;
+    --rule-soft:   #D6DCD8;
+    --petrol:      #0B5D5B;
+    --petrol-soft: #D6E5E2;
+    --amber:       #93600F;
+    --amber-soft:  #EFE4CD;
+    --rust:        #9E3B2C;
+    --rust-soft:   #F0DDD8;
+
+    --font-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, "JetBrains Mono", "Cascadia Mono", Consolas, monospace;
+    --font-serif: Charter, "Iowan Old Style", "Source Serif 4", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+    --measure: 68ch;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground:      #0D1211;
+      --surface:     #151C1A;
+      --surface-2:   #1E2725;
+      --ink:         #DBE2DF;
+      --ink-2:       #A3AEAA;
+      --ink-3:       #7C8783;
+      --rule:        #2B3634;
+      --rule-soft:   #212B29;
+      --petrol:      #43ADA3;
+      --petrol-soft: #123331;
+      --amber:       #DCA243;
+      --amber-soft:  #33280F;
+      --rust:        #D2705C;
+      --rust-soft:   #351914;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --ground:      #0D1211;
+    --surface:     #151C1A;
+    --surface-2:   #1E2725;
+    --ink:         #DBE2DF;
+    --ink-2:       #A3AEAA;
+    --ink-3:       #7C8783;
+    --rule:        #2B3634;
+    --rule-soft:   #212B29;
+    --petrol:      #43ADA3;
+    --petrol-soft: #123331;
+    --amber:       #DCA243;
+    --amber-soft:  #33280F;
+    --rust:        #D2705C;
+    --rust-soft:   #351914;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--font-serif);
+    font-size: 17px;
+    line-height: 1.62;
+    margin: 0;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ---------- shell ---------- */
+
+  .shell {
+    display: grid;
+    grid-template-columns: 232px minmax(0, 1fr);
+    gap: 0;
+    max-width: 1240px;
+    margin: 0 auto;
+  }
+
+  .rail {
+    position: sticky;
+    top: 0;
+    align-self: start;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 34px 20px 60px 24px;
+    border-right: 1px solid var(--rule);
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    line-height: 1.4;
+  }
+
+  .rail-mark {
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  .rail-title {
+    font-size: 14px;
+    letter-spacing: 0.02em;
+    color: var(--ink);
+    font-weight: 600;
+    display: block;
+    margin-bottom: 26px;
+  }
+
+  .rail nav { display: flex; flex-direction: column; gap: 1px; }
+
+  .rail a {
+    display: grid;
+    grid-template-columns: 24px 1fr;
+    gap: 8px;
+    padding: 6px 8px 6px 6px;
+    color: var(--ink-2);
+    text-decoration: none;
+    border-left: 2px solid transparent;
+    transition: color .12s, background .12s, border-color .12s;
+  }
+
+  .rail a:hover { color: var(--ink); background: var(--surface); }
+  .rail a .n { color: var(--ink-3); font-variant-numeric: tabular-nums; }
+  .rail a.on { color: var(--petrol); border-left-color: var(--petrol); background: var(--surface); }
+  .rail a.on .n { color: var(--petrol); }
+  .rail a:focus-visible { outline: 2px solid var(--petrol); outline-offset: -2px; }
+
+  .rail-foot {
+    margin-top: 28px;
+    padding-top: 16px;
+    border-top: 1px dashed var(--rule);
+    color: var(--ink-3);
+    font-size: 10.5px;
+    line-height: 1.6;
+  }
+
+  main {
+    padding: 34px 40px 140px 44px;
+    min-width: 0;
+  }
+
+  /* ---------- masthead ---------- */
+
+  .masthead { margin-bottom: 56px; }
+
+  .kicker {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--petrol);
+    margin: 0 0 14px;
+  }
+
+  h1 {
+    font-family: var(--font-mono);
+    font-size: clamp(30px, 4.4vw, 46px);
+    line-height: 1.06;
+    letter-spacing: -0.025em;
+    font-weight: 600;
+    margin: 0 0 18px;
+    text-wrap: balance;
+    max-width: 22ch;
+  }
+
+  .standfirst {
+    font-size: 19px;
+    line-height: 1.55;
+    color: var(--ink-2);
+    max-width: var(--measure);
+    margin: 0 0 26px;
+  }
+
+  .meta-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 26px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    border-top: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+    padding: 12px 0;
+  }
+  .meta-strip b { color: var(--ink-2); font-weight: 600; }
+
+  /* ---------- sections ---------- */
+
+  section { margin-bottom: 76px; scroll-margin-top: 24px; }
+
+  .sec-head {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 9px;
+    margin-bottom: 26px;
+  }
+
+  .sec-num {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    color: var(--petrol);
+    font-variant-numeric: tabular-nums;
+  }
+
+  h2 {
+    font-family: var(--font-mono);
+    font-size: 22px;
+    letter-spacing: -0.015em;
+    font-weight: 600;
+    margin: 0;
+    text-wrap: balance;
+  }
+
+  h3 {
+    font-family: var(--font-mono);
+    font-size: 15px;
+    letter-spacing: 0.01em;
+    font-weight: 600;
+    margin: 38px 0 12px;
+    color: var(--ink);
+  }
+
+  h4 {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-weight: 600;
+    margin: 26px 0 10px;
+    color: var(--ink-3);
+  }
+
+  p { max-width: var(--measure); margin: 0 0 16px; }
+
+  main ul, main ol { max-width: var(--measure); padding-left: 20px; margin: 0 0 18px; }
+  main li { margin-bottom: 8px; }
+  main li::marker { color: var(--ink-3); }
+
+  a.ref { color: var(--petrol); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+
+  code, .m {
+    font-family: var(--font-mono);
+    font-size: 0.86em;
+    background: var(--surface-2);
+    padding: 1px 5px;
+    border-radius: 2px;
+  }
+
+  strong { font-weight: 700; }
+
+  /* ---------- callouts ---------- */
+
+  .call {
+    border-left: 3px solid var(--petrol);
+    background: var(--surface);
+    padding: 16px 20px;
+    margin: 0 0 22px;
+    max-width: var(--measure);
+  }
+  .call > :last-child { margin-bottom: 0; }
+  .call .tag {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--petrol);
+    display: block;
+    margin-bottom: 7px;
+    font-weight: 600;
+  }
+  .call.warn { border-left-color: var(--amber); background: var(--amber-soft); }
+  .call.warn .tag { color: var(--amber); }
+  .call.stop { border-left-color: var(--rust); background: var(--rust-soft); }
+  .call.stop .tag { color: var(--rust); }
+
+  .thesis {
+    border-top: 2px solid var(--ink);
+    border-bottom: 1px dashed var(--rule);
+    padding: 20px 0 22px;
+    margin: 0 0 30px;
+    max-width: var(--measure);
+  }
+  .thesis p {
+    font-family: var(--font-mono);
+    font-size: 16.5px;
+    line-height: 1.5;
+    letter-spacing: -0.012em;
+    margin: 0;
+  }
+
+  /* ---------- tables ---------- */
+
+  .scroller {
+    overflow-x: auto;
+    margin: 0 0 24px;
+    border: 1px solid var(--rule);
+    background: var(--surface);
+  }
+
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    min-width: 660px;
+    font-family: var(--font-sans);
+    font-size: 13px;
+    line-height: 1.45;
+    font-variant-numeric: tabular-nums;
+  }
+
+  thead th {
+    position: sticky;
+    top: 0;
+    background: var(--surface-2);
+    text-align: left;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+    font-weight: 600;
+    padding: 10px 13px;
+    border-bottom: 1px solid var(--rule);
+    white-space: nowrap;
+  }
+
+  tbody td, tbody th {
+    padding: 11px 13px;
+    border-bottom: 1px solid var(--rule-soft);
+    vertical-align: top;
+    text-align: left;
+  }
+  tbody tr:last-child td, tbody tr:last-child th { border-bottom: none; }
+  tbody th {
+    font-weight: 600;
+    color: var(--ink);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    white-space: nowrap;
+  }
+  tbody td { color: var(--ink-2); }
+
+  .chip {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-weight: 600;
+    padding: 3px 7px;
+    border: 1px solid currentColor;
+    border-radius: 2px;
+    white-space: nowrap;
+  }
+  .chip.go { color: var(--petrol); }
+  .chip.hold { color: var(--amber); }
+  .chip.no { color: var(--rust); }
+
+  caption {
+    caption-side: top;
+    text-align: left;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    padding: 10px 13px 0;
+  }
+
+  /* ---------- figure ---------- */
+
+  figure { margin: 0 0 26px; }
+  figure svg { display: block; width: 100%; height: auto; }
+
+  /* SVG must be styled through CSS — var() does not resolve in presentation attributes */
+  .dgm { font-family: var(--font-mono); }
+  .dgm .d-lbl    { fill: var(--ink-3); font-size: 9px; letter-spacing: 1.3px; }
+  .dgm .d-t      { fill: var(--ink); }
+  .dgm .d-t2     { fill: var(--ink-2); }
+  .dgm .d-tp     { fill: var(--petrol); }
+  .dgm .d-ta     { fill: var(--amber); }
+  .dgm .d-box    { fill: var(--surface); stroke: var(--rule); stroke-width: 1; }
+  .dgm .d-box-2  { fill: var(--surface-2); stroke: var(--rule); stroke-width: 1; }
+  .dgm .d-box-p  { fill: var(--petrol-soft); stroke: var(--petrol); stroke-width: 1; }
+  .dgm .d-box-a  { fill: var(--amber-soft); stroke: var(--amber); stroke-width: 1; }
+  .dgm .d-box-hi { fill: var(--surface); stroke: var(--ink); stroke-width: 1.6; }
+  .dgm .d-box-pk { fill: var(--petrol-soft); stroke: var(--petrol); stroke-width: 1.4; }
+  .dgm .d-ghost  { fill: none; stroke: var(--rule); stroke-width: 1; stroke-dasharray: 4 3; }
+  .dgm .d-dash2  { fill: var(--surface-2); stroke: var(--rule); stroke-width: 1; stroke-dasharray: 4 3; }
+  .dgm .d-line   { fill: none; stroke: var(--ink-3); stroke-width: 1; }
+  .dgm .d-line-a { fill: none; stroke: var(--amber); stroke-width: 1.2; stroke-dasharray: 4 3; }
+  .dgm .d-arrow  { fill: var(--ink-3); stroke: none; }
+  .fig-frame {
+    border: 1px solid var(--rule);
+    background: var(--surface);
+    padding: 22px 20px;
+    overflow-x: auto;
+  }
+  figcaption {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.07em;
+    color: var(--ink-3);
+    margin-top: 10px;
+    line-height: 1.5;
+    max-width: var(--measure);
+  }
+
+  /* ---------- ledger (cost math) ---------- */
+
+  .ledger {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    border: 1px solid var(--rule);
+    background: var(--surface);
+    max-width: var(--measure);
+    margin: 0 0 24px;
+  }
+  .ledger-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 20px;
+    padding: 9px 16px;
+    border-bottom: 1px solid var(--rule-soft);
+    font-variant-numeric: tabular-nums;
+  }
+  .ledger-row:last-child { border-bottom: none; }
+  .ledger-row span:last-child { color: var(--ink); font-weight: 600; white-space: nowrap; }
+  .ledger-row span:first-child { color: var(--ink-2); }
+  .ledger-row.total {
+    background: var(--surface-2);
+    border-top: 1px solid var(--rule);
+    border-bottom: none;
+  }
+  .ledger-row.total span { color: var(--ink); font-weight: 700; }
+  .ledger-row.bad span:last-child { color: var(--rust); }
+  .ledger-row.good span:last-child { color: var(--petrol); }
+
+  /* ---------- budget bars ---------- */
+
+  .budget { max-width: var(--measure); margin: 0 0 24px; display: flex; flex-direction: column; gap: 10px; }
+  .bud-row { display: grid; grid-template-columns: 172px 1fr 74px; gap: 12px; align-items: center; font-family: var(--font-mono); font-size: 11.5px; }
+  .bud-row > span:first-child { color: var(--ink-2); }
+  .bud-row > span:last-child { text-align: right; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+  .bar { height: 13px; background: var(--surface-2); position: relative; }
+  .bar i { position: absolute; top: 0; bottom: 0; display: block; }
+  .bar i.p { background: var(--petrol); }
+  .bar i.a { background: var(--amber); }
+  .bar i.r { background: var(--rust); }
+
+  /* ---------- checklist ---------- */
+
+  .qlist { max-width: var(--measure); counter-reset: q; display: flex; flex-direction: column; gap: 0; border-top: 1px solid var(--rule); }
+  .q {
+    counter-increment: q;
+    display: grid;
+    grid-template-columns: 34px 1fr;
+    gap: 12px;
+    padding: 13px 0;
+    border-bottom: 1px solid var(--rule-soft);
+  }
+  .q::before {
+    content: "Q" counter(q, decimal-leading-zero);
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    color: var(--petrol);
+    letter-spacing: 0.05em;
+    padding-top: 4px;
+    font-weight: 600;
+  }
+  .q b { display: block; font-family: var(--font-sans); font-size: 15px; font-weight: 600; margin-bottom: 3px; line-height: 1.4; }
+  .q em { font-style: normal; color: var(--ink-3); font-size: 14px; line-height: 1.5; display: block; }
+
+  /* ---------- glossary ---------- */
+
+  .gloss { max-width: var(--measure); display: flex; flex-direction: column; gap: 0; }
+  .gterm {
+    display: grid;
+    grid-template-columns: 118px 1fr;
+    gap: 16px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--rule-soft);
+    font-size: 15px;
+  }
+  .gterm dt { font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--petrol); padding-top: 3px; }
+  .gterm dd { margin: 0; color: var(--ink-2); line-height: 1.5; }
+
+  /* ---------- sources ---------- */
+
+  .srcs { max-width: var(--measure); font-size: 14px; line-height: 1.5; }
+  .srcs li { margin-bottom: 7px; color: var(--ink-3); }
+  .srcs a { color: var(--petrol); }
+
+  /* ---------- responsive ---------- */
+
+  @media (max-width: 900px) {
+    .shell { grid-template-columns: 1fr; }
+    .rail {
+      position: static;
+      height: auto;
+      border-right: none;
+      border-bottom: 1px solid var(--rule);
+      padding: 24px 22px;
+    }
+    .rail nav { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 2px; }
+    main { padding: 28px 22px 100px; }
+    .bud-row { grid-template-columns: 120px 1fr 66px; font-size: 10.5px; }
+    .gterm { grid-template-columns: 1fr; gap: 3px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; animation: none !important; scroll-behavior: auto !important; }
+  }
+</style>
+
+<div class="shell">
+
+  <aside class="rail">
+    <span class="rail-mark">Dossiê de preparo</span>
+    <span class="rail-title">Oferta, Pedido, Agente</span>
+    <nav id="nav">
+      <a href="#s0"><span class="n">00</span><span>A resposta curta</span></a>
+      <a href="#s1"><span class="n">01</span><span>Como voos são vendidos</span></a>
+      <a href="#s2"><span class="n">02</span><span>Fontes de conteúdo</span></a>
+      <a href="#s3"><span class="n">03</span><span>Restrições duras</span></a>
+      <a href="#s4"><span class="n">04</span><span>Onde a IA entra</span></a>
+      <a href="#s5"><span class="n">05</span><span>Veredito de framework</span></a>
+      <a href="#s6"><span class="n">06</span><span>Caminho do Semantic Kernel</span></a>
+      <a href="#s7"><span class="n">07</span><span>Design de referência</span></a>
+      <a href="#s8"><span class="n">08</span><span>Os cinco comparáveis</span></a>
+      <a href="#s9"><span class="n">09</span><span>Economia unitária</span></a>
+      <a href="#s10"><span class="n">10</span><span>Modos de falha</span></a>
+      <a href="#s11"><span class="n">11</span><span>Conformidade</span></a>
+      <a href="#s12"><span class="n">12</span><span>Preparo de 30 dias</span></a>
+      <a href="#s13"><span class="n">13</span><span>Pergunte ao tech lead</span></a>
+      <a href="#s14"><span class="n">14</span><span>Glossário</span></a>
+      <a href="#s15"><span class="n">15</span><span>Fontes</span></a>
+    </nav>
+    <div class="rail-foot">
+      Compilado em ago. 2026.<br>
+      Preços e níveis citados de páginas públicas — confirme com os contratos reais antes de assumir qualquer compromisso em reunião.
+      <br><br>
+      <a class="ref" href="flight-ai-dossier.html">Read in English →</a>
+    </div>
+  </aside>
+
+  <main>
+
+    <header class="masthead">
+      <p class="kicker">Distribuição aérea &amp; IA agêntica · briefing</p>
+      <h1>O que você precisa saber antes de entrar no time de voos</h1>
+      <p class="standfirst">
+        Uma empresa de viagens quer que agentes de inteligência artificial (IA) façam cotações nas
+        interfaces de programação de aplicações (APIs) de várias companhias aéreas e escolham a melhor
+        opção. Essa frase esconde três problemas distintos — fonte de conteúdo, ranqueamento e
+        orquestração — e só um deles é de fato um problema de IA. Este é o mapa.
+      </p>
+      <div class="meta-strip">
+        <span><b>Stack</b> .NET · React · Azure</span>
+        <span><b>Domínio</b> Cotação e emissão aérea</span>
+        <span><b>Decisão</b> Agent framework + estratégia de conteúdo</span>
+      </div>
+    </header>
+
+    <!-- ============ 00 ============ -->
+    <section id="s0">
+      <div class="sec-head"><span class="sec-num">00</span><h2>A resposta curta</h2></div>
+
+      <div class="thesis">
+        <p>Mantenha o modelo de linguagem de grande porte (LLM) fora do caminho do preço. Busca, fan-out, deduplicação, ranqueamento, precificação e emissão continuam em .NET determinístico. O modelo cuida da intenção na entrada e da explicação na saída — em todo lugar em que um humano usaria palavras em vez de números.</p>
+      </div>
+
+      <p>
+        Se você levar uma posição para a primeira reunião, leve essa. É a diferença entre uma demo que
+        impressiona por uma semana e um sistema que sobrevive ao contato com uma taxa de look-to-book
+        real. Todo o resto deste documento é o argumento de apoio.
+      </p>
+
+      <h4>Cinco afirmações que você precisa saber defender</h4>
+      <ol>
+        <li>
+          <strong>"A IA compara as companhias aéreas" é o enquadramento errado.</strong> Ranquear voos é
+          uma função de pontuação sobre ofertas estruturadas — preço, duração, paradas, qualidade da
+          conexão, regras tarifárias, custo de acessórios, confiabilidade da companhia. Isso é uma função
+          determinística que você pode testar, ajustar e explicar. O Google faz exatamente isso. Um LLM
+          pedido para ranquear cinquenta ofertas é mais lento, custa dinheiro por requisição, e pode
+          reordenar resultados silenciosamente entre duas consultas idênticas.
+        </li>
+        <li>
+          <strong>Seu tech lead está certo sobre o n8n, mas por um motivo mais preciso do que ele deu.</strong>
+          O n8n escala horizontalmente em modo fila. O descompasso real é que a cotação de voos é um
+          caminho transacional crítico em latência, com uma alta taxa de consultas por segundo (QPS) que
+          os fornecedores medem por requisição, e o n8n é um motor de workflow construído para processos
+          de negócio de baixo QPS. Ele pertence ao back office — onboarding de fornecedores, aprovações
+          de reembolso, reconciliação, alertas — nunca ao caminho de cotação.
+        </li>
+        <li>
+          <strong>Para .NET no Azure, a escolha alinhada é o Microsoft Agent Framework.</strong> Ele
+          chegou à versão 1.0 em abril de 2026 e é o sucessor declarado do Semantic Kernel Agents e do
+          AutoGen, com uma extensão de Durable Task para orquestração com estado e retomável. O Claude
+          Agent SDK — o kit de desenvolvimento de software (SDK) da Anthropic para construir agentes —
+          que você sugeriu é real e bom, mas só existe para TypeScript e Python — é o formato errado para
+          os serviços centrais deles, ainda que uma ótima escolha para ferramentas internas.
+        </li>
+        <li>
+          <strong>Estratégia de conteúdo é o problema difícil de verdade, e é comercial, não técnico.</strong>
+          Se você consegue sequer ver uma tarifa depende de contratos, de credenciamento junto à
+          International Air Transport Association (IATA) ou à Airlines Reporting Corporation (ARC), e de
+          limites de look-to-book negociados. As "licenças pagas" que seu líder mencionou são o centro de
+          gravidade de todo o projeto.
+        </li>
+        <li>
+          <strong>Look-to-book é a restrição que molda a arquitetura.</strong> Fornecedores medem
+          requisições de cotação. Um agente que "explora opções" disparando buscas extras vai violar a
+          taxa, ser limitado, e custar dinheiro de verdade. Todo design agêntico precisa carregar um
+          orçamento de buscas.
+        </li>
+      </ol>
+
+      <div class="call">
+        <span class="tag">Sobre a pergunta da sua esposa</span>
+        <p>
+          Sim — o Google Flights já faz a maior parte disso, e estudá-lo é o jeito mais rápido de entender
+          o que "melhor opção" significa nesse domínio. Mas é um produto de <em>metabusca</em>: ele
+          ranqueia e encaminha. O que seu líder está descrevendo é uma <em>agência de viagens on-line
+          (OTA)</em>: ela ranqueia, vende, recebe o pagamento, emite o bilhete, e é dona do cliente quando
+          o voo é cancelado. A seção 08 detalha exatamente quais partes se transferem e quais não.
+        </p>
+        <p style="margin-top:12px">
+          O arquivo que ela compartilhou não está na pasta do projeto — nada correspondente no disco.
+          Manda ele pra cá que eu incorporo os pontos dele na seção 08 em vez de duplicar.
+        </p>
+      </div>
+    </section>
+
+    <!-- ============ 01 ============ -->
+    <section id="s1">
+      <div class="sec-head"><span class="sec-num">01</span><h2>Como um voo é vendido, de fato</h2></div>
+
+      <p>
+        Você não consegue desenhar a camada de IA antes de conseguir desenhar essa cadeia. Toda restrição
+        arquitetural mais adiante no documento decorre dela.
+      </p>
+
+      <figure>
+        <div class="fig-frame">
+          <svg viewBox="0 0 820 300" class="dgm" role="img" aria-label="Cadeia de distribuição do inventário das companhias aéreas, passando por GDS, NDC e agregadores, até a empresa de viagens e o viajante">
+            <defs>
+              <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" class="d-arrow"/>
+              </marker>
+            </defs>
+            <g font-size="11">
+
+              <!-- Layer labels -->
+              <text x="8" y="30" class="d-lbl">FONTE</text>
+              <text x="8" y="112" class="d-lbl">CANAIS</text>
+              <text x="8" y="204" class="d-lbl">VENDEDOR</text>
+              <text x="8" y="278" class="d-lbl">COMPRADOR</text>
+
+              <!-- Airlines -->
+              <rect x="90" y="12" width="200" height="46" class="d-box-p"/>
+              <text x="190" y="32" class="d-t" text-anchor="middle" font-weight="600">Cias. legadas</text>
+              <text x="190" y="47" class="d-t2" font-size="9.5" text-anchor="middle">tarifas, malhas, assentos</text>
+
+              <rect x="310" y="12" width="180" height="46" class="d-box-p"/>
+              <text x="400" y="32" class="d-t" text-anchor="middle" font-weight="600">Cias. de baixo custo</text>
+              <text x="400" y="47" class="d-t2" font-size="9.5" text-anchor="middle">só conexão direta</text>
+
+              <rect x="510" y="12" width="220" height="46" class="d-box-p"/>
+              <text x="620" y="32" class="d-t" text-anchor="middle" font-weight="600">Endpoints NDC das cias.</text>
+              <text x="620" y="47" class="d-t2" font-size="9.5" text-anchor="middle">ofertas + acessórios</text>
+
+              <!-- Pipes -->
+              <rect x="90" y="94" width="200" height="46" class="d-box-2"/>
+              <text x="190" y="114" class="d-t" text-anchor="middle" font-weight="600">GDS</text>
+              <text x="190" y="129" class="d-t2" font-size="9.5" text-anchor="middle">Amadeus · Sabre · Travelport</text>
+
+              <rect x="310" y="94" width="180" height="46" class="d-box-2"/>
+              <text x="400" y="114" class="d-t" text-anchor="middle" font-weight="600">Agregadores</text>
+              <text x="400" y="129" class="d-t2" font-size="9.5" text-anchor="middle">Duffel · Kiwi · Travelfusion</text>
+
+              <rect x="510" y="94" width="220" height="46" class="d-box-2"/>
+              <text x="620" y="114" class="d-t" text-anchor="middle" font-weight="600">Gateways NDC</text>
+              <text x="620" y="129" class="d-t2" font-size="9.5" text-anchor="middle">Verteil · AirGateway · TPConnects</text>
+
+              <!-- Seller -->
+              <rect x="90" y="176" width="640" height="52" class="d-box-hi"/>
+              <text x="410" y="197" class="d-t" text-anchor="middle" font-weight="600" font-size="12">Sua empresa de viagens</text>
+              <text x="410" y="214" class="d-t2" font-size="9.5" text-anchor="middle">normalizar → deduplicar → ranquear → precificar → vender → emitir → atender</text>
+
+              <!-- Buyer -->
+              <rect x="290" y="256" width="240" height="34" class="d-ghost"/>
+              <text x="410" y="277" class="d-t2" text-anchor="middle">Viajante</text>
+
+              <!-- arrows down -->
+              <g class="d-line" marker-end="url(#ar)">
+                <path d="M 190 58 L 190 92"/>
+                <path d="M 400 58 L 400 92"/>
+                <path d="M 620 58 L 620 92"/>
+                <path d="M 190 140 L 190 174"/>
+                <path d="M 400 140 L 400 174"/>
+                <path d="M 620 140 L 620 174"/>
+                <path d="M 410 228 L 410 254"/>
+              </g>
+
+              <!-- direct bypass -->
+              <path d="M 730 35 C 790 35, 790 190, 736 200" class="d-line-a" marker-end="url(#ar)"/>
+              <text x="762" y="120" class="d-ta" font-size="9" text-anchor="middle" transform="rotate(90 762 120)">NDC direto</text>
+            </g>
+          </svg>
+        </div>
+        <figcaption>
+          Cada salto adiciona custo, latência e um formato de dado diferente. O trabalho do vendedor é
+          fazer três canais incompatíveis parecerem uma única lista de ofertas limpa. Essa camada de
+          normalização é onde a maior parte da engenharia realmente vive.
+        </figcaption>
+      </figure>
+
+      <h3>A mudança de vocabulário que você precisa conhecer</h3>
+      <p>
+        A indústria está no meio da transição do modelo <em>Passenger Name Record (PNR)-e-bilhete</em>
+        para <em>oferta-e-pedido</em>. No modelo antigo a companhia aérea publica tarifas em um pool
+        compartilhado, um sistema global de distribuição (GDS) guarda o registro da reserva — o próprio
+        PNR — e um documento de e-bilhete separado representa o direito de embarque. No modelo de New
+        Distribution Capability (NDC) e de oferta/pedido, a companhia aérea constrói uma <strong>oferta</strong>
+        personalizada e com prazo de validade especificamente para você, e se você aceitá-la ela vira um
+        <strong>pedido</strong> — um único objeto cobrindo o assento, a bagagem, a seleção de assento e a
+        refeição.
+      </p>
+      <p>
+        Isso importa mais para o design de IA do que parece. Uma oferta é precificada <em>para um
+        contexto</em> e ela <em>expira</em>. Você não pode fazer cache dela do jeito que fazia cache de
+        uma tarifa publicada, e não pode deixar um agente raciocinar por quarenta segundos sobre uma
+        oferta que vive por noventa. A IATA substituiu a antiga certificação NDC de quatro níveis pelo
+        índice de Airline Retailing Maturity (ARM), e mais de setenta companhias aéreas já carregam uma
+        classificação ARM — então "essa companhia suporta NDC" deixou de ser sim/não; é um perfil de
+        capacidade que você precisa modelar por companhia.
+      </p>
+
+      <div class="call warn">
+        <span class="tag">Detalhe de nível de entrevista</span>
+        <p>
+          Quando alguém diz "o preço mudou no checkout", a causa quase sempre é uma de três coisas: uma
+          oferta em cache que expirou, uma mudança de disponibilidade entre a busca e a precificação, ou
+          um recálculo de moeda ou imposto na etapa de emissão. Saber essa distinção no primeiro dia vai
+          fazer você parecer alguém que já embarcou produto de viagem antes.
+        </p>
+      </div>
+    </section>
+
+    <!-- ============ 02 ============ -->
+    <section id="s2">
+      <div class="sec-head"><span class="sec-num">02</span><h2>Fontes de conteúdo, e o que cada uma custa</h2></div>
+
+      <p>
+        Essa é a tabela para levar para a reunião. A coluna que decide o projeto não é a
+        <em>cobertura</em> — é a <em>barreira de acesso</em>, porque é isso que determina se você
+        entrega em seis semanas ou em seis meses.
+      </p>
+
+      <div class="scroller">
+        <table>
+          <caption>Opções de fonte de conteúdo aéreo — os valores são termos públicos de tabela, não termos contratuais</caption>
+          <thead>
+            <tr>
+              <th scope="col">Fonte</th>
+              <th scope="col">O que é</th>
+              <th scope="col">Barreira de acesso</th>
+              <th scope="col">Modelo de custo</th>
+              <th scope="col">Tempo até a primeira venda</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row">Amadeus<br>Self-Service</th>
+              <td>Era um subconjunto Representational State Transfer (REST) / JavaScript Object Notation (JSON) da plataforma Amadeus, adequado para cotação. Descontinuado em 17 de julho de 2026 — mantido aqui como registro, não como recomendação.</td>
+              <td>Não está mais disponível. Novos cadastros foram pausados antes do desligamento; chaves existentes foram desativadas. A Amadeus direciona o tráfego de autoatendimento para o Quick Connect (AQC), que exige credenciamento como o Enterprise.</td>
+              <td>N/A</td>
+              <td>N/A</td>
+            </tr>
+            <tr>
+              <th scope="row">Amadeus<br>Enterprise</th>
+              <td>Conteúdo GDS completo mais a rede NDC mais ampla das três grandes. Maior GDS por participação (~43%).</td>
+              <td>Contrato negociado; credenciamento IATA/ARC ou um consolidador para emissão.</td>
+              <td>Negociado, com preço atrelado à sua taxa de look-to-book.</td>
+              <td>Meses</td>
+            </tr>
+            <tr>
+              <th scope="row">Sabre</th>
+              <td>GDS com o conteúdo doméstico dos Estados Unidos (US) mais profundo. Mosaic é a plataforma de retailing de oferta/pedido deles.</td>
+              <td>Contrato mais credenciamento. REST/JSON e Simple Object Access Protocol (SOAP) / Extensible Markup Language (XML) estão ambos disponíveis.</td>
+              <td>Taxas de segmento negociadas.</td>
+              <td>Meses</td>
+            </tr>
+            <tr>
+              <th scope="row">Travelport</th>
+              <td>GDS + NDC unificados em uma única interface, que é seu principal diferencial de venda.</td>
+              <td>Contrato mais credenciamento.</td>
+              <td>Negociado.</td>
+              <td>Meses</td>
+            </tr>
+            <tr>
+              <th scope="row">Duffel</th>
+              <td>Agregador API-first, trazendo conteúdo NDC, GDS e de companhia de baixo custo (LCC) de mais de 300 companhias aéreas através de um único schema.</td>
+              <td>Autoatendimento. Sem necessidade de credenciamento ARC/IATA ao vender o conteúdo gerenciado por eles.</td>
+              <td>Publicado: ~US$ 3 por venda, mais ~US$ 0,005 por busca depois que a razão busca/venda passa de 1500:1.</td>
+              <td>Semanas</td>
+            </tr>
+            <tr>
+              <th scope="row">Kiwi.com</th>
+              <td>Enorme cobertura de LCC mais virtual interlining — itinerários costurados que nenhuma companhia aérea vende como um único bilhete.</td>
+              <td>Aplicação como parceiro.</td>
+              <td>Por venda ou afiliado.</td>
+              <td>Semanas</td>
+            </tr>
+            <tr>
+              <th scope="row">Travelfusion</th>
+              <td>Especialista em conexão direta, mais de 50 conexões com companhias aéreas, forte em LCC.</td>
+              <td>Contrato.</td>
+              <td>Por venda / licença.</td>
+              <td>Semanas–meses</td>
+            </tr>
+            <tr>
+              <th scope="row">Gateways NDC</th>
+              <td>Verteil, AirGateway, TPConnects e similares — cerca de 30 companhias NDC cada, atrás de uma única API.</td>
+              <td>Contrato.</td>
+              <td>Por transação.</td>
+              <td>Semanas–meses</td>
+            </tr>
+            <tr>
+              <th scope="row">Etraveli /<br>TripStack</th>
+              <td>Conteúdo aéreo como serviço, incluindo a operação. Move o Booking.com, e abastece Google Flights, Skyscanner e Kayak.</td>
+              <td>Contrato business-to-business (B2B).</td>
+              <td>Participação na receita / por venda.</td>
+              <td>Meses</td>
+            </tr>
+            <tr>
+              <th scope="row">NDC direto da<br>companhia aérea</th>
+              <td>Uma companhia por vez. Melhores tarifas, acessórios mais ricos, frequentemente incentivado.</td>
+              <td>Acordo comercial por companhia aérea.</td>
+              <td>Por venda, com frequência com incentivo de distribuição.</td>
+              <td>Meses por companhia</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Companhias aéreas brasileiras, especificamente</h3>
+      <p>
+        Já que esta é uma empresa de viagens brasileira, a tabela acima não é o quadro completo — o acesso
+        à LATAM, à GOL e à Azul não se parece com o acesso às grandes internacionais, e a camada de
+        credenciamento por baixo dele também tem um formato específico do Brasil.
+      </p>
+      <ul>
+        <li><strong>A LATAM tem um programa NDC de verdade — o "NDC by LATAM".</strong> Um portal web sem código para volume menor, e uma API direta para integração sistema a sistema em escala. O caminho da API não é autoatendimento: exige credenciamento junto à LATAM para vender e atender, e credenciamento IATA se você estiver construindo em cima dele como provedor de tecnologia. A LATAM direciona a maioria dos integradores para as plataformas de terceiros aprovadas por ela, em vez de um cadastro direto. Cuidado com uma armadilha separada: o LATAM Pass tem seu próprio portal de desenvolvedor OAuth2 para dados de fidelidade — não confunda com a API de conteúdo de voo.</li>
+        <li><strong>GOL e Azul não têm um programa de desenvolvedor público e de autoatendimento.</strong> O conteúdo delas chega até você através de parceiros GDS — a GOL está listada no Travelport Marketplace — e de agregadores NDC, com o conteúdo completo da Azul estando atrás da APG, que também reduz as sobretaxas EDIFACT do GDS por design. Planeje uma relação com um agregador aqui, não uma integração direta; não existe um portal no estilo LATAM para se cadastrar.</li>
+        <li><strong>O Billing and Settlement Plan (BSP) Brasil tem um relógio mais apertado do que você imagina.</strong> Desde novembro de 2024 a janela de acerto entre o fim do período de vendas e o pagamento ao BSP encurtou de dez dias úteis para cinco. Isso é uma restrição real de capital de giro se os seus prazos de pagamento para os viajantes forem mais generosos do que isso — veja a seção 11.</li>
+        <li><strong>A Agência Nacional de Aviação Civil (ANAC) não credencia agências de viagem — quem faz isso é o Cadastur.</strong> A ANAC regula companhias aéreas e aeroportos; o cadastro de agências passa pelo Cadastur, o registro do Ministério do Turismo, como uma exigência separada, sobreposta ao credenciamento IATA/BSP, não um substituto para ele.</li>
+      </ul>
+
+      <div class="call warn">
+        <span class="tag">Essa tabela muda debaixo dos seus pés</span>
+        <p>
+          A Amadeus descontinuou o portal Self-Service em 17 de julho de 2026 — novos cadastros pausados,
+          chaves existentes desativadas, com o Quick Connect (AQC) oferecido como substituto, mas exigindo
+          credenciamento. Era o caminho de autoatendimento mais fácil desta tabela poucas semanas antes
+          desta frase ser escrita. Confirme cada linha aqui no site atual do provedor antes de montar um
+          plano de primeira semana em cima dela; o nível de autoatendimento nesta indústria não é um alvo
+          estável.
+        </p>
+      </div>
+
+      <h3>A estratégia que de fato acaba escolhida</h3>
+      <p>
+        Quase ninguém escolhe apenas uma. O padrão vencedor é um híbrido, sequenciado por risco:
+      </p>
+      <ol>
+        <li><strong>Comece com um agregador API-first</strong> para ter um fluxo de venda ponta a ponta funcionando em semanas, incluindo emissão sem precisar de credenciamento.</li>
+        <li><strong>Adicione um GDS</strong> assim que o volume justificar o contrato e o trabalho de credenciamento, porque a economia por venda melhora fortemente em escala.</li>
+        <li><strong>Adicione NDC direto para suas três a cinco principais companhias</strong> no seu mercado principal, onde a margem e o acesso a acessórios pagam por uma integração sob medida.</li>
+      </ol>
+      <p>
+        Desenhe a camada de fornecedores para isso desde o primeiro dia. Uma interface
+        <code>ISupplierConnector</code>, um modelo de oferta canônico, adaptadores por fornecedor atrás
+        dele. Se o time já codificou o formato de resposta de um único fornecedor direto no modelo de
+        domínio, essa é a primeira coisa que vale a pena corrigir — e uma ótima coisa de descobrir na
+        primeira semana.
+      </p>
+
+      <div class="call">
+        <span class="tag">Onde o MCP se encaixa</span>
+        <p>
+          Existem servidores de Model Context Protocol (MCP) da Amadeus na comunidade, a Sabre publicou
+          um, e a Travelport está apostando publicamente no MCP como a camada de integração para reservas
+          de viagem com IA. Bom de saber, e genuinamente útil para ferramentas internas e protótipos. Mas
+          o MCP é um protocolo de <em>chamada de ferramentas</em> para modelos — ele não substitui seus
+          adaptadores de fornecedor em produção, que precisam de pool de conexões, circuit breakers,
+          semântica de retry e contabilidade de taxa por fornecedor que um servidor MCP genérico não vai
+          te dar.
+        </p>
+      </div>
+    </section>
+
+    <!-- ============ 03 ============ -->
+    <section id="s3">
+      <div class="sec-head"><span class="sec-num">03</span><h2>As quatro restrições que matam designs ingênuos</h2></div>
+
+      <h3>1 · Look-to-book</h3>
+      <p>
+        A razão entre requisições de cotação e vendas efetivas. Companhias aéreas e GDSs ganham com
+        vendas e <em>pagam</em> por buscas, então elas te medem. Estimativas da indústria colocam a taxa
+        na casa das dezenas de milhares para um e a descrevem como insustentável. A resposta da Sabre é
+        uma cotação potencializada por cache que prevê quando consultar ao vivo versus servir cache
+        validado, reportando até 28% de redução no look-to-book com ~95% de precisão contra ofertas ao
+        vivo e respostas em menos de um segundo.
+      </p>
+
+      <div class="call stop">
+        <span class="tag">A armadilha</span>
+        <p>
+          O design agêntico mais natural — "deixa o agente tentar algumas variações de data e aeroportos
+          próximos para achar algo melhor" — multiplica suas chamadas de cotação de cinco a vinte vezes
+          por usuário. Isso é um problema contratual e financeiro antes de ser técnico. Qualquer
+          exploração que um agente faça precisa rodar contra <em>o seu</em> cache e <em>os seus</em>
+          dados históricos, não contra chamadas ao vivo ao fornecedor.
+        </p>
+      </div>
+
+      <h3>2 · O orçamento de latência</h3>
+      <p>
+        Usuários abandonam a busca de voos rápido, e cada milissegundo que você gasta é um que você tirou
+        do p95 (latência do percentil 95) do fornecedor mais lento. Aqui está um orçamento realista para
+        uma busca que precisa mostrar os primeiros resultados em até três segundos.
+      </p>
+
+      <div class="budget">
+        <div class="bud-row"><span>Interpretação da intenção (LLM)</span><span class="bar"><i class="a" style="left:0;width:12%"></i></span><span>0,3–0,8s</span></div>
+        <div class="bud-row"><span>Fan-out de fornecedores (p95)</span><span class="bar"><i class="p" style="left:12%;width:62%"></i></span><span>1,5–5,0s</span></div>
+        <div class="bud-row"><span>Normalizar + deduplicar</span><span class="bar"><i class="p" style="left:74%;width:4%"></i></span><span>~50ms</span></div>
+        <div class="bud-row"><span>Ranqueamento determinístico</span><span class="bar"><i class="p" style="left:78%;width:5%"></i></span><span>~100ms</span></div>
+        <div class="bud-row"><span>Explicações (LLM)</span><span class="bar"><i class="r" style="left:83%;width:17%"></i></span><span>0,4–1,2s</span></div>
+      </div>
+
+      <p>
+        O segmento vermelho é o que não pode bloquear. Transmita os resultados ranqueados para o React no
+        momento em que o ranqueamento terminar, depois preencha as explicações de forma assíncrona
+        conforme elas chegam. Se uma chamada de LLM fica no caminho crítico da página de resultados, você
+        gastou um terço do seu orçamento em prosa.
+      </p>
+
+      <h3>3 · Integridade de preço</h3>
+      <p>
+        Um preço exibido é uma promessa. Reguladores tratam como tal, e clientes também. Isso te dá uma
+        regra absoluta que molda toda a camada de IA: <strong>um modelo de linguagem nunca pode redigir
+        um número que chega até o usuário.</strong> Preços, impostos, franquias de bagagem, regras
+        tarifárias e taxas de alteração passam direto, vindos de campos validados do fornecedor. O modelo
+        pode referenciá-los, reordenar a prosa ao redor deles, e traduzi-los — não pode calculá-los ou
+        reescrevê-los de memória.
+      </p>
+      <p>
+        Aplique isso estruturalmente, não por disciplina de prompt. Dê ao modelo saídas de ferramenta
+        contendo tokens opacos (<code>{"price_ref":"OFF_8812"}</code>) e renderize os valores reais a
+        partir do seu próprio armazenamento na saída. Um prompt que diz "não invente preços" não é um
+        controle; uma camada de renderização que não consegue emitir um número redigido pelo modelo, é.
+      </p>
+
+      <h3>4 · Fulfilment não é a mesma coisa que venda</h3>
+      <p>
+        Selecionar uma oferta, criar um pedido, receber o pagamento e emitir o bilhete são quatro
+        operações distintas com quatro modos de falha distintos, e podem falhar independentemente depois
+        que o cliente já foi cobrado. Cada uma delas precisa de uma chave de idempotência, uma máquina de
+        estados durável, e uma ação compensatória. Essa é exatamente a carga de trabalho para a qual o
+        Durable Functions existe — e exatamente a carga de trabalho que você nunca deve colocar atrás de
+        um loop de prompt sem estado.
+      </p>
+    </section>
+
+    <!-- ============ 04 ============ -->
+    <section id="s4">
+      <div class="sec-head"><span class="sec-num">04</span><h2>Onde a IA entra — e onde ela não pode entrar</h2></div>
+
+      <p>
+        Ranqueie os casos de uso candidatos por valor sobre risco, não por quão impressionante é a demo.
+        O trabalho de alto valor e baixo risco é pouco glamouroso, e é onde você deveria mirar seu
+        primeiro sprint.
+      </p>
+
+      <div class="scroller">
+        <table>
+          <caption>Mapa de superfície de IA para uma plataforma de cotação aérea</caption>
+          <thead>
+            <tr>
+              <th scope="col">Caso de uso</th>
+              <th scope="col">O que o modelo faz</th>
+              <th scope="col">Risco</th>
+              <th scope="col">Veredito</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row">Interpretação de intenção</th>
+              <td>"Dois adultos, Lisboa para São Paulo, primeira semana de dezembro, sem voos de madrugada, corredor" → uma requisição de busca tipada.</td>
+              <td>Baixo — a saída é validada contra um schema antes de tocar um fornecedor.</td>
+              <td><span class="chip go">Construir primeiro</span></td>
+            </tr>
+            <tr>
+              <th scope="row">Explicação de resultado</th>
+              <td>"Mais barato por €40, mas a conexão em Frankfurt é de 55 minutos em um terminal diferente." Prosa sobre dados já ranqueados, já precificados.</td>
+              <td>Baixo — nenhum número redigido, só repasse.</td>
+              <td><span class="chip go">Construir primeiro</span></td>
+            </tr>
+            <tr>
+              <th scope="row">Assistência a agente</th>
+              <td>Ferramenta interna para a central de atendimento: puxar o pedido, resumir a disrupção, esboçar as opções de reacomodação.</td>
+              <td>Baixo — humano no circuito por construção.</td>
+              <td><span class="chip go">Construir primeiro</span></td>
+            </tr>
+            <tr>
+              <th scope="row">Verificação de política</th>
+              <td>Regras de viagem corporativa em prosa → restrições estruturadas aplicadas ao conjunto de resultados.</td>
+              <td>Médio — precisa de um fallback determinístico quando a interpretação é ambígua.</td>
+              <td><span class="chip go">Boa aderência</span></td>
+            </tr>
+            <tr>
+              <th scope="row">Reacomodação por disrupção</th>
+              <td>Um cancelamento acontece; o agente propõe alternativas ranqueadas dentro das regras tarifárias e notifica o viajante.</td>
+              <td>Médio — valor de negócio genuíno, precisa de orquestração durável e aprovação humana acima de um limiar.</td>
+              <td><span class="chip go">Fase dois</span></td>
+            </tr>
+            <tr>
+              <th scope="row">Normalização de resposta de fornecedor</th>
+              <td>Mapear o schema de um novo fornecedor para o seu modelo canônico.</td>
+              <td>Use em tempo de <em>design</em> para escrever o adaptador. Nunca em tempo de execução.</td>
+              <td><span class="chip hold">Só em tempo de desenvolvimento</span></td>
+            </tr>
+            <tr>
+              <th scope="row">Ranquear as ofertas</th>
+              <td>Decidir qual voo é o "melhor".</td>
+              <td>Alto — não determinístico, inexplicável, lento, e medido por requisição.</td>
+              <td><span class="chip no">Função de pontuação</span></td>
+            </tr>
+            <tr>
+              <th scope="row">Agente de busca livre</th>
+              <td>O agente decide por conta própria quais fornecedores chamar e quantas vezes.</td>
+              <td>Alto — look-to-book sem limite, custo sem limite, exposição contratual.</td>
+              <td><span class="chip no">Não fazer</span></td>
+            </tr>
+            <tr>
+              <th scope="row">Compra autônoma</th>
+              <td>O agente completa o pagamento sem confirmação explícita.</td>
+              <td>Alto — irreversível, regulado, e uma máquina de chargeback.</td>
+              <td><span class="chip no">Não fazer</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>A pergunta do ranqueamento, respondida direito</h3>
+      <p>
+        O pedido de fato do seu tech lead — "os agentes deveriam avaliar quais são as melhores opções" —
+        se resolve em uma função de pontuação ponderada sobre ofertas normalizadas. Algo com esta cara:
+      </p>
+
+      <div class="ledger">
+        <div class="ledger-row"><span>Preço total, incluindo acessórios que o viajante de fato vai comprar</span><span>w₁</span></div>
+        <div class="ledger-row"><span>Tempo total decorrido de viagem</span><span>w₂</span></div>
+        <div class="ledger-row"><span>Número de paradas</span><span>w₃</span></div>
+        <div class="ledger-row"><span>Qualidade da conexão — duração, troca de terminal, risco de conexão</span><span>w₄</span></div>
+        <div class="ledger-row"><span>Desejabilidade do horário de partida / chegada</span><span>w₅</span></div>
+        <div class="ledger-row"><span>Flexibilidade tarifária — regras de alteração e reembolso</span><span>w₆</span></div>
+        <div class="ledger-row"><span>Pontualidade da companhia e histórico de cancelamento</span><span>w₇</span></div>
+        <div class="ledger-row good"><span>Sua margem sobre a oferta</span><span>w₈</span></div>
+      </div>
+
+      <p>
+        Comece com pesos ajustados manualmente, lance, depois aprenda-os a partir dos resultados de venda.
+        Estimativas de circulação pública sobre a aba "Best" do Google colocam preço em torno de 40%,
+        duração 30%, paradas 20% e qualidade da conexão 10% — trate isso como um teste de sanidade para o
+        seu ponto de partida, não como verdade absoluta.
+      </p>
+      <p>
+        Note <code>w₈</code>. Um motor de metabusca não tem termo de margem. Você tem, e isso faz do seu
+        ranqueamento um instrumento comercial tanto quanto um instrumento de experiência do usuário (UX).
+        Mantenha esse peso visível, versionado e auditável — e mantenha-o dentro do scorer determinístico,
+        onde produto e jurídico conseguem enxergá-lo, o que é mais um motivo para ele nunca viver dentro
+        de um prompt.
+      </p>
+
+      <div class="call">
+        <span class="tag">O enquadramento que funciona na reunião</span>
+        <p>
+          O modelo não escolhe o voo. O modelo explica a escolha, na língua do viajante, com as
+          prioridades declaradas dele em mente. Essa é a parte em que humanos são ruins e funções de
+          pontuação não conseguem fazer — e vale genuinamente a pena construir.
+        </p>
+      </div>
+    </section>
+
+    <!-- ============ 05 ============ -->
+    <section id="s5">
+      <div class="sec-head"><span class="sec-num">05</span><h2>Decisão de framework, para este stack</h2></div>
+
+      <div class="scroller">
+        <table>
+          <caption>Opções de runtime de agente contra uma base .NET + Azure</caption>
+          <thead>
+            <tr>
+              <th scope="col">Opção</th>
+              <th scope="col">Linguagens</th>
+              <th scope="col">Aderência aqui</th>
+              <th scope="col">Onde ela pertence</th>
+              <th scope="col">Veredito</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row">Microsoft<br>Agent Framework (MAF)</th>
+              <td>.NET, Python</td>
+              <td>Nativo. 1.0 general availability (GA) em abril de 2026, compromisso de long-term support (LTS), sucessor do Semantic Kernel Agents e do AutoGen, MCP nativo e protocolo Agent-to-Agent (A2A).</td>
+              <td>A camada de agentes nos seus serviços ASP.NET existentes.</td>
+              <td><span class="chip go">Principal</span></td>
+            </tr>
+            <tr>
+              <th scope="row">Extensão Durable Task<br>para o MAF</th>
+              <td>.NET</td>
+              <td>Adiciona checkpointing, orquestração retomável, humano no circuito, padrões multiagente sequenciais e fan-out/fan-in no Azure Functions.</td>
+              <td>Sagas de venda, tratamento de disrupção, qualquer coisa de longa duração.</td>
+              <td><span class="chip go">Combinar com o MAF</span></td>
+            </tr>
+            <tr>
+              <th scope="row">Microsoft Foundry<br>Agent Service</th>
+              <td>Plataforma</td>
+              <td>Hospedagem gerenciada, acesso a modelos, observabilidade e governança. Renomeado de Azure AI Foundry a partir de jan. 2026. Hospeda agentes do MAF e do LangGraph. Agora traz modelos da Anthropic ao lado dos da OpenAI.</td>
+              <td>O plano de hospedagem, avaliação e governança — não um substituto para a sua própria orquestração.</td>
+              <td><span class="chip go">Usar como plataforma</span></td>
+            </tr>
+            <tr>
+              <th scope="row">Semantic Kernel</th>
+              <td>.NET, Python, Java</td>
+              <td>Ainda mantido, mas a Microsoft agora direciona o trabalho novo de agentes para o Agent Framework.</td>
+              <td>Só se o time já tiver Semantic Kernel em produção — veja a seção 06.</td>
+              <td><span class="chip hold">Caminho legado</span></td>
+            </tr>
+            <tr>
+              <th scope="row">Claude Agent SDK</th>
+              <td>TypeScript, Python</td>
+              <td>Harness excelente, mas sem SDK em C#. Rodá-lo a partir do .NET significa chamar a command-line interface (CLI) como subprocesso.</td>
+              <td>Ferramentas internas de desenvolvimento, protótipos, o lado React se algum dia precisar.</td>
+              <td><span class="chip hold">Não é o núcleo</span></td>
+            </tr>
+            <tr>
+              <th scope="row">n8n</th>
+              <td>Visual / JS</td>
+              <td>O modo fila escala, mas a governança degrada depois de ~80 workflows, e é a ferramenta errada para um caminho medido e crítico em latência.</td>
+              <td>Back office: onboarding de fornecedores, reembolsos, reconciliação, alertas.</td>
+              <td><span class="chip no">Não é o caminho de cotação</span></td>
+            </tr>
+            <tr>
+              <th scope="row">LangGraph</th>
+              <td>Python, TS</td>
+              <td>Semântica de grafo forte; o Foundry consegue hospedá-lo. Linguagem errada para o núcleo deste time.</td>
+              <td>Serviços de propriedade da equipe de ciência de dados, se existirem.</td>
+              <td><span class="chip hold">Só se for Python</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="call">
+        <span class="tag">Como dizer isso sem pisar em ninguém</span>
+        <p>
+          "Eu trouxe o Claude Agent SDK à mesa porque é o harness de agentes mais afiado que eu já usei —
+          mas é só TypeScript e Python, então para uma base de código .NET o equivalente alinhado é o
+          Microsoft Agent Framework, que chegou à 1.0 em abril e substitui o Semantic Kernel e o AutoGen.
+          E você estava certo sobre o n8n: o motivo não é que ele não escale, é que a cotação é um caminho
+          medido e limitado em latência, e o n8n é um motor de workflow de negócio. Ele ainda ganha o
+          lugar dele no back office."
+        </p>
+      </div>
+
+      <p>
+        Sobre modelos: o Foundry agora oferece modelos da Anthropic ao lado dos da OpenAI, então a
+        pergunta do SDK e a pergunta do modelo são separadas. Você pode rodar modelos Claude atrás do
+        Microsoft Agent Framework. Não deixe ninguém colapsar essas duas decisões em uma só.
+      </p>
+    </section>
+
+    <!-- ============ 06 ============ -->
+    <section id="s6">
+      <div class="sec-head"><span class="sec-num">06</span><h2>Se eles já estiverem no Semantic Kernel</h2></div>
+
+      <p>
+        O Semantic Kernel está em produção desde 2023, então vários times .NET já têm um objeto
+        <code>Kernel</code> e uma pasta de plugins conectados em algum lugar do código. Pergunte sobre
+        isso na primeira semana — muda a estimativa mais do que quase qualquer outra coisa neste
+        documento. O Microsoft Agent Framework é construído <em>em cima</em> do Semantic Kernel, não é
+        uma ruptura limpa com ele, o que faz disso uma migração, não uma reescrita.
+      </p>
+
+      <h3>O que de fato muda</h3>
+      <div class="scroller">
+        <table>
+          <caption>Mapeamento de conceitos, Semantic Kernel → Microsoft Agent Framework</caption>
+          <thead>
+            <tr>
+              <th scope="col">Semantic Kernel</th>
+              <th scope="col">Agent Framework</th>
+              <th scope="col">O que isso custa</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row">Kernel + plugins<br>(<code>@kernel_function</code>)</th>
+              <td>Tools (<code>@tool</code> / <code>AIFunction</code>)</td>
+              <td>Renomeação mecânica na maioria dos casos — essa é a parte compatível.</td>
+            </tr>
+            <tr>
+              <th scope="row"><code>ChatCompletionAgent</code></th>
+              <td><code>ChatClientAgent</code></td>
+              <td>Novo tipo base. Os pontos de construção de agente precisam ser reescritos, não só renomeados.</td>
+            </tr>
+            <tr>
+              <th scope="row">Estado de thread implícito</th>
+              <td>Criação de sessão explícita</td>
+              <td>A mudança realmente disruptiva. O estado da conversa deixa de ser presumido — ele é criado e passado por você.</td>
+            </tr>
+            <tr>
+              <th scope="row">Resposta <code>ChatMessageContent</code></th>
+              <td><code>AgentResponse</code><br>(<code>.text</code> / <code>.messages</code> / <code>.data</code>)</td>
+              <td>Todo ponto de chamada que lê o formato de uma resposta precisa ser tocado.</td>
+            </tr>
+            <tr>
+              <th scope="row"><code>InProcessRuntime</code></th>
+              <td>Não é mais necessário</td>
+              <td>Workflows rodam diretamente. Apague a instalação do runtime em vez de portá-la.</td>
+            </tr>
+            <tr>
+              <th scope="row">Pipeline de filtros, tags de telemetria</th>
+              <td>Filtros unificados, tags alinhadas ao OpenTelemetry</td>
+              <td>Retrabalho de configuração e dashboard, não retrabalho de lógica.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>A ordem que mantém isso barato</h3>
+      <p>
+        Plugins primeiro, a camada de kernel em segundo, agentes por último. O código de plugin é a peça
+        mais portável de uma aplicação Semantic Kernel existente — o custo real está em substituir o
+        objeto <code>Kernel</code> e o código de construção de agente ao redor dele, não nas ferramentas
+        que seu time já escreveu.
+      </p>
+
+      <div class="call">
+        <span class="tag">O número honesto</span>
+        <p>
+          A própria estimativa da Microsoft é de duas a quatro horas para uma aplicação típica com cinco a
+          dez plugins. Trate isso como o piso para uma aplicação limpa e bem testada, sem instalação
+          customizada de runtime — não como a sua estimativa. Adicione tempo real para três coisas:
+          orquestração customizada em <code>InProcessRuntime</code>, qualquer código que lê formatos de
+          <code>ChatMessageContent</code> em muitos pontos de chamada, e tratamento sob medida de thread
+          ou sessão construído antes de o Agent Framework existir. Um time com alguns plugins isolados de
+          Semantic Kernel está falando de um dia. Um time com orquestração multiagente feita à mão sobre
+          <code>InProcessRuntime</code> está falando de um sprint ou dois.
+        </p>
+      </div>
+
+      <h3>Você não precisa migrar no primeiro dia</h3>
+      <p>
+        O Semantic Kernel ainda é suportado com correções de bugs e patches de segurança, com um
+        compromisso mínimo de um ano além da general availability (GA) do Agent Framework — até pelo menos
+        abril de 2027 — e nenhuma depreciação formal anunciada. Se o time tem código Semantic Kernel
+        funcionando hoje, o conselho honesto é construir tudo que for novo em Agent Framework, migrar o
+        código antigo de forma oportunista, e não travar a funcionalidade de cotação de voos numa migração
+        de framework que já tem seu próprio prazo de suporte.
+      </p>
+
+      <div class="call warn">
+        <span class="tag">Pergunte isso antes de estimar qualquer coisa</span>
+        <p>
+          Dado que seu tech lead disse que não conhecia agent SDKs, a resposta mais provável é que não
+          existe código Semantic Kernel para migrar — o que torna esta seção um não-problema, e significa
+          que vocês estão construindo em Agent Framework a partir de um estado limpo. Confirme isso na
+          primeira conversa em vez de presumir. "A gente tentou uma funcionalidade de IA com Semantic
+          Kernel há dois anos e engavetou" é um ponto de partida bem diferente de um repositório vazio, e
+          é o tipo de coisa que só aparece se você perguntar.
+        </p>
+      </div>
+    </section>
+
+    <!-- ============ 07 ============ -->
+    <section id="s7">
+      <div class="sec-head"><span class="sec-num">07</span><h2>Um design de referência que você consegue defender</h2></div>
+
+      <figure>
+        <div class="fig-frame">
+          <svg viewBox="0 0 830 430" class="dgm" role="img" aria-label="Arquitetura de referência em camadas no Azure, com front-end em React, núcleo de cotação determinístico, e uma camada de IA nas bordas">
+            <defs>
+              <marker id="ar2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" class="d-arrow"/>
+              </marker>
+            </defs>
+            <g font-size="10.5">
+
+              <!-- Edge -->
+              <rect x="20" y="14" width="790" height="52" class="d-box"/>
+              <text x="32" y="32" class="d-lbl">BORDA</text>
+              <text x="415" y="38" class="d-t" text-anchor="middle" font-weight="600" font-size="11.5">React SPA · Azure Front Door · API Management</text>
+              <text x="415" y="54" class="d-t2" text-anchor="middle" font-size="9.5">resultados em streaming · limitação por tenant · autenticação</text>
+
+              <!-- AI layer -->
+              <rect x="20" y="86" width="380" height="120" class="d-box-a"/>
+              <text x="32" y="104" class="d-ta" font-size="9" letter-spacing="1.3">CAMADA DE IA — NÃO BLOQUEANTE</text>
+              <rect x="34" y="116" width="168" height="34" class="d-box"/>
+              <text x="118" y="137" class="d-t" text-anchor="middle">Agente de intenção</text>
+              <rect x="216" y="116" width="170" height="34" class="d-box"/>
+              <text x="301" y="137" class="d-t" text-anchor="middle">Agente de explicação</text>
+              <rect x="34" y="158" width="168" height="34" class="d-box"/>
+              <text x="118" y="179" class="d-t" text-anchor="middle">Agente de política</text>
+              <rect x="216" y="158" width="170" height="34" class="d-box"/>
+              <text x="301" y="179" class="d-t" text-anchor="middle">Agente de disrupção</text>
+
+              <!-- Deterministic core -->
+              <rect x="420" y="86" width="390" height="120" class="d-box-pk"/>
+              <text x="432" y="104" class="d-tp" font-size="9" letter-spacing="1.3">NÚCLEO DETERMINÍSTICO — SEM LLM</text>
+              <rect x="434" y="116" width="176" height="34" class="d-box"/>
+              <text x="522" y="137" class="d-t" text-anchor="middle">Orquestrador de cotação</text>
+              <rect x="624" y="116" width="172" height="34" class="d-box"/>
+              <text x="710" y="137" class="d-t" text-anchor="middle">Ranqueamento / scorer</text>
+              <rect x="434" y="158" width="176" height="34" class="d-box"/>
+              <text x="522" y="179" class="d-t" text-anchor="middle">Preço + regras tarifárias</text>
+              <rect x="624" y="158" width="172" height="34" class="d-box"/>
+              <text x="710" y="179" class="d-t" text-anchor="middle">Saga de pedido / emissão</text>
+
+              <!-- Supplier layer -->
+              <rect x="20" y="226" width="790" height="76" class="d-box"/>
+              <text x="32" y="244" class="d-lbl">CAMADA DE FORNECEDORES — ADAPTADORES + CONTROLE DE ORÇAMENTO</text>
+              <rect x="34" y="254" width="146" height="34" class="d-box-2"/>
+              <text x="107" y="275" class="d-t2" text-anchor="middle">Adaptador GDS</text>
+              <rect x="194" y="254" width="146" height="34" class="d-box-2"/>
+              <text x="267" y="275" class="d-t2" text-anchor="middle">Adaptador NDC</text>
+              <rect x="354" y="254" width="146" height="34" class="d-box-2"/>
+              <text x="427" y="275" class="d-t2" text-anchor="middle">Adaptador LCC</text>
+              <rect x="514" y="254" width="282" height="34" class="d-dash2"/>
+              <text x="655" y="270" class="d-t2" text-anchor="middle">circuit breaker · retry · idempotência</text>
+              <text x="655" y="283" class="d-ta" text-anchor="middle" font-size="9">orçamento de look-to-book aplicado aqui</text>
+
+              <!-- State -->
+              <rect x="20" y="322" width="790" height="90" class="d-box"/>
+              <text x="32" y="340" class="d-lbl">ESTADO</text>
+              <rect x="34" y="350" width="180" height="46" class="d-box-2"/>
+              <text x="124" y="370" class="d-t" text-anchor="middle">Redis</text>
+              <text x="124" y="385" class="d-t2" text-anchor="middle" font-size="9">cache de oferta · semântico</text>
+              <rect x="228" y="350" width="180" height="46" class="d-box-2"/>
+              <text x="318" y="370" class="d-t" text-anchor="middle">SQL / Cosmos</text>
+              <text x="318" y="385" class="d-t2" text-anchor="middle" font-size="9">pedidos · sagas · auditoria</text>
+              <rect x="422" y="350" width="180" height="46" class="d-box-2"/>
+              <text x="512" y="370" class="d-t" text-anchor="middle">Service Bus</text>
+              <text x="512" y="385" class="d-t2" text-anchor="middle" font-size="9">operação assíncrona · eventos</text>
+              <rect x="616" y="350" width="180" height="46" class="d-box-2"/>
+              <text x="706" y="370" class="d-t" text-anchor="middle">App Insights</text>
+              <text x="706" y="385" class="d-t2" text-anchor="middle" font-size="9">traces · token + busca</text>
+
+              <!-- flow arrows -->
+              <g class="d-line" marker-end="url(#ar2)">
+                <path d="M 415 66 L 415 84"/>
+                <path d="M 615 206 L 615 224"/>
+                <path d="M 415 302 L 415 320"/>
+              </g>
+              <path d="M 400 146 L 418 146" class="d-line-a"/>
+              <path d="M 418 172 L 400 172" class="d-line-a"/>
+            </g>
+          </svg>
+        </div>
+        <figcaption>
+          Os links tracejados em âmbar são o único acoplamento entre a camada de IA e o núcleo: requisições
+          estruturadas entrando, referências de oferta estruturadas saindo. Nada atravessa essa fronteira
+          como texto livre carregando um número.
+        </figcaption>
+      </figure>
+
+      <h3>As partes que vale a pena defender</h3>
+      <ul>
+        <li><strong>Um modelo de oferta canônico.</strong> Uma representação interna para a qual todo fornecedor é mapeado. Versione-a. Essa é a coisa de maior alavancagem em todo o código.</li>
+        <li><strong>Contabilidade de orçamento na camada de fornecedores.</strong> Toda chamada de cotação é contada contra um orçamento por fornecedor, por tenant, e o contador é uma métrica de primeira classe ao lado da latência. Sem isso você vai descobrir seu problema de look-to-book através do seu gerente de conta.</li>
+        <li><strong>Dois caches, deliberadamente diferentes.</strong> Um cache de oferta com um TTL curto e ciente da validade da oferta para respostas de fornecedor; um cache semântico para saídas de LLM, onde prompts repetidos e quase idênticos são comuns e resultados publicados colocam a economia na faixa de 60–85%.</li>
+        <li><strong>Sagas duráveis para tudo além de "adicionar ao carrinho".</strong> Pagamento autorizado, pedido criado, bilhete emitido, confirmação enviada — cada um com checkpoint, cada um compensável.</li>
+        <li><strong>Gasto com token como métrica monitorada.</strong> No mesmo dashboard que latência e taxa de erro. Se ninguém for dono do número, ele cresce.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 08 ============ -->
+    <section id="s8">
+      <div class="sec-head"><span class="sec-num">08</span><h2>Cinco plataformas, lidas do jeito certo</h2></div>
+
+      <p>
+        Seu líder apontou para o Booking.com, sua esposa apontou para o Google Flights, e Expedia e Airbnb
+        são duas próximas comparações óbvias assim que você começa a olhar. A quinta, a Decolar — a marca
+        brasileira da Despegar — é possivelmente a que mais importa: é a OTA dominante no mercado de
+        origem real desta empresa, não uma referência internacional. As cinco parecem semelhantes numa
+        página de resultados. São cinco negócios diferentes vestindo roupas parecidas, e as diferenças são
+        a coisa mais útil desta seção — incluindo a única empresa aqui, o Airbnb, que não vende passagens
+        aéreas.
+      </p>
+
+      <div class="scroller">
+        <table>
+          <caption>Cinco abordagens que parecem idênticas na página de resultados</caption>
+          <thead>
+            <tr>
+              <th scope="col"></th>
+              <th scope="col">Google Flights</th>
+              <th scope="col">Booking.com flights</th>
+              <th scope="col">Expedia</th>
+              <th scope="col">Decolar / Despegar</th>
+              <th scope="col">O que você está construindo</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row">Modelo</th>
+              <td>Metabusca. Ranqueia e encaminha.</td>
+              <td>Front end de OTA sobre um parceiro atacadista de voos.</td>
+              <td>OTA — merchant of record na maior parte da receita, modelo de agência no restante.</td>
+              <td>OTA — híbrido merchant e agência, comissões mais taxas de serviço.</td>
+              <td>OTA. Você vende, você emite, você atende.</td>
+            </tr>
+            <tr>
+              <th scope="row">Conteúdo</th>
+              <td>Motor de tarifas próprio — o produto QPX da ITA Software, adquirida pelo Google em 2010 — mais 300+ feeds de parceiros.</td>
+              <td>O Etraveli Group fornece conteúdo e operação; parceria estendida por oito anos em 2025, ativa em 57 países.</td>
+              <td>Conteúdo GDS mais acordos diretos; a única das três que empacota voo e hotel em uma única compra combinada.</td>
+              <td>Mais de 300 companhias aéreas e 800 mil propriedades agregadas; a OTA dominante em toda a América Latina, incluindo o Brasil.</td>
+              <td>O que você contratar. Seção 02.</td>
+            </tr>
+            <tr>
+              <th scope="row">Recebe pagamento</th>
+              <td>Não.</td>
+              <td>Sim, através do parceiro.</td>
+              <td>Sim, diretamente — merchant of record em cerca de 70% da receita de 2025.</td>
+              <td>Sim, do lado merchant do híbrido — mais Pix e parcelamento no cartão, específicos deste mercado.</td>
+              <td>Sim — e é aí que o escopo de Payment Card Industry (PCI), reembolsos e chargebacks caem em cima de você.</td>
+            </tr>
+            <tr>
+              <th scope="row">É dona da disrupção</th>
+              <td>Não.</td>
+              <td>Compartilhado com o parceiro.</td>
+              <td>Sim.</td>
+              <td>Sim.</td>
+              <td>Sim. Essa é a parte cara que ninguém demonstra.</td>
+            </tr>
+            <tr>
+              <th scope="row">Incentivo de ranqueamento</th>
+              <td>Meio neutro. Sem termo de margem.</td>
+              <td>Comercial.</td>
+              <td>Comercial.</td>
+              <td>Comercial — e desde 2025, anúncios patrocinados aparecem direto dentro dos resultados ranqueados.</td>
+              <td>Comercial. O seu <code>w₈</code>.</td>
+            </tr>
+            <tr>
+              <th scope="row">Também vende acesso</th>
+              <td>Não.</td>
+              <td>Não.</td>
+              <td>Sim — a Expedia for Business licencia a mesma stack de busca e venda para mais de 60 mil parceiros, cerca de 38% da receita de 2025.</td>
+              <td>Sim — desde a aquisição pela Prosus em 2025, licencia sua stack de venda e pagamento como software-as-a-service (SaaS) white-label e infraestrutura fintech para bancos e varejistas.</td>
+              <td>Opcional — a linha Etraveli/TripStack da seção 02 é prova de que alguém paga por exatamente isso.</td>
+            </tr>
+            <tr>
+              <th scope="row">Funcionalidade de IA principal, 2026</th>
+              <td>Flight Deals — busca de tarifas em linguagem natural com Gemini, lendo mapas de assento ao vivo e histórico de preço.</td>
+              <td>AI Trip Planner mais Voice Support, superando 50 milhões de usuários mensais.</td>
+              <td>Romie — um assistente de planejamento de viagem que vive dentro de um grupo de chat, não de uma caixa de busca.</td>
+              <td>SOFIA — uma assistente de viagem com IA, lançada em 2024.</td>
+              <td>A divisão em dois agentes da seção 04, provavelmente.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>O que roubar do Google Flights</h3>
+      <ul>
+        <li><strong>A própria aba "Best".</strong> Duas abas — Best e Cheapest — é uma interface do usuário (UI) honesta. Ela diz ao usuário que um julgamento foi feito e permite que ele opte por sair dele. Copie isso exatamente.</li>
+        <li><strong>Explicar o trade-off em linha.</strong> "€40 a mais, três horas a menos" é o produto inteiro. Esse é o único lugar em que um LLM adiciona algo que o scorer não consegue.</li>
+        <li><strong>Visões de calendário e gráfico de preço.</strong> É isso que um usuário realmente quer quando diz "datas flexíveis" — e, criticamente, elas são servidas a partir de dados <em>em cache, pré-computados</em>, não de chamadas de cotação ao vivo. Esse é o design que mantém o look-to-book sobrevivível.</li>
+        <li><strong>Velocidade como funcionalidade.</strong> A reputação inteira do QPX é avaliar números enormes de combinações de itinerário rapidamente. Você não vai alcançar isso, mas a lição vale: o diferencial na busca de voos é latência e cobertura, não esperteza.</li>
+      </ul>
+
+      <h3>O que roubar da Expedia</h3>
+      <ul>
+        <li><strong>O modelo merchant compra para você o pacote combinado.</strong> Ser dono do pagamento ponta a ponta é também o que permite à Expedia vender voo e hotel como uma única transação em vez de duas — margem real, e exatamente a exposição de PCI/chargeback que a seção 11 detalha. As duas coisas chegam juntas; não existe versão do pacote combinado sem a superfície de conformidade.</li>
+        <li><strong>A matemática de fidelidade é o número honesto sobre onde o voo se encaixa.</strong> O programa unificado One Key da Expedia devolve 2% em moeda de recompensa em hospedagem e 0,2% em voos — uma diferença de dez para um. Isso é a linha "incentivo de ranqueamento comercial" desta tabela, quantificada: voo é o produto que traz alguém para o funil, não o que paga o funil. Se sua empresa vende mais do que passagens, essa proporção vale a pena ter em mente antes de você argumentar por headcount especificamente do lado de voos.</li>
+        <li><strong>O quarto produto pode ser uma API para a vitrine de outra empresa.</strong> A Expedia for Business agora licencia sua stack de busca e venda para mais de 60 mil parceiros — perto de 40% da receita de 2025. O Etraveli construiu uma empresa inteira sobre o mesmo instinto (seção 02, e a linha "também vende acesso" acima). Uma stack de conteúdo e ranqueamento boa o suficiente para vender a viajantes costuma ser boa o suficiente para vender a outras empresas de viagem, e esse segundo comprador geralmente tem um ciclo de venda bem mais curto do que um consumidor.</li>
+        <li><strong>A Romie responde a uma pergunta diferente da que este documento faz.</strong> A seção 04 presume que a entrada do agente de interpretação de intenção é uma caixa de busca. A Romie da Expedia recebe a entrada de um grupo de Short Message Service (SMS) ou de uma conversa por e-mail. Vale cinco minutos se a superfície de entrada do seu próprio agente de intenção ainda for uma questão em aberto em vez de algo já definido.</li>
+      </ul>
+
+      <h3>O que roubar da Decolar/Despegar</h3>
+      <ul>
+        <li><strong>O modelo híbrido é o ponto de partida honesto para uma OTA brasileira.</strong> Misturar merchant e agência permite que você fique com a margem onde o seu próprio credenciamento e posição de caixa sustentam isso, e fique com a comissão onde não sustentam, em vez de apostar o negócio inteiro em um único modelo no primeiro dia.</li>
+        <li><strong>SOFIA mais anúncios patrocinados é uma segunda alavanca de receita, não só uma funcionalidade de chat.</strong> Combinar um assistente de viagem com IA com anúncios embutidos direto nos resultados ranqueados significa que o termo de margem no scorer da seção 04, <code>w₈</code>, pode eventualmente precisar de uma flag de "patrocinado" ao lado dele — uma decisão comercial para tomar deliberadamente, às claras, não algo que se infiltra sozinho.</li>
+        <li><strong>Os trilhos de pagamento fazem parte do produto aqui, não são um detalhe posterior.</strong> Pix e parcelamento sem juros são o que um viajante brasileiro espera no checkout, do mesmo jeito que um cartão salvo é esperado em outros lugares — veja a seção 11 para entender o que isso muda arquiteturalmente.</li>
+        <li><strong>A aquisição e o pivô que veio depois dela são o mesmo instinto do Etraveli e da Expedia, pela terceira vez.</strong> A Prosus pagou US$ 1,7 bilhão pela Despegar em 2025, e a Despegar respondeu licenciando sua própria stack de venda e pagamento como infraestrutura white-label para bancos. "Vender a stack, não só a vitrine" (seção 08) não é um caso isolado; é o que plataformas maduras de travel-tech tendem a fazer assim que o produto principal fica bom o suficiente.</li>
+      </ul>
+
+      <div class="call stop">
+        <span class="tag">O conto de advertência no seu próprio mercado</span>
+        <p>
+          O Grupo 123 — 123milhas e MaxMilhas — está em recuperação judicial desde agosto de 2023, com
+          cerca de R$ 2,4 bilhões em créditos, depois que seu produto de vendas relâmpago "Promo" vendeu
+          passagens mais rápido do que conseguia de fato providenciá-las, e depois as cancelou em massa.
+          Em fevereiro de 2026 o caso ainda está passando por uma proposta de acordo com os credores que
+          se estende por quase sete anos de pagamentos. A 123milhas desde então suspendeu o Promo mas
+          continua vendendo passagens normais; a MaxMilhas opera normalmente. A lição não é "evite
+          descontos" — é que uma promessa de preço ou de estoque que a sua camada de fornecedores não
+          consegue de fato sustentar é uma falha de modelo de negócio muito antes de ser uma falha
+          técnica, e é exatamente o tipo de promessa que um agente sem limites bem definidos poderia
+          fazer em seu nome, se ninguém colocar uma fronteira rígida entre "o modelo achou uma oferta
+          ótima" e "a oferta é real".
+        </p>
+      </div>
+
+      <h3>O Airbnb não vende passagens — mas três coisas ainda valem a pena roubar</h3>
+      <p>
+        O Airbnb é um marketplace de dois lados, de hospedagem e experiências, não uma agência de viagens,
+        e nada da maquinaria de GDS, NDC ou PNR deste documento se aplica a ele. Mas é quem faz a
+        engenharia de ranqueamento e confiança mais afiada em viagens de consumo, e três coisas específicas
+        se transferem mesmo que o negócio não se transfira.
+      </p>
+      <ul>
+        <li>
+          <strong>Ele aposta no sentido oposto sobre ranqueamento, de propósito — e as duas apostas estão certas.</strong>
+          A busca do Airbnb, segundo relatos, re-ranqueia cada resultado por pesquisador através de mais de
+          800 sinais, sem posição fixa para nenhum anúncio, em vez do scorer determinístico único que a
+          seção 04 defende. O Airbnb tem sinal profundo de comportamento repetido na maioria dos
+          pesquisadores e riscos regulatórios comparativamente baixos por item. Uma busca de voo tem sinal
+          repetido fraco na maioria dos viajantes — a maioria das pessoas compra passagens algumas poucas
+          vezes por ano — e uma exigência dura, a Regulação 1008/2008 da seção 11, de mostrar um preço e
+          um ranqueamento defensáveis e explicáveis. Ranqueamento personalizado de caixa-preta é a escolha
+          certa quando você tem a densidade de dados e o espaço regulatório para isso. Uma plataforma de
+          voos não tem nenhum dos dois, ainda.
+        </li>
+        <li>
+          <strong>O incidente de precificação de fevereiro de 2026 é o estudo de caso mais claro disponível para a regra de integridade de preço.</strong>
+          Um defeito no Smart Pricing, o algoritmo automático de precificação de anfitriões do Airbnb,
+          segundo relatos desacoplou o sistema da demanda real e sobrepôs os próprios tetos de preço
+          definidos pelos anfitriões — um caso amplamente reportado teve o calendário de um anfitrião em
+          Austin para a semana do South by Southwest (SXSW) resetado de US$ 350 para US$ 149 por noite sem
+          nenhuma etapa manual no meio do caminho. A posição declarada do Airbnb foi que a empresa não
+          tinha responsabilidade financeira pelas perdas resultantes dos anfitriões. Essa é a regra da
+          seção 03 — um sistema nunca pode redigir um número que chega a uma parte interessada sem
+          verificação — acontecendo do lado da oferta em vez do lado da demanda, com um custo real, em
+          dólares reportados, associado a ela. A lição se generaliza para além de modelos de linguagem:
+          qualquer sistema de precificação automatizado, voltado a viajantes ou a fornecedores, precisa da
+          mesma verificação estrutural de limites. Uma política que presume que o algoritmo vai se comportar
+          não é um controle, assim como um prompt também não é.
+        </li>
+        <li>
+          <strong>É o dado público mais visível sobre o que custa ser "nativo em IA".</strong> O Airbnb
+          relata que cerca de 60% do código novo agora é escrito com coautoria de IA e diz ter lançado 100
+          funcionalidades em um único trimestre de 2026, incluindo uma funcionalidade de destaques de
+          avaliação que sintetiza mais de um bilhão de avaliações de hóspedes e anfitriões por anúncio.
+          Qualquer que seja a decisão do seu time sobre o Microsoft Agent Framework, essa é a escala de
+          mudança de processo que outras empresas de viagem de consumo já estão tratando como normal —
+          contexto útil para quão rápido "a funcionalidade de IA" pode virar "como a gente constrói tudo".
+        </li>
+      </ul>
+
+      <h3>O que não se transfere</h3>
+      <p>
+        O Google não emite seus bilhetes, não atende o telefone quando a Lufthansa cancela, e não carrega
+        o seu risco de merchant. Cerca de metade do esforço de engenharia de uma OTA vive depois do botão
+        de compra — atendimento de pedido, tratamento de mudança de malha, reembolsos, trocas, reacomodação
+        involuntária. Quando seu líder diz "usa o Booking.com como inspiração", a leitura honesta é:
+        <em>inspiração para a vitrine</em>. A maquinaria por trás da vitrine de voos do Booking.com é um
+        parceiro atacadista que eles escolheram não construir — a Expedia escolheu construir o equivalente
+        ela mesma, o que é a diferença real entre essas duas OTAs e boa parte do motivo pelo qual as
+        margens e os headcounts de engenharia delas não se parecem.
+      </p>
+
+      <div class="call warn">
+        <span class="tag">Vale a pena levantar cedo</span>
+        <p>
+          "A gente quer ser uma metabusca, uma OTA sobre um parceiro atacadista, uma OTA que constrói a
+          própria maquinaria de merchant do jeito que a Expedia fez, ou um modelo híbrido de merchant e
+          agência como o da Decolar?" é uma pergunta de estratégia disfarçada de pergunta de arquitetura, e
+          a resposta muda a estratégia de conteúdo, a superfície de conformidade, e o tamanho do time. Se
+          isso ainda não foi decidido, perguntar vai valer mais do que qualquer código que você escrever no
+          primeiro mês.
+        </p>
+      </div>
+    </section>
+
+    <!-- ============ 09 ============ -->
+    <section id="s9">
+      <div class="sec-head"><span class="sec-num">09</span><h2>A economia unitária que restringe o design</h2></div>
+
+      <p>
+        Faça essa conta antes de desenhar qualquer coisa. É o que transforma "o agente deveria ser mais
+        agêntico?" de uma opinião em um número. Assuma uma margem modesta por bilhete e uma conversão de
+        sessão para venda de 2%.
+      </p>
+
+      <div class="ledger">
+        <div class="ledger-row"><span>Margem por bilhete (ilustrativo)</span><span>US$ 25,00</span></div>
+        <div class="ledger-row"><span>Sessões por venda a 2% de conversão</span><span>50</span></div>
+        <div class="ledger-row"><span>Design disciplinado — 2 turnos de LLM/sessão a ~US$ 0,01</span><span>US$ 0,02/sessão</span></div>
+        <div class="ledger-row good"><span>→ Custo de LLM por venda</span><span>US$ 1,00 · 4% da margem</span></div>
+        <div class="ledger-row"><span>Design agêntico — 10 turnos com chamada de ferramenta/sessão</span><span>US$ 0,10/sessão</span></div>
+        <div class="ledger-row bad"><span>→ Custo de LLM por venda</span><span>US$ 5,00 · 20% da margem</span></div>
+        <div class="ledger-row total"><span>Diferença, a cada 10.000 vendas</span><span>US$ 40.000</span></div>
+      </div>
+
+      <p>
+        E isso é antes dos custos de busca com fornecedor. A uma taxa publicada de US$ 0,005 por busca
+        além de uma razão de 1500:1, um agente que dispara dez buscas exploratórias extras por sessão
+        adiciona US$ 2,50 por venda, sozinho. Os dois efeitos se compõem, e se compõem exatamente no
+        cenário com o qual seu tech lead está preocupado: escala.
+      </p>
+
+      <div class="call">
+        <span class="tag">O controle que torna isso seguro</span>
+        <p>
+          Dê a cada sessão um orçamento rígido — <em>n</em> turnos de modelo e <em>m</em> chamadas de
+          cotação a fornecedor, aplicado na camada de fornecedores e no host do agente, não no prompt.
+          Quando uma sessão esgota o orçamento, ela degrada para o caminho determinístico em vez de falhar.
+          Depois coloque os dois contadores no mesmo dashboard que a latência p95. Disciplina de custo que
+          você consegue ver é disciplina de custo que se sustenta.
+        </p>
+      </div>
+
+      <p>
+        Cache semântico é a outra alavanca, e é uma grande — resultados de produção publicados se
+        concentram em torno de 60–85% de redução de custo, porque uma parcela significativa das consultas
+        em qualquer carga de trabalho real é semanticamente quase idêntica. "Passagens baratas para Lisboa
+        em dezembro" chega mil vezes por dia em mil formulações diferentes.
+      </p>
+    </section>
+
+    <!-- ============ 10 ============ -->
+    <section id="s10">
+      <div class="sec-head"><span class="sec-num">10</span><h2>Como isso quebra em produção</h2></div>
+
+      <p>
+        Pergunte isso em revisão de design. Cada um é um incidente real que já aconteceu com uma OTA real.
+      </p>
+
+      <div class="scroller">
+        <table>
+          <caption>Modos de falha, ordenados por quão silenciosamente eles falham</caption>
+          <thead>
+            <tr>
+              <th scope="col">Falha</th>
+              <th scope="col">Como ela aparece</th>
+              <th scope="col">Controle</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row">Modelo afirma<br>uma tarifa errada</th>
+              <td>Silenciosamente. Uma franquia de bagagem confiante, plausível e incorreta em um resumo. Exposição regulatória e de confiança.</td>
+              <td>Estrutural: modelos emitem referências, a camada de renderização resolve os valores reais.</td>
+            </tr>
+            <tr>
+              <th scope="row">Oferta expirou<br>no checkout</th>
+              <td>Queda de conversão sem nenhum erro nos logs — os usuários simplesmente saem.</td>
+              <td>TTL ciente da oferta, reprecificação antes do pagamento, mostrar a diferença com honestidade.</td>
+            </tr>
+            <tr>
+              <th scope="row">Venda duplicada<br>em uma nova tentativa</th>
+              <td>Dois bilhetes, um cliente, um reembolso e um pedido de desculpas.</td>
+              <td>Chaves de idempotência em toda chamada de fornecedor que altera estado, ponta a ponta.</td>
+            </tr>
+            <tr>
+              <th scope="row">Um fornecedor lento<br>trava toda busca</th>
+              <td>A latência p95 triplica; o dashboard culpa o serviço de busca inteiro.</td>
+              <td>Timeouts por fornecedor e circuit breakers; devolver resultados parciais em vez de nenhum.</td>
+            </tr>
+            <tr>
+              <th scope="row">Violação de<br>look-to-book</th>
+              <td>Não aparece na sua telemetria de jeito nenhum — aparece em um e-mail do fornecedor, ou numa limitação.</td>
+              <td>Contadores de orçamento como métricas de primeira classe, com alertas bem abaixo do limite contratual.</td>
+            </tr>
+            <tr>
+              <th scope="row">Injeção de prompt<br>via dados do fornecedor</th>
+              <td>Campos de texto livre de um fornecedor chegando a um prompt que tem acesso a ferramentas.</td>
+              <td>Tratar todo texto de fornecedor como dado não confiável; nunca deixar que chegue a um contexto de chamada de ferramenta sem escapar.</td>
+            </tr>
+            <tr>
+              <th scope="row">Pagamento autorizado,<br>bilhete não emitido</th>
+              <td>Cliente cobrado, sem bilhete, e uma fila manual que ninguém escalou.</td>
+              <td>Saga durável com uma ação compensatória explícita de anulação/reembolso e um alerta operacional.</td>
+            </tr>
+            <tr>
+              <th scope="row">Gasto de token<br>fora de controle</th>
+              <td>Um loop de retry em um agente vira uma fatura de cinco dígitos em um fim de semana.</td>
+              <td>Limites de turno por sessão, orçamentos por tenant, alertas de gasto.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ============ 11 ============ -->
+    <section id="s11">
+      <div class="sec-head"><span class="sec-num">11</span><h2>Conformidade, na dose necessária para ser útil</h2></div>
+
+      <p>
+        Você não precisa ser o especialista em conformidade. Precisa saber o suficiente para não desenhar
+        algo que vai precisar ser reconstruído.
+      </p>
+
+      <div class="gloss">
+        <dl style="margin:0">
+          <div class="gterm"><dt>EU 1008/2008</dt><dd>A Regulação 1008/2008 da União Europeia (EU) exige que o preço final seja mostrado o tempo todo, com a tarifa aérea e todos os impostos e taxas inevitáveis e previsíveis exibidos separadamente desde a primeira vez que um preço aparece. Extras opcionais precisam ser opt-in e comunicados com clareza no início da reserva. Isso restringe sua página de resultados, não só o seu checkout.</dd></div>
+          <div class="gterm"><dt>US DOT</dt><dd>O Department of Transportation (DOT) dos Estados Unidos exige transparência de taxas acessórias: companhias aéreas, agentes de venda e agências de viagem on-line (OTAs) precisam divulgar taxas de bagagem e de alteração/cancelamento onde quer que informações de tarifa e malha sejam mostradas. Note que as regras de flexibilidade de publicidade tarifária estavam sendo revisadas ao longo de 2026 — vale checar a posição atual para os mercados em que você vende.</dd></div>
+          <div class="gterm"><dt>PCI DSS</dt><dd>O Payment Card Industry Data Security Standard (PCI DSS) se aplica se você é merchant of record — você é dono do escopo de dados de cartão. Desenhe de forma que dados de cartão brutos nunca toquem seus serviços: campos hospedados ou um fluxo tokenizado por um Payment Service Provider (PSP). Decida isso antes de alguém escrever um endpoint de pagamento.</dd></div>
+          <div class="gterm"><dt>SCA / 3DS</dt><dd>A Strong Customer Authentication (SCA), tipicamente implementada via 3-D Secure (3DS), adiciona uma etapa que falha, expira, e derruba conversão. Precisa ser um estado dentro da sua saga de venda, não um pensamento tardio.</dd></div>
+          <div class="gterm"><dt>GDPR / LGPD</dt><dd>O General Data Protection Regulation (GDPR) da UE e a Lei Geral de Proteção de Dados (LGPD) do Brasil tratam nomes de passageiros, datas de nascimento e dados de passaporte como dados pessoais, sendo dados de passaporte especialmente sensíveis. Isso limita diretamente o que pode entrar em um prompt ou em um log. Redija antes do modelo, não depois.</dd></div>
+          <div class="gterm"><dt>EU AI Act</dt><dd>Um sistema de ranqueamento e recomendação para compras de consumo não é de alto risco, mas obrigações de transparência sobre interação com IA se aplicam. Impacto prático: avise quando um usuário estiver falando com uma IA, e mantenha a lógica de ranqueamento explicável. Ambos são coisas que você iria querer de qualquer jeito.</dd></div>
+          <div class="gterm"><dt>IATA / ARC</dt><dd>O credenciamento determina se você pode emitir bilhetes por conta própria ou precisa operar através de um consolidador ou de um provedor de conteúdo gerenciado. Isso é um portão comercial, e define seu tempo até o mercado mais do que qualquer decisão técnica vai definir.</dd></div>
+          <div class="gterm"><dt>ANAC 400/2016</dt><dd>A Resolução da Agência Nacional de Aviação Civil (ANAC) nº 400/2016 exige que o preço total — tarifa aérea mais tarifas aeroportuárias e valores devidos ao governo — seja mostrado em toda etapa da busca, não só no checkout final: o mesmo instinto "sem pegadinha" da EU 1008/2008 acima. Só taxas de origem governamental podem ser destacadas separadamente do valor total em destaque.</dd></div>
+          <div class="gterm"><dt>Pix / parcelamento</dt><dd>O Pix, o trilho de pagamento instantâneo do Brasil, não tem mecanismo de chargeback — um pagamento por Pix é irrevogável, o que transfere o risco de fraude e reembolso para a sua própria política, em vez do processo de disputa da bandeira do cartão. O parcelamento sem juros é uma expectativa padrão no checkout de viagens no Brasil, não um upsell; ele cria uma lacuna de capital de giro, já que o Billing and Settlement Plan (BSP) Brasil costuma exigir pagamento em até cinco dias úteis enquanto o viajante paga ao longo de meses, geralmente coberta com um parceiro de Buy Now, Pay Later (BNPL) ou por antecipação de recebíveis.</dd></div>
+        </dl>
+      </div>
+
+      <div class="call stop">
+        <span class="tag">A que morde os projetos de IA</span>
+        <p>
+          Dados de passageiro em prompts. É o erro mais fácil de cometer e o mais difícil de desfazer uma
+          vez que está nos logs de um fornecedor. Estabeleça a fronteira de redação na primeira semana,
+          antes que alguém crie o hábito de passar um objeto de reserva inteiro para um modelo.
+        </p>
+      </div>
+    </section>
+
+    <!-- ============ 12 ============ -->
+    <section id="s12">
+      <div class="sec-head"><span class="sec-num">12</span><h2>Trinta dias até ser crível</h2></div>
+
+      <p>
+        Ordenado para que cada semana produza algo que você consiga mostrar ou dizer. Cerca de dez horas
+        focadas por semana.
+      </p>
+
+      <h4>Semana 1 — o domínio</h4>
+      <ul>
+        <li>Pegue um token de acesso em modo de teste da Duffel — grátis, sem cartão de crédito, autoatendimento em cerca de um minuto. Rode uma busca de ofertas de voo contra a Duffel Airways, a companhia de sandbox deles, depois uma chamada de preço, depois uma venda em teste. Sinta o formato de uma resposta de oferta/pedido e o quanto ela difere do que você esperava. (A Amadeus Self-Service, a parada tradicional aqui, teve seu portal de autoatendimento descontinuado em julho de 2026 — o modo de teste da Duffel é o equivalente gratuito mais próximo hoje.)</li>
+        <li>Leia a resposta de oferta NDC de uma companhia aérea, ponta a ponta. Note quanto dela não é o preço.</li>
+        <li>Esboce a cadeia de distribuição da seção 01 de memória. Se você consegue desenhá-la num quadro branco, você aguenta a reunião.</li>
+      </ul>
+
+      <h4>Semana 2 — as restrições</h4>
+      <ul>
+        <li>Construa um fan-out de dois fornecedores em .NET com timeouts por fornecedor, um circuit breaker e resultados parciais. Esse é o verdadeiro esqueleto do produto inteiro.</li>
+        <li>Adicione um modelo de oferta canônico e mapeie os dois fornecedores nele. Escolha deliberadamente dois com schemas diferentes.</li>
+        <li>Adicione um contador de chamadas de cotação e exponha-o como métrica. Agora você tem um orçamento de look-to-book.</li>
+      </ul>
+
+      <h4>Semana 3 — a camada de IA</h4>
+      <ul>
+        <li>Microsoft Agent Framework num projeto .NET: um agente de intenção produzindo uma requisição de busca tipada, validada contra um schema antes de chegar à camada de fornecedores.</li>
+        <li>Um agente de explicação que recebe ofertas ranqueadas como referências estruturadas e produz prosa sem redigir um único número. Prove que a fronteira se mantém alimentando-o com uma referência de preço deliberadamente errada.</li>
+        <li>Adicione cache semântico no agente de intenção e meça a taxa de acerto nas suas próprias consultas repetidas.</li>
+      </ul>
+
+      <h4>Semana 4 — o formato de produção</h4>
+      <ul>
+        <li>Monte uma saga de Durable Functions para o fluxo de venda com uma chave de idempotência e uma ação compensatória. Mate o processo no meio do fluxo e observe-o retomar.</li>
+        <li>Escreva uma especificação de ranqueamento de uma página com pesos explícitos, e um teste que prove que o ranqueamento é determinístico em entradas idênticas.</li>
+        <li>Escreva o deck: cadeia de distribuição, mapa de superfície de IA, recomendação de framework, modelo de custo. Quatro slides. Agora você tem um ponto de vista em vez de um conjunto de opiniões.</li>
+      </ul>
+
+      <div class="call">
+        <span class="tag">A demo que ganha a sala</span>
+        <p>
+          Consulta em linguagem natural entrando, resultados ranqueados saindo em streaming em menos de
+          três segundos, explicações se preenchendo de forma assíncrona depois, e um contador no canto
+          mostrando chamadas a fornecedor e gasto de token daquela sessão. O contador é a parte que te
+          contrata — ele diz que você entende que esse sistema precisa ser sustentável, não só esperto.
+        </p>
+      </div>
+    </section>
+
+    <!-- ============ 13 ============ -->
+    <section id="s13">
+      <div class="sec-head"><span class="sec-num">13</span><h2>O que perguntar antes de escrever qualquer código</h2></div>
+
+      <p>
+        Mais ou menos em ordem de quanto cada resposta muda o design.
+      </p>
+
+      <div class="qlist">
+        <div class="q"><div><b>A gente é metabusca, OTA, ou OTA sobre um parceiro atacadista?</b><em>Determina se somos donos da emissão, do pagamento e da disrupção — e, portanto, de metade do escopo.</em></div></div>
+        <div class="q"><div><b>Quais fontes de conteúdo estão contratadas hoje, e em qual nível?</b><em>Self-Service e Enterprise são produtos diferentes com limites diferentes. "A gente usa Amadeus" não é uma resposta.</em></div></div>
+        <div class="q"><div><b>A gente é credenciado IATA/ARC, ou operamos através de um consolidador?</b><em>Define se conseguimos emitir bilhetes de qualquer forma.</em></div></div>
+        <div class="q"><div><b>Qual é o nosso limite contratual de look-to-book, e o que acontece se a gente violar?</b><em>Esse é o orçamento rígido dentro do qual todo design agêntico precisa caber. Peça o número.</em></div></div>
+        <div class="q"><div><b>Qual é a margem real por bilhete?</b><em>Define o teto de custo de IA. A seção 09 não tem resposta sem isso.</em></div></div>
+        <div class="q"><div><b>Business-to-consumer (B2C), business-to-business (B2B) voltado a agentes, ou viagem corporativa?</b><em>Corporativo significa motores de política e cadeias de aprovação. B2B significa uma interface diferente e uma tolerância de latência diferente.</em></div></div>
+        <div class="q"><div><b>Já existe um serviço de ranqueamento hoje, ou é ordenar por preço?</b><em>Se o ranqueamento já existe, o trabalho de IA é explicação. Se não, esse scorer é a primeira entrega de verdade.</em></div></div>
+        <div class="q"><div><b>A gente é merchant of record, e onde fica o escopo de PCI?</b><em>Decide a arquitetura de pagamento antes de alguém escrever um endpoint.</em></div></div>
+        <div class="q"><div><b>Qual é a latência p95 de busca hoje, e qual é a meta?</b><em>Define todo o orçamento de latência de IA.</em></div></div>
+        <div class="q"><div><b>A gente retém dados históricos de busca e venda?</b><em>Necessário para pesos de ranqueamento aprendidos, heurísticas de cache e funcionalidades de previsão de preço. Se não existe, comece a coletar agora — a dívida de dados se acumula.</em></div></div>
+        <div class="q"><div><b>O que já existe no Azure — API Management (APIM), Service Bus, Container Apps ou Azure Kubernetes Service (AKS), Redis, Structured Query Language (SQL) Database ou Cosmos DB?</b><em>A camada de agentes deveria pousar na plataforma existente, não ao lado dela.</em></div></div>
+        <div class="q"><div><b>Já existe um deployment de Foundry ou Azure OpenAI, em qual região, com qual cota?</b><em>A região afeta tanto a latência quanto a residência de dados.</em></div></div>
+        <div class="q"><div><b>Quem é o comprador da funcionalidade de IA, e qual métrica se move?</b><em>Aumento de conversão, produtividade de agente, ou custo operacional — três primeiros sprints diferentes. Nada mais prioriza o backlog com tanta clareza.</em></div></div>
+      </div>
+    </section>
+
+    <!-- ============ 14 ============ -->
+    <section id="s14">
+      <div class="sec-head"><span class="sec-num">14</span><h2>Glossário</h2></div>
+
+      <div class="gloss">
+        <dl style="margin:0">
+          <div class="gterm"><dt>GDS</dt><dd>Global Distribution System (sistema global de distribuição). O marketplace compartilhado que conecta companhias aéreas e vendedores. Amadeus, Sabre e Travelport lidam com a grande maioria das vendas via GDS entre si.</dd></div>
+          <div class="gterm"><dt>NDC</dt><dd>New Distribution Capability. O padrão XML da IATA que permite às companhias aéreas distribuir ofertas ricas e personalizadas diretamente, em vez de através de tarifas publicadas.</dd></div>
+          <div class="gterm"><dt>Índice ARM</dt><dd>Airline Retailing Maturity. Substituiu a antiga certificação NDC de quatro níveis por um perfil de capacidade. Mais de 70 companhias aéreas certificadas.</dd></div>
+          <div class="gterm"><dt>Oferta / Pedido</dt><dd>O modelo moderno. Uma oferta é um preço contextual e com prazo de validade; um pedido é a oferta aceita e tudo que está anexado a ela. Substitui a separação PNR-mais-e-bilhete.</dd></div>
+          <div class="gterm"><dt>PNR</dt><dd>Passenger Name Record. O registro da reserva. Não é o bilhete — o bilhete é um documento separado.</dd></div>
+          <div class="gterm"><dt>Look-to-book</dt><dd>Requisições de cotação divididas por vendas. A métrica de conversão da indústria, e o seu driver de custo.</dd></div>
+          <div class="gterm"><dt>LCC</dt><dd>Low-cost carrier (companhia aérea de baixo custo). Frequentemente ausente do conteúdo GDS; geralmente alcançada por conexão direta ou por um agregador.</dd></div>
+          <div class="gterm"><dt>Virtual interlining</dt><dd>Costurar dois bilhetes sem conexão entre si em um único itinerário. Barato, e o risco da conexão é seu, não da companhia aérea.</dd></div>
+          <div class="gterm"><dt>Fare basis / regras tarifárias</dt><dd>O código e as condições anexadas a uma tarifa — alterações, reembolsos, bagagem, requisitos de estadia. Onde vive a maioria dos casos de borda.</dd></div>
+          <div class="gterm"><dt>Acessórios</dt><dd>Bagagem, assentos, refeições, prioridade. Cada vez mais onde a margem de fato está.</dd></div>
+          <div class="gterm"><dt>Consolidador</dt><dd>Uma parte credenciada que emite bilhetes em seu nome quando você mesmo não é credenciado.</dd></div>
+          <div class="gterm"><dt>MCP</dt><dd>Model Context Protocol. Interface padrão entre modelos e ferramentas. Sendo adotado por toda a indústria de viagens — Sabre, Travelport e Amadeus têm, todos, posições públicas sobre isso.</dd></div>
+          <div class="gterm"><dt>A2A / AP2 / UCP</dt><dd>Protocolos emergentes para comunicação agente-a-agente, pagamentos iniciados por agente, e comércio por agente. Ainda cedo, mas avançando rápido especificamente em viagens.</dd></div>
+        </dl>
+      </div>
+    </section>
+
+    <!-- ============ 15 ============ -->
+    <section id="s15">
+      <div class="sec-head"><span class="sec-num">15</span><h2>Fontes</h2></div>
+
+      <h4>Frameworks e plataforma</h4>
+      <ul class="srcs">
+        <li><a class="ref" href="https://learn.microsoft.com/en-us/agent-framework/overview/">Microsoft Agent Framework overview</a> — Microsoft Learn</li>
+        <li><a class="ref" href="https://visualstudiomagazine.com/articles/2026/04/06/microsoft-ships-production-ready-agent-framework-1-0-for-net-and-python.aspx">Agent Framework 1.0 ships for .NET and Python</a> — Visual Studio Magazine, abr. 2026</li>
+        <li><a class="ref" href="https://learn.microsoft.com/en-us/azure/durable-task/sdks/durable-agents-microsoft-agent-framework">Durable Task extension for Microsoft Agent Framework</a> — Microsoft Learn</li>
+        <li><a class="ref" href="https://learn.microsoft.com/en-us/azure/durable-task/sdks/durable-agents-patterns">Agentic application patterns</a> — Microsoft Learn</li>
+        <li><a class="ref" href="https://devblogs.microsoft.com/foundry/agent-service-build2026/">Build and run agents at scale with Microsoft Foundry</a> — Foundry blog, Build 2026</li>
+        <li><a class="ref" href="https://azure.microsoft.com/en-us/pricing/details/foundry-agent-service/">Foundry Agent Service pricing</a> — Microsoft Azure</li>
+        <li><a class="ref" href="https://www.directionsonmicrosoft.com/reports/foundry-gets-new-name-anthropic-models/">Foundry gets new name, Anthropic models</a> — Directions on Microsoft</li>
+        <li><a class="ref" href="https://platform.claude.com/docs/en/agent-sdk/overview">Claude Agent SDK overview</a> — Claude Platform Docs</li>
+        <li><a class="ref" href="https://medium.com/@orami98/the-n8n-scaling-reliability-guide-queue-mode-topologies-error-handling-at-scale-and-production-9f33b13d2be8">n8n scaling and reliability guide</a> — topologias de modo fila em escala</li>
+      </ul>
+
+      <h4>Distribuição aérea</h4>
+      <ul class="srcs">
+        <li><a class="ref" href="https://www.iata.org/en/programs/airline-distribution/retailing/ndc/">Distribution with Offers &amp; Orders (NDC)</a> — IATA</li>
+        <li><a class="ref" href="https://www.iata.org/en/iata-repository/pressroom/fact-sheets/fact-sheet-ndc/">NDC fact sheet, junho de 2026</a> — IATA</li>
+        <li><a class="ref" href="https://www.altexsoft.com/infographics/ndc-airlines-list/">NDC airlines list and retailing capabilities</a> — AltexSoft</li>
+        <li><a class="ref" href="https://www.oag.com/look-to-book-travel-tech-architecture">Look-to-book and the end of the old travel tech architecture</a> — OAG</li>
+        <li><a class="ref" href="https://www.sabre.com/agency-mosaic/retail-suite/offer-management/cache-powered-intelligent-shopping/">Cache-powered intelligent shopping</a> — Sabre</li>
+        <li><a class="ref" href="https://www.altexsoft.com/blog/ota-caching-strategies/">Travel search caching: how OTAs scale</a> — AltexSoft</li>
+        <li><a class="ref" href="https://www.altexsoft.com/blog/distribution-costs-hidden-payments/">The unseen price of travel: distribution costs</a> — AltexSoft</li>
+        <li><a class="ref" href="https://amadeus.com/en/blog/articles/agentic-ai-travel-mcp-ucp-standards">Agentic AI in travel: MCP, UCP and the future of travel retailing</a> — Amadeus</li>
+        <li><a class="ref" href="https://www.phocuswire.com/amadeus-shut-down-self-service-apis-portal-developers">Amadeus to shut down Self-Service APIs portal for developers</a> — PhocusWire, 2026</li>
+        <li><a class="ref" href="https://duffel.com/docs/api/overview/test-mode/duffel-airways">Test mode — Duffel Airways</a> — Duffel Documentation</li>
+      </ul>
+
+      <h4>Comparáveis</h4>
+      <ul class="srcs">
+        <li><a class="ref" href="https://duffel.com/blog/google-flights-api">The Google Flights API: how it worked and what happened to it</a> — Duffel</li>
+        <li><a class="ref" href="https://support.google.com/travel/answer/7664728?hl=en">How Google Flights ranks fares</a> — Google Travel Help</li>
+        <li><a class="ref" href="https://www.vice.com/en/article/google-flights-gets-gemini-ai/">Google Flights gets Gemini AI</a> — Vice, 2026</li>
+        <li><a class="ref" href="https://www.mynewsdesk.com/etraveli-group/pressreleases/etraveli-group-and-booking-punkt-com-extend-strategic-partnership-3390900">Etraveli Group and Booking.com extend partnership</a> — Etraveli, 2025</li>
+        <li><a class="ref" href="https://news.booking.com/bookingcom-debuts-agentic-ai-innovations-adding-to-its-robust-suite-of-genai-tools-for-customers/">Booking.com debuts agentic AI innovations</a> — Booking.com newsroom, 2026</li>
+        <li><a class="ref" href="https://www.phocuswire.com/sabremosaic-offer-order-retailing-platform">Sabre lays out offer-order strategy with Mosaic</a> — PhocusWire</li>
+        <li><a class="ref" href="https://ir.expediagroup.com/news-and-events/news/news-details/2026/Expedia-Group-Reports-Fourth-Quarter-and-Full-Year-2025-Results/default.aspx">Expedia Group Q4 and full-year 2025 results</a> — Expedia Group investor relations</li>
+        <li><a class="ref" href="https://www.cnbc.com/select/expedia-one-key-rewards/">Expedia's One Key rewards, explained</a> — CNBC Select</li>
+        <li><a class="ref" href="https://www.travelweekly.com/Travel-News/Travel-Technology/Expedia-Group-unveils-Romie-AI-assistant">Expedia Group unveils Romie AI assistant</a> — Travel Weekly</li>
+        <li><a class="ref" href="https://awning.com/post/the-airbnb-algorithm-explained-2026-what-actually-drives-rankings-today">The Airbnb algorithm explained, 2026</a> — Awning</li>
+        <li><a class="ref" href="https://korustay.co.nz/host_resources/airbnb-smart-pricing-glitch-2026/">The 2026 Airbnb Smart Pricing glitch</a> — KoruStay</li>
+        <li><a class="ref" href="https://skift.com/2026/08/10/airbnb-released-100-features-in-one-quarter-the-gap-is-getting-wider/">Airbnb released 100 features in one quarter</a> — Skift, 2026</li>
+        <li><a class="ref" href="https://techcrunch.com/2026/02/13/airbnb-plans-to-bake-in-ai-features-for-search-discovery-and-support/">Airbnb plans to bake in AI features for search, discovery and support</a> — TechCrunch, 2026</li>
+      </ul>
+
+      <h4>Específico do Brasil</h4>
+      <ul class="srcs">
+        <li><a class="ref" href="https://www.latamtrade.com/content/dam/latam-portal-agencias/gss/NDC%20by%20LATAM.pdf">NDC by LATAM — FAQ</a> — LATAM Trade</li>
+        <li><a class="ref" href="https://ndcbylatamairlines.com/connections/ndc-api">NDC by LATAM — conexões de API</a> — LATAM Airlines</li>
+        <li><a class="ref" href="https://www.travelportmarketplace.com/Product/GOL-API">GOL API</a> — Travelport Marketplace</li>
+        <li><a class="ref" href="https://apg-ga.com/azul-full-content-now-available-on-apg-platform/">Conteúdo completo da Azul já disponível na plataforma APG</a> — APG</li>
+        <li><a class="ref" href="https://www.wooba.tur.br/en/post/atualizacao-do-sistema-bsp-pela-iata">Atualização do sistema BSP pela IATA</a> — Wooba</li>
+        <li><a class="ref" href="https://www.anac.gov.br/assuntos/legislacao/legislacao-1/resolucoes/resolucoes-2016/resolucao-no-400-13-12-2016">Resolução nº 400/2016</a> — ANAC</li>
+        <li><a class="ref" href="https://www.prosus.com/news-insights/2025/prosus-and-despegar-complete-acquisition">Prosus e Despegar concluem aquisição</a> — Prosus, 2025</li>
+        <li><a class="ref" href="https://internetretailing.net/latam-travel-agency-despegar-ups-retail-media-ante-with-ai-powered-sponsored-listings/">Despegar aumenta aposta em retail media com anúncios patrocinados por IA</a> — InternetRetailing</li>
+        <li><a class="ref" href="https://www.panrotas.com.br/agencias-de-viagens/mercado/2026/02/123-milhas-propoe-acordo-para-credores-com-pagamentos-em-quase-8-anos_225827.html">123 Milhas propõe acordo para credores</a> — PANROTAS, fev. 2026</li>
+        <li><a class="ref" href="https://www.pagaleve.com.br/blog/fly-fairly-pagaleve/">Fly Fairly, Pagaleve</a> — Pagaleve</li>
+        <li><a class="ref" href="https://www.mercadoeeventos.com.br/noticias/aviacao/jetsmart-incorpora-pix-em-2026-como-novo-metodo-de-pagamento-no-brasil-para-compra-de-passagens-sem-cartao-de-credito/">JetSmart incorpora Pix em 2026 como novo método de pagamento</a> — Mercado &amp; Eventos</li>
+      </ul>
+
+      <h4>Regulação e custo</h4>
+      <ul class="srcs">
+        <li><a class="ref" href="https://eur-lex.europa.eu/eli/reg/2008/1008/oj/eng">Regulation (EC) 1008/2008</a> — EUR-Lex</li>
+        <li><a class="ref" href="https://www.transportation.gov/sites/dot.gov/files/2024-04/Final%20Rule%20Ancillary%20Fee%20Transparency%20(2105-AF10).pdf">Final rule: ancillary fee transparency</a> — US DOT</li>
+        <li><a class="ref" href="https://www.federalregister.gov/documents/2026/07/01/2026-13294/enhancing-flexibility-of-air-fare-price-advertising">Enhancing flexibility of air fare price advertising</a> — Federal Register, jul. 2026</li>
+        <li><a class="ref" href="https://towardsdatascience.com/zero-waste-agentic-rag-designing-caching-architectures-to-minimize-latency-and-llm-costs-at-scale/">Caching architectures to minimise latency and LLM cost</a> — Towards Data Science</li>
+      </ul>
+    </section>
+
+  </main>
+</div>
+
+<script>
+  (function () {
+    var links = Array.prototype.slice.call(document.querySelectorAll('#nav a'));
+    var sections = links
+      .map(function (a) {
+        return { link: a, el: document.getElementById(a.getAttribute('href').slice(1)) };
+      })
+      .filter(function (s) { return s.el; });
+
+    if (!sections.length) return;
+
+    var ticking = false;
+
+    function paint() {
+      ticking = false;
+      // The section whose top has most recently passed the reading line wins.
+      var line = window.scrollY + window.innerHeight * 0.28;
+      var current = sections[0];
+
+      for (var i = 0; i < sections.length; i++) {
+        if (sections[i].el.offsetTop <= line) current = sections[i];
+        else break;
+      }
+
+      // At the very bottom, the last section is always the one being read.
+      if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2) {
+        current = sections[sections.length - 1];
+      }
+
+      for (var j = 0; j < sections.length; j++) {
+        sections[j].link.classList.toggle('on', sections[j] === current);
+      }
+    }
+
+    function onScroll() {
+      if (ticking) return;
+      ticking = true;
+      window.requestAnimationFrame(paint);
+    }
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll, { passive: true });
+    paint();
+  })();
+</script>
