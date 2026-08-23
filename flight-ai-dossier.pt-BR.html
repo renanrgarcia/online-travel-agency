@@ -537,16 +537,15 @@
       <a href="#s3"><span class="n">03</span><span>Restrições duras</span></a>
       <a href="#s4"><span class="n">04</span><span>Onde a IA entra</span></a>
       <a href="#s5"><span class="n">05</span><span>Veredito de framework</span></a>
-      <a href="#s6"><span class="n">06</span><span>Caminho do Semantic Kernel</span></a>
-      <a href="#s7"><span class="n">07</span><span>Design de referência</span></a>
-      <a href="#s8"><span class="n">08</span><span>Os cinco comparáveis</span></a>
-      <a href="#s9"><span class="n">09</span><span>Economia unitária</span></a>
-      <a href="#s10"><span class="n">10</span><span>Modos de falha</span></a>
-      <a href="#s11"><span class="n">11</span><span>Conformidade</span></a>
-      <a href="#s12"><span class="n">12</span><span>Preparo de 30 dias</span></a>
-      <a href="#s13"><span class="n">13</span><span>Pergunte ao tech lead</span></a>
-      <a href="#s14"><span class="n">14</span><span>Glossário</span></a>
-      <a href="#s15"><span class="n">15</span><span>Fontes</span></a>
+      <a href="#s6"><span class="n">06</span><span>Design de referência</span></a>
+      <a href="#s7"><span class="n">07</span><span>Os cinco comparáveis</span></a>
+      <a href="#s8"><span class="n">08</span><span>Economia unitária</span></a>
+      <a href="#s9"><span class="n">09</span><span>Modos de falha</span></a>
+      <a href="#s10"><span class="n">10</span><span>Conformidade</span></a>
+      <a href="#s11"><span class="n">11</span><span>Preparo de 30 dias</span></a>
+      <a href="#s12"><span class="n">12</span><span>Pergunte ao tech lead</span></a>
+      <a href="#s13"><span class="n">13</span><span>Glossário</span></a>
+      <a href="#s14"><span class="n">14</span><span>Fontes</span></a>
     </nav>
     <div class="rail-foot">
       Compilado em ago. 2026.<br>
@@ -608,8 +607,7 @@
         </li>
         <li>
           <strong>Para .NET no Azure, a escolha alinhada é o Microsoft Agent Framework.</strong> Ele
-          chegou à versão 1.0 em abril de 2026 e é o sucessor declarado do Semantic Kernel Agents e do
-          AutoGen, com uma extensão de Durable Task para orquestração com estado e retomável. O Claude
+          chegou à versão 1.0 em abril de 2026, com uma extensão de Durable Task para orquestração com estado e retomável. O Claude
           Agent SDK — o kit de desenvolvimento de software (SDK) da Anthropic para construir agentes —
           que você sugeriu é real e bom, mas só existe para TypeScript e Python — é o formato errado para
           os serviços centrais deles, ainda que uma ótima escolha para ferramentas internas.
@@ -636,11 +634,11 @@
           o que "melhor opção" significa nesse domínio. Mas é um produto de <em>metabusca</em>: ele
           ranqueia e encaminha. O que seu líder está descrevendo é uma <em>agência de viagens on-line
           (OTA)</em>: ela ranqueia, vende, recebe o pagamento, emite o bilhete, e é dona do cliente quando
-          o voo é cancelado. A seção 08 detalha exatamente quais partes se transferem e quais não.
+          o voo é cancelado. A seção 07 detalha exatamente quais partes se transferem e quais não.
         </p>
         <p style="margin-top:12px">
           O arquivo que ela compartilhou não está na pasta do projeto — nada correspondente no disco.
-          Manda ele pra cá que eu incorporo os pontos dele na seção 08 em vez de duplicar.
+          Manda ele pra cá que eu incorporo os pontos dele na seção 07 em vez de duplicar.
         </p>
       </div>
     </section>
@@ -867,7 +865,7 @@
       <ul>
         <li><strong>A LATAM tem um programa NDC de verdade — o "NDC by LATAM".</strong> Um portal web sem código para volume menor, e uma API direta para integração sistema a sistema em escala. O caminho da API não é autoatendimento: exige credenciamento junto à LATAM para vender e atender, e credenciamento IATA se você estiver construindo em cima dele como provedor de tecnologia. A LATAM direciona a maioria dos integradores para as plataformas de terceiros aprovadas por ela, em vez de um cadastro direto. Cuidado com uma armadilha separada: o LATAM Pass tem seu próprio portal de desenvolvedor OAuth2 para dados de fidelidade — não confunda com a API de conteúdo de voo.</li>
         <li><strong>GOL e Azul não têm um programa de desenvolvedor público e de autoatendimento.</strong> O conteúdo delas chega até você através de parceiros GDS — a GOL está listada no Travelport Marketplace — e de agregadores NDC, com o conteúdo completo da Azul estando atrás da APG, que também reduz as sobretaxas EDIFACT do GDS por design. Planeje uma relação com um agregador aqui, não uma integração direta; não existe um portal no estilo LATAM para se cadastrar.</li>
-        <li><strong>O Billing and Settlement Plan (BSP) Brasil tem um relógio mais apertado do que você imagina.</strong> Desde novembro de 2024 a janela de acerto entre o fim do período de vendas e o pagamento ao BSP encurtou de dez dias úteis para cinco. Isso é uma restrição real de capital de giro se os seus prazos de pagamento para os viajantes forem mais generosos do que isso — veja a seção 11.</li>
+        <li><strong>O Billing and Settlement Plan (BSP) Brasil tem um relógio mais apertado do que você imagina.</strong> Desde novembro de 2024 a janela de acerto entre o fim do período de vendas e o pagamento ao BSP encurtou de dez dias úteis para cinco. Isso é uma restrição real de capital de giro se os seus prazos de pagamento para os viajantes forem mais generosos do que isso — veja a seção 10.</li>
         <li><strong>A Agência Nacional de Aviação Civil (ANAC) não credencia agências de viagem — quem faz isso é o Cadastur.</strong> A ANAC regula companhias aéreas e aeroportos; o cadastro de agências passa pelo Cadastur, o registro do Ministério do Turismo, como uma exigência separada, sobreposta ao credenciamento IATA/BSP, não um substituto para ele.</li>
       </ul>
 
@@ -1129,7 +1127,7 @@
             <tr>
               <th scope="row">Microsoft<br>Agent Framework (MAF)</th>
               <td>.NET, Python</td>
-              <td>Nativo. 1.0 general availability (GA) em abril de 2026, compromisso de long-term support (LTS), sucessor do Semantic Kernel Agents e do AutoGen, MCP nativo e protocolo Agent-to-Agent (A2A).</td>
+              <td>Nativo. 1.0 general availability (GA) em abril de 2026, compromisso de long-term support (LTS), MCP nativo e protocolo Agent-to-Agent (A2A).</td>
               <td>A camada de agentes nos seus serviços ASP.NET existentes.</td>
               <td><span class="chip go">Principal</span></td>
             </tr>
@@ -1146,13 +1144,6 @@
               <td>Hospedagem gerenciada, acesso a modelos, observabilidade e governança. Renomeado de Azure AI Foundry a partir de jan. 2026. Hospeda agentes do MAF e do LangGraph. Agora traz modelos da Anthropic ao lado dos da OpenAI.</td>
               <td>O plano de hospedagem, avaliação e governança — não um substituto para a sua própria orquestração.</td>
               <td><span class="chip go">Usar como plataforma</span></td>
-            </tr>
-            <tr>
-              <th scope="row">Semantic Kernel</th>
-              <td>.NET, Python, Java</td>
-              <td>Ainda mantido, mas a Microsoft agora direciona o trabalho novo de agentes para o Agent Framework.</td>
-              <td>Só se o time já tiver Semantic Kernel em produção — veja a seção 06.</td>
-              <td><span class="chip hold">Caminho legado</span></td>
             </tr>
             <tr>
               <th scope="row">Claude Agent SDK</th>
@@ -1184,7 +1175,7 @@
         <p>
           "Eu trouxe o Claude Agent SDK à mesa porque é o harness de agentes mais afiado que eu já usei —
           mas é só TypeScript e Python, então para uma base de código .NET o equivalente alinhado é o
-          Microsoft Agent Framework, que chegou à 1.0 em abril e substitui o Semantic Kernel e o AutoGen.
+          Microsoft Agent Framework, que chegou à 1.0 em abril de 2026.
           E você estava certo sobre o n8n: o motivo não é que ele não escale, é que a cotação é um caminho
           medido e limitado em latência, e o n8n é um motor de workflow de negócio. Ele ainda ganha o
           lugar dele no back office."
@@ -1200,110 +1191,7 @@
 
     <!-- ============ 06 ============ -->
     <section id="s6">
-      <div class="sec-head"><span class="sec-num">06</span><h2>Se eles já estiverem no Semantic Kernel</h2></div>
-
-      <p>
-        O Semantic Kernel está em produção desde 2023, então vários times .NET já têm um objeto
-        <code>Kernel</code> e uma pasta de plugins conectados em algum lugar do código. Pergunte sobre
-        isso na primeira semana — muda a estimativa mais do que quase qualquer outra coisa neste
-        documento. O Microsoft Agent Framework é construído <em>em cima</em> do Semantic Kernel, não é
-        uma ruptura limpa com ele, o que faz disso uma migração, não uma reescrita.
-      </p>
-
-      <h3>O que de fato muda</h3>
-      <div class="scroller">
-        <table>
-          <caption>Mapeamento de conceitos, Semantic Kernel → Microsoft Agent Framework</caption>
-          <thead>
-            <tr>
-              <th scope="col">Semantic Kernel</th>
-              <th scope="col">Agent Framework</th>
-              <th scope="col">O que isso custa</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <th scope="row">Kernel + plugins<br>(<code>@kernel_function</code>)</th>
-              <td>Tools (<code>@tool</code> / <code>AIFunction</code>)</td>
-              <td>Renomeação mecânica na maioria dos casos — essa é a parte compatível.</td>
-            </tr>
-            <tr>
-              <th scope="row"><code>ChatCompletionAgent</code></th>
-              <td><code>ChatClientAgent</code></td>
-              <td>Novo tipo base. Os pontos de construção de agente precisam ser reescritos, não só renomeados.</td>
-            </tr>
-            <tr>
-              <th scope="row">Estado de thread implícito</th>
-              <td>Criação de sessão explícita</td>
-              <td>A mudança realmente disruptiva. O estado da conversa deixa de ser presumido — ele é criado e passado por você.</td>
-            </tr>
-            <tr>
-              <th scope="row">Resposta <code>ChatMessageContent</code></th>
-              <td><code>AgentResponse</code><br>(<code>.text</code> / <code>.messages</code> / <code>.data</code>)</td>
-              <td>Todo ponto de chamada que lê o formato de uma resposta precisa ser tocado.</td>
-            </tr>
-            <tr>
-              <th scope="row"><code>InProcessRuntime</code></th>
-              <td>Não é mais necessário</td>
-              <td>Workflows rodam diretamente. Apague a instalação do runtime em vez de portá-la.</td>
-            </tr>
-            <tr>
-              <th scope="row">Pipeline de filtros, tags de telemetria</th>
-              <td>Filtros unificados, tags alinhadas ao OpenTelemetry</td>
-              <td>Retrabalho de configuração e dashboard, não retrabalho de lógica.</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <h3>A ordem que mantém isso barato</h3>
-      <p>
-        Plugins primeiro, a camada de kernel em segundo, agentes por último. O código de plugin é a peça
-        mais portável de uma aplicação Semantic Kernel existente — o custo real está em substituir o
-        objeto <code>Kernel</code> e o código de construção de agente ao redor dele, não nas ferramentas
-        que seu time já escreveu.
-      </p>
-
-      <div class="call">
-        <span class="tag">O número honesto</span>
-        <p>
-          A própria estimativa da Microsoft é de duas a quatro horas para uma aplicação típica com cinco a
-          dez plugins. Trate isso como o piso para uma aplicação limpa e bem testada, sem instalação
-          customizada de runtime — não como a sua estimativa. Adicione tempo real para três coisas:
-          orquestração customizada em <code>InProcessRuntime</code>, qualquer código que lê formatos de
-          <code>ChatMessageContent</code> em muitos pontos de chamada, e tratamento sob medida de thread
-          ou sessão construído antes de o Agent Framework existir. Um time com alguns plugins isolados de
-          Semantic Kernel está falando de um dia. Um time com orquestração multiagente feita à mão sobre
-          <code>InProcessRuntime</code> está falando de um sprint ou dois.
-        </p>
-      </div>
-
-      <h3>Você não precisa migrar no primeiro dia</h3>
-      <p>
-        O Semantic Kernel ainda é suportado com correções de bugs e patches de segurança, com um
-        compromisso mínimo de um ano além da general availability (GA) do Agent Framework — até pelo menos
-        abril de 2027 — e nenhuma depreciação formal anunciada. Se o time tem código Semantic Kernel
-        funcionando hoje, o conselho honesto é construir tudo que for novo em Agent Framework, migrar o
-        código antigo de forma oportunista, e não travar a funcionalidade de cotação de voos numa migração
-        de framework que já tem seu próprio prazo de suporte.
-      </p>
-
-      <div class="call warn">
-        <span class="tag">Pergunte isso antes de estimar qualquer coisa</span>
-        <p>
-          Dado que seu tech lead disse que não conhecia agent SDKs, a resposta mais provável é que não
-          existe código Semantic Kernel para migrar — o que torna esta seção um não-problema, e significa
-          que vocês estão construindo em Agent Framework a partir de um estado limpo. Confirme isso na
-          primeira conversa em vez de presumir. "A gente tentou uma funcionalidade de IA com Semantic
-          Kernel há dois anos e engavetou" é um ponto de partida bem diferente de um repositório vazio, e
-          é o tipo de coisa que só aparece se você perguntar.
-        </p>
-      </div>
-    </section>
-
-    <!-- ============ 07 ============ -->
-    <section id="s7">
-      <div class="sec-head"><span class="sec-num">07</span><h2>Um design de referência que você consegue defender</h2></div>
+      <div class="sec-head"><span class="sec-num">06</span><h2>Um design de referência que você consegue defender</h2></div>
 
       <figure>
         <div class="fig-frame">
@@ -1402,9 +1290,9 @@
       </ul>
     </section>
 
-    <!-- ============ 08 ============ -->
-    <section id="s8">
-      <div class="sec-head"><span class="sec-num">08</span><h2>Cinco plataformas, lidas do jeito certo</h2></div>
+    <!-- ============ 07 ============ -->
+    <section id="s7">
+      <div class="sec-head"><span class="sec-num">07</span><h2>Cinco plataformas, lidas do jeito certo</h2></div>
 
       <p>
         Seu líder apontou para o Booking.com, sua esposa apontou para o Google Flights, e Expedia e Airbnb
@@ -1500,7 +1388,7 @@
 
       <h3>O que roubar da Expedia</h3>
       <ul>
-        <li><strong>O modelo merchant compra para você o pacote combinado.</strong> Ser dono do pagamento ponta a ponta é também o que permite à Expedia vender voo e hotel como uma única transação em vez de duas — margem real, e exatamente a exposição de PCI/chargeback que a seção 11 detalha. As duas coisas chegam juntas; não existe versão do pacote combinado sem a superfície de conformidade.</li>
+        <li><strong>O modelo merchant compra para você o pacote combinado.</strong> Ser dono do pagamento ponta a ponta é também o que permite à Expedia vender voo e hotel como uma única transação em vez de duas — margem real, e exatamente a exposição de PCI/chargeback que a seção 10 detalha. As duas coisas chegam juntas; não existe versão do pacote combinado sem a superfície de conformidade.</li>
         <li><strong>A matemática de fidelidade é o número honesto sobre onde o voo se encaixa.</strong> O programa unificado One Key da Expedia devolve 2% em moeda de recompensa em hospedagem e 0,2% em voos — uma diferença de dez para um. Isso é a linha "incentivo de ranqueamento comercial" desta tabela, quantificada: voo é o produto que traz alguém para o funil, não o que paga o funil. Se sua empresa vende mais do que passagens, essa proporção vale a pena ter em mente antes de você argumentar por headcount especificamente do lado de voos.</li>
         <li><strong>O quarto produto pode ser uma API para a vitrine de outra empresa.</strong> A Expedia for Business agora licencia sua stack de busca e venda para mais de 60 mil parceiros — perto de 40% da receita de 2025. O Etraveli construiu uma empresa inteira sobre o mesmo instinto (seção 02, e a linha "também vende acesso" acima). Uma stack de conteúdo e ranqueamento boa o suficiente para vender a viajantes costuma ser boa o suficiente para vender a outras empresas de viagem, e esse segundo comprador geralmente tem um ciclo de venda bem mais curto do que um consumidor.</li>
         <li><strong>A Romie responde a uma pergunta diferente da que este documento faz.</strong> A seção 04 presume que a entrada do agente de interpretação de intenção é uma caixa de busca. A Romie da Expedia recebe a entrada de um grupo de Short Message Service (SMS) ou de uma conversa por e-mail. Vale cinco minutos se a superfície de entrada do seu próprio agente de intenção ainda for uma questão em aberto em vez de algo já definido.</li>
@@ -1510,8 +1398,8 @@
       <ul>
         <li><strong>O modelo híbrido é o ponto de partida honesto para uma OTA brasileira.</strong> Misturar merchant e agência permite que você fique com a margem onde o seu próprio credenciamento e posição de caixa sustentam isso, e fique com a comissão onde não sustentam, em vez de apostar o negócio inteiro em um único modelo no primeiro dia.</li>
         <li><strong>SOFIA mais anúncios patrocinados é uma segunda alavanca de receita, não só uma funcionalidade de chat.</strong> Combinar um assistente de viagem com IA com anúncios embutidos direto nos resultados ranqueados significa que o termo de margem no scorer da seção 04, <code>w₈</code>, pode eventualmente precisar de uma flag de "patrocinado" ao lado dele — uma decisão comercial para tomar deliberadamente, às claras, não algo que se infiltra sozinho.</li>
-        <li><strong>Os trilhos de pagamento fazem parte do produto aqui, não são um detalhe posterior.</strong> Pix e parcelamento sem juros são o que um viajante brasileiro espera no checkout, do mesmo jeito que um cartão salvo é esperado em outros lugares — veja a seção 11 para entender o que isso muda arquiteturalmente.</li>
-        <li><strong>A aquisição e o pivô que veio depois dela são o mesmo instinto do Etraveli e da Expedia, pela terceira vez.</strong> A Prosus pagou US$ 1,7 bilhão pela Despegar em 2025, e a Despegar respondeu licenciando sua própria stack de venda e pagamento como infraestrutura white-label para bancos. "Vender a stack, não só a vitrine" (seção 08) não é um caso isolado; é o que plataformas maduras de travel-tech tendem a fazer assim que o produto principal fica bom o suficiente.</li>
+        <li><strong>Os trilhos de pagamento fazem parte do produto aqui, não são um detalhe posterior.</strong> Pix e parcelamento sem juros são o que um viajante brasileiro espera no checkout, do mesmo jeito que um cartão salvo é esperado em outros lugares — veja a seção 10 para entender o que isso muda arquiteturalmente.</li>
+        <li><strong>A aquisição e o pivô que veio depois dela são o mesmo instinto do Etraveli e da Expedia, pela terceira vez.</strong> A Prosus pagou US$ 1,7 bilhão pela Despegar em 2025, e a Despegar respondeu licenciando sua própria stack de venda e pagamento como infraestrutura white-label para bancos. "Vender a stack, não só a vitrine" (seção 07) não é um caso isolado; é o que plataformas maduras de travel-tech tendem a fazer assim que o produto principal fica bom o suficiente.</li>
       </ul>
 
       <div class="call stop">
@@ -1546,7 +1434,7 @@
           seção 04 defende. O Airbnb tem sinal profundo de comportamento repetido na maioria dos
           pesquisadores e riscos regulatórios comparativamente baixos por item. Uma busca de voo tem sinal
           repetido fraco na maioria dos viajantes — a maioria das pessoas compra passagens algumas poucas
-          vezes por ano — e uma exigência dura, a Regulação 1008/2008 da seção 11, de mostrar um preço e
+          vezes por ano — e uma exigência dura, a Regulação 1008/2008 da seção 10, de mostrar um preço e
           um ranqueamento defensáveis e explicáveis. Ranqueamento personalizado de caixa-preta é a escolha
           certa quando você tem a densidade de dados e o espaço regulatório para isso. Uma plataforma de
           voos não tem nenhum dos dois, ainda.
@@ -1602,9 +1490,9 @@
       </div>
     </section>
 
-    <!-- ============ 09 ============ -->
-    <section id="s9">
-      <div class="sec-head"><span class="sec-num">09</span><h2>A economia unitária que restringe o design</h2></div>
+    <!-- ============ 08 ============ -->
+    <section id="s8">
+      <div class="sec-head"><span class="sec-num">08</span><h2>A economia unitária que restringe o design</h2></div>
 
       <p>
         Faça essa conta antes de desenhar qualquer coisa. É o que transforma "o agente deveria ser mais
@@ -1648,9 +1536,9 @@
       </p>
     </section>
 
-    <!-- ============ 10 ============ -->
-    <section id="s10">
-      <div class="sec-head"><span class="sec-num">10</span><h2>Como isso quebra em produção</h2></div>
+    <!-- ============ 09 ============ -->
+    <section id="s9">
+      <div class="sec-head"><span class="sec-num">09</span><h2>Como isso quebra em produção</h2></div>
 
       <p>
         Pergunte isso em revisão de design. Cada um é um incidente real que já aconteceu com uma OTA real.
@@ -1712,9 +1600,9 @@
       </div>
     </section>
 
-    <!-- ============ 11 ============ -->
-    <section id="s11">
-      <div class="sec-head"><span class="sec-num">11</span><h2>Conformidade, na dose necessária para ser útil</h2></div>
+    <!-- ============ 10 ============ -->
+    <section id="s10">
+      <div class="sec-head"><span class="sec-num">10</span><h2>Conformidade, na dose necessária para ser útil</h2></div>
 
       <p>
         Você não precisa ser o especialista em conformidade. Precisa saber o suficiente para não desenhar
@@ -1745,9 +1633,9 @@
       </div>
     </section>
 
-    <!-- ============ 12 ============ -->
-    <section id="s12">
-      <div class="sec-head"><span class="sec-num">12</span><h2>Trinta dias até ser crível</h2></div>
+    <!-- ============ 11 ============ -->
+    <section id="s11">
+      <div class="sec-head"><span class="sec-num">11</span><h2>Trinta dias até ser crível</h2></div>
 
       <p>
         Ordenado para que cada semana produza algo que você consiga mostrar ou dizer. Cerca de dez horas
@@ -1793,9 +1681,9 @@
       </div>
     </section>
 
-    <!-- ============ 13 ============ -->
-    <section id="s13">
-      <div class="sec-head"><span class="sec-num">13</span><h2>O que perguntar antes de escrever qualquer código</h2></div>
+    <!-- ============ 12 ============ -->
+    <section id="s12">
+      <div class="sec-head"><span class="sec-num">12</span><h2>O que perguntar antes de escrever qualquer código</h2></div>
 
       <p>
         Mais ou menos em ordem de quanto cada resposta muda o design.
@@ -1806,7 +1694,7 @@
         <div class="q"><div><b>Quais fontes de conteúdo estão contratadas hoje, e em qual nível?</b><em>Self-Service e Enterprise são produtos diferentes com limites diferentes. "A gente usa Amadeus" não é uma resposta.</em></div></div>
         <div class="q"><div><b>A gente é credenciado IATA/ARC, ou operamos através de um consolidador?</b><em>Define se conseguimos emitir bilhetes de qualquer forma.</em></div></div>
         <div class="q"><div><b>Qual é o nosso limite contratual de look-to-book, e o que acontece se a gente violar?</b><em>Esse é o orçamento rígido dentro do qual todo design agêntico precisa caber. Peça o número.</em></div></div>
-        <div class="q"><div><b>Qual é a margem real por bilhete?</b><em>Define o teto de custo de IA. A seção 09 não tem resposta sem isso.</em></div></div>
+        <div class="q"><div><b>Qual é a margem real por bilhete?</b><em>Define o teto de custo de IA. A seção 08 não tem resposta sem isso.</em></div></div>
         <div class="q"><div><b>Business-to-consumer (B2C), business-to-business (B2B) voltado a agentes, ou viagem corporativa?</b><em>Corporativo significa motores de política e cadeias de aprovação. B2B significa uma interface diferente e uma tolerância de latência diferente.</em></div></div>
         <div class="q"><div><b>Já existe um serviço de ranqueamento hoje, ou é ordenar por preço?</b><em>Se o ranqueamento já existe, o trabalho de IA é explicação. Se não, esse scorer é a primeira entrega de verdade.</em></div></div>
         <div class="q"><div><b>A gente é merchant of record, e onde fica o escopo de PCI?</b><em>Decide a arquitetura de pagamento antes de alguém escrever um endpoint.</em></div></div>
@@ -1818,9 +1706,9 @@
       </div>
     </section>
 
-    <!-- ============ 14 ============ -->
-    <section id="s14">
-      <div class="sec-head"><span class="sec-num">14</span><h2>Glossário</h2></div>
+    <!-- ============ 13 ============ -->
+    <section id="s13">
+      <div class="sec-head"><span class="sec-num">13</span><h2>Glossário</h2></div>
 
       <div class="gloss">
         <dl style="margin:0">
@@ -1841,9 +1729,9 @@
       </div>
     </section>
 
-    <!-- ============ 15 ============ -->
-    <section id="s15">
-      <div class="sec-head"><span class="sec-num">15</span><h2>Fontes</h2></div>
+    <!-- ============ 14 ============ -->
+    <section id="s14">
+      <div class="sec-head"><span class="sec-num">14</span><h2>Fontes</h2></div>
 
       <h4>Frameworks e plataforma</h4>
       <ul class="srcs">

@@ -537,16 +537,15 @@
       <a href="#s3"><span class="n">03</span><span>Hard constraints</span></a>
       <a href="#s4"><span class="n">04</span><span>Where AI belongs</span></a>
       <a href="#s5"><span class="n">05</span><span>Framework verdict</span></a>
-      <a href="#s6"><span class="n">06</span><span>Semantic Kernel path</span></a>
-      <a href="#s7"><span class="n">07</span><span>Reference design</span></a>
-      <a href="#s8"><span class="n">08</span><span>The five comparables</span></a>
-      <a href="#s9"><span class="n">09</span><span>Unit economics</span></a>
-      <a href="#s10"><span class="n">10</span><span>Failure modes</span></a>
-      <a href="#s11"><span class="n">11</span><span>Compliance</span></a>
-      <a href="#s12"><span class="n">12</span><span>30-day prep</span></a>
-      <a href="#s13"><span class="n">13</span><span>Ask the tech lead</span></a>
-      <a href="#s14"><span class="n">14</span><span>Glossary</span></a>
-      <a href="#s15"><span class="n">15</span><span>Sources</span></a>
+      <a href="#s6"><span class="n">06</span><span>Reference design</span></a>
+      <a href="#s7"><span class="n">07</span><span>The five comparables</span></a>
+      <a href="#s8"><span class="n">08</span><span>Unit economics</span></a>
+      <a href="#s9"><span class="n">09</span><span>Failure modes</span></a>
+      <a href="#s10"><span class="n">10</span><span>Compliance</span></a>
+      <a href="#s11"><span class="n">11</span><span>30-day prep</span></a>
+      <a href="#s12"><span class="n">12</span><span>Ask the tech lead</span></a>
+      <a href="#s13"><span class="n">13</span><span>Glossary</span></a>
+      <a href="#s14"><span class="n">14</span><span>Sources</span></a>
     </nav>
     <div class="rail-foot">
       Compiled Aug 2026.<br>
@@ -607,8 +606,7 @@
         </li>
         <li>
           <strong>For .NET on Azure, the aligned choice is Microsoft Agent Framework.</strong> It went 1.0
-          in April 2026 and is the declared successor to Semantic Kernel Agents and AutoGen, with a Durable
-          Task extension for stateful, resumable orchestration. The Claude Agent SDK — Anthropic's software
+          in April 2026, with a Durable Task extension for stateful, resumable orchestration. The Claude Agent SDK — Anthropic's software
           development kit (SDK) for building agents — that you pitched is real and good, but it ships for
           TypeScript and Python only — it is the wrong shape for their core services, though a fine choice for
           internal tooling.
@@ -633,12 +631,12 @@
           Yes — Google Flights does most of this already, and studying it is the fastest way to understand
           what "best option" means in this domain. But it is a <em>metasearch</em> product: it ranks and hands
           off. What your lead is describing is an <em>online travel agency (OTA)</em>: it ranks, sells, takes
-          payment, issues the ticket, and owns the customer when the flight is cancelled. Section 08 breaks down exactly which parts
+          payment, issues the ticket, and owns the customer when the flight is cancelled. Section 07 breaks down exactly which parts
           transfer and which do not.
         </p>
         <p style="margin-top:12px">
           The file she shared is not in the project folder — nothing matching it on disk. Send it over and
-          I will fold its points into section 08 rather than duplicating them.
+          I will fold its points into section 07 rather than duplicating them.
         </p>
       </div>
     </section>
@@ -863,7 +861,7 @@
       <ul>
         <li><strong>LATAM runs an actual NDC program — "NDC by LATAM."</strong> A no-code web portal for lower volume, and a direct API for system-to-system integration at scale. The API path is not self-serve: it needs LATAM accreditation to book and service, and IATA accreditation if you are building on top of it as a technology provider. LATAM steers most integrators toward its approved third-party platforms rather than raw self-onboarding. Watch for a separate trap: LATAM Pass has its own OAuth2 developer portal for loyalty data — do not confuse it with the flight-content API.</li>
         <li><strong>GOL and Azul do not have a public, self-serve developer program.</strong> Their content reaches you through GDS partners — GOL is listed on Travelport Marketplace — and NDC aggregators, with Azul's full content sitting behind APG, which also undercuts GDS EDIFACT surcharges by design. Budget for an aggregator relationship here, not a direct integration; there is no LATAM-style portal to sign up for.</li>
-        <li><strong>Billing and Settlement Plan (BSP) Brazil has a tighter clock than you may expect.</strong> Since November 2024 the settlement window between end-of-sales-period and payment to BSP shortened from ten business days to five. That is a real working-capital constraint if your payment terms to travellers are more generous than that — see Section 11.</li>
+        <li><strong>Billing and Settlement Plan (BSP) Brazil has a tighter clock than you may expect.</strong> Since November 2024 the settlement window between end-of-sales-period and payment to BSP shortened from ten business days to five. That is a real working-capital constraint if your payment terms to travellers are more generous than that — see Section 10.</li>
         <li><strong>Agência Nacional de Aviação Civil (ANAC) does not accredit travel agencies — Cadastur does.</strong> ANAC regulates airlines and airports; agency registration runs through Cadastur, Brazil's Ministry of Tourism registry, as a separate requirement layered on top of IATA/BSP accreditation, not a substitute for it.</li>
       </ul>
 
@@ -1113,7 +1111,7 @@
             <tr>
               <th scope="row">Microsoft<br>Agent Framework (MAF)</th>
               <td>.NET, Python</td>
-              <td>Native. 1.0 general availability (GA) April 2026, long-term support (LTS) commitment, successor to Semantic Kernel Agents and AutoGen, native MCP and Agent-to-Agent (A2A) protocol.</td>
+              <td>Native. 1.0 general availability (GA) April 2026, long-term support (LTS) commitment, native MCP and Agent-to-Agent (A2A) protocol.</td>
               <td>The agent layer in your existing ASP.NET services.</td>
               <td><span class="chip go">Primary</span></td>
             </tr>
@@ -1130,13 +1128,6 @@
               <td>Managed hosting, model access, observability and governance. Renamed from Azure AI Foundry effective Jan 2026. Hosts MAF and LangGraph agents. Now carries Anthropic models alongside OpenAI.</td>
               <td>The hosting, evaluation and governance plane — not a replacement for your own orchestration.</td>
               <td><span class="chip go">Use as platform</span></td>
-            </tr>
-            <tr>
-              <th scope="row">Semantic Kernel</th>
-              <td>.NET, Python, Java</td>
-              <td>Still maintained, but Microsoft now points new agent work at Agent Framework.</td>
-              <td>Only if the team already has Semantic Kernel in production — see section 06.</td>
-              <td><span class="chip hold">Legacy path</span></td>
             </tr>
             <tr>
               <th scope="row">Claude Agent SDK</th>
@@ -1168,7 +1159,7 @@
         <p>
           "I brought up the Claude Agent SDK because it is the sharpest agent harness I have used — but it is
           TypeScript and Python only, so for a .NET codebase the aligned equivalent is Microsoft Agent
-          Framework, which hit 1.0 in April and replaces Semantic Kernel and AutoGen. And you were right about
+          Framework, which hit 1.0 in April. And you were right about
           n8n: the reason is not that it cannot scale, it is that shopping is a metered, latency-bound path and
           n8n is a business-workflow engine. It still earns its place in the back office."
         </p>
@@ -1183,107 +1174,7 @@
 
     <!-- ============ 06 ============ -->
     <section id="s6">
-      <div class="sec-head"><span class="sec-num">06</span><h2>If they're already on Semantic Kernel</h2></div>
-
-      <p>
-        Semantic Kernel has been in production since 2023, so plenty of .NET teams already have a
-        <code>Kernel</code> object and a folder of plugins wired into a codebase somewhere. Ask about this in
-        week one — it changes the estimate more than almost anything else in this document. Microsoft Agent
-        Framework is built <em>on top of</em> Semantic Kernel, not a clean break from it, which makes this a
-        migration, not a rewrite.
-      </p>
-
-      <h3>What actually changes</h3>
-      <div class="scroller">
-        <table>
-          <caption>Concept mapping, Semantic Kernel → Microsoft Agent Framework</caption>
-          <thead>
-            <tr>
-              <th scope="col">Semantic Kernel</th>
-              <th scope="col">Agent Framework</th>
-              <th scope="col">What it costs you</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <th scope="row">Kernel + plugins<br>(<code>@kernel_function</code>)</th>
-              <td>Tools (<code>@tool</code> / <code>AIFunction</code>)</td>
-              <td>Mechanical rename in most cases — this is the compatible part.</td>
-            </tr>
-            <tr>
-              <th scope="row"><code>ChatCompletionAgent</code></th>
-              <td><code>ChatClientAgent</code></td>
-              <td>New base type. Agent-construction call sites need rewriting, not just renaming.</td>
-            </tr>
-            <tr>
-              <th scope="row">Implicit thread state</th>
-              <td>Explicit session creation</td>
-              <td>The real breaking change. Conversation state is no longer assumed — it is created and passed by you.</td>
-            </tr>
-            <tr>
-              <th scope="row"><code>ChatMessageContent</code> response</th>
-              <td><code>AgentResponse</code><br>(<code>.text</code> / <code>.messages</code> / <code>.data</code>)</td>
-              <td>Every call site that reads a response shape needs touching.</td>
-            </tr>
-            <tr>
-              <th scope="row"><code>InProcessRuntime</code></th>
-              <td>Not needed</td>
-              <td>Workflows run directly. Delete the runtime plumbing rather than port it.</td>
-            </tr>
-            <tr>
-              <th scope="row">Filter pipeline, telemetry tags</th>
-              <td>Unified filters, OpenTelemetry-aligned tags</td>
-              <td>Config and dashboard rework, not logic rework.</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <h3>The order that keeps it cheap</h3>
-      <p>
-        Plugins first, the kernel layer second, agents last. Plugin code is the most portable piece of an
-        existing Semantic Kernel app — the real cost sits in replacing the <code>Kernel</code> object and the
-        agent-construction code wrapped around it, not in the tools your team already wrote.
-      </p>
-
-      <div class="call">
-        <span class="tag">The honest number</span>
-        <p>
-          Microsoft's own estimate is two to four hours for a typical application with five to ten plugins.
-          Treat that as the floor for a clean, well-tested app with no custom runtime plumbing — not as your
-          estimate. Add real time for three things: custom <code>InProcessRuntime</code> orchestration, any
-          code that reads <code>ChatMessageContent</code> shapes across many call sites, and bespoke
-          thread or session handling built before Agent Framework existed. A team with a few isolated
-          Semantic Kernel plugins is looking at a day. A team with hand-rolled multi-agent orchestration on
-          <code>InProcessRuntime</code> is looking at a sprint or two.
-        </p>
-      </div>
-
-      <h3>You do not have to migrate on day one</h3>
-      <p>
-        Semantic Kernel is still supported with bug fixes and security patches, with a committed minimum of
-        one year past Agent Framework's general availability (GA) — through at least April 2027 — and no
-        formal deprecation announced. If the team has working Semantic Kernel code today, the honest advice
-        is to build anything new in Agent Framework, migrate the old code opportunistically, and not block
-        the flight-shopping feature on a framework migration that already has its own supported runway.
-      </p>
-
-      <div class="call warn">
-        <span class="tag">Ask this before you estimate anything</span>
-        <p>
-          Given your tech lead said he did not know about agent SDKs, the more likely answer is that there is
-          no existing Semantic Kernel code to migrate — which makes this section a non-issue, and means you
-          are building on Agent Framework from a clean slate. Confirm that in the first conversation rather
-          than assuming it. "We tried an AI feature with Semantic Kernel two years ago and shelved it" is a
-          very different starting point than an empty repository, and it is the kind of thing that only
-          surfaces if you ask.
-        </p>
-      </div>
-    </section>
-
-    <!-- ============ 07 ============ -->
-    <section id="s7">
-      <div class="sec-head"><span class="sec-num">07</span><h2>A reference design you can defend</h2></div>
+      <div class="sec-head"><span class="sec-num">06</span><h2>A reference design you can defend</h2></div>
 
       <figure>
         <div class="fig-frame">
@@ -1381,9 +1272,9 @@
       </ul>
     </section>
 
-    <!-- ============ 08 ============ -->
-    <section id="s8">
-      <div class="sec-head"><span class="sec-num">08</span><h2>Five platforms, read properly</h2></div>
+    <!-- ============ 07 ============ -->
+    <section id="s7">
+      <div class="sec-head"><span class="sec-num">07</span><h2>Five platforms, read properly</h2></div>
 
       <p>
         Your lead pointed at Booking.com, your wife pointed at Google Flights, and Expedia and Airbnb are
@@ -1478,7 +1369,7 @@
 
       <h3>What to steal from Expedia</h3>
       <ul>
-        <li><strong>The merchant model buys you the bundle.</strong> Owning payment end to end is also what lets Expedia sell flight and hotel as one transaction instead of two — real margin, and exactly the PCI/chargeback exposure Section 11 walks through. The two arrive together; there is no version of the bundle without the compliance surface.</li>
+        <li><strong>The merchant model buys you the bundle.</strong> Owning payment end to end is also what lets Expedia sell flight and hotel as one transaction instead of two — real margin, and exactly the PCI/chargeback exposure Section 10 walks through. The two arrive together; there is no version of the bundle without the compliance surface.</li>
         <li><strong>The loyalty math is the honest number on where flights sit.</strong> Expedia's unified One Key program pays 2% back in rewards currency on lodging and 0.2% on flights — a ten-to-one gap. That is this table's "commercial ranking incentive" row, quantified: flights are the product that gets someone into the funnel, not the one that pays for the funnel. If your company sells more than flights, that ratio is worth having in your head before you argue for headcount on the flights side specifically.</li>
         <li><strong>The fourth product can be an API for someone else's storefront.</strong> Expedia for Business now licenses its search-and-book stack to over 60,000 partners — close to 40% of 2025 revenue. Etraveli built an entire company on the same instinct (Section 02, and the "also sells access" row above). A content-and-ranking stack good enough to sell to travellers is often good enough to sell to other travel companies, and that second buyer usually has a much shorter sales cycle than a consumer one.</li>
         <li><strong>Romie answers a different question than this document does.</strong> Section 04 assumes the intent-parsing agent's input is a search box. Expedia's Romie takes it from a Short Message Service (SMS) group chat or an email thread instead. Worth five minutes if the input surface for your own intent agent is still an open question rather than a given.</li>
@@ -1488,8 +1379,8 @@
       <ul>
         <li><strong>The hybrid model is the honest starting point for a Brazilian OTA.</strong> Mixing merchant and agency lets you take the margin where your own accreditation and cash position support it, and take the commission where they do not, rather than betting the whole business on one model on day one.</li>
         <li><strong>SOFIA plus sponsored listings is a second revenue lever, not just a chat feature.</strong> Pairing an AI travel assistant with ads embedded directly in ranked results means the margin term in Section 04's scorer, <code>w₈</code>, may eventually need a "sponsored" flag alongside it — a commercial decision to make deliberately, in the open, not something that creeps in.</li>
-        <li><strong>Payment rails are part of the product here, not an afterthought.</strong> Pix and interest-free instalments (parcelamento) are what a Brazilian traveller expects at checkout the way a saved card is expected elsewhere — see Section 11 for what that changes architecturally.</li>
-        <li><strong>The acquisition and the pivot that followed it are the same instinct as Etraveli and Expedia, a third time.</strong> Prosus paid $1.7B for Despegar in 2025, and Despegar responded by licensing its own booking-and-payment stack as white-label infrastructure to banks. "Sell the stack, not just the storefront" (Section 08) is not a one-off; it is what mature travel-tech platforms tend to do once the core product is good enough.</li>
+        <li><strong>Payment rails are part of the product here, not an afterthought.</strong> Pix and interest-free instalments (parcelamento) are what a Brazilian traveller expects at checkout the way a saved card is expected elsewhere — see Section 10 for what that changes architecturally.</li>
+        <li><strong>The acquisition and the pivot that followed it are the same instinct as Etraveli and Expedia, a third time.</strong> Prosus paid $1.7B for Despegar in 2025, and Despegar responded by licensing its own booking-and-payment stack as white-label infrastructure to banks. "Sell the stack, not just the storefront" (Section 07) is not a one-off; it is what mature travel-tech platforms tend to do once the core product is good enough.</li>
       </ul>
 
       <div class="call stop">
@@ -1522,7 +1413,7 @@
           fixed position for any listing, rather than the single deterministic scorer Section 04 argues
           for. Airbnb has deep repeat-behaviour signal on most searchers and comparatively low per-item
           regulatory stakes. A flight search has thin repeat signal on most travellers — most people book
-          a handful of times a year — and a hard requirement, Regulation 1008/2008 in Section 11, to show
+          a handful of times a year — and a hard requirement, Regulation 1008/2008 in Section 10, to show
           a defensible, explainable price and rank. Personalised black-box ranking is the right call when
           you have the data density and the regulatory room for it. A flights platform has neither, yet.
         </li>
@@ -1572,9 +1463,9 @@
       </div>
     </section>
 
-    <!-- ============ 09 ============ -->
-    <section id="s9">
-      <div class="sec-head"><span class="sec-num">09</span><h2>The unit economics that constrain the design</h2></div>
+    <!-- ============ 08 ============ -->
+    <section id="s8">
+      <div class="sec-head"><span class="sec-num">08</span><h2>The unit economics that constrain the design</h2></div>
 
       <p>
         Do this arithmetic before you design anything. It is what turns "should the agent be more agentic?"
@@ -1617,9 +1508,9 @@
       </p>
     </section>
 
-    <!-- ============ 10 ============ -->
-    <section id="s10">
-      <div class="sec-head"><span class="sec-num">10</span><h2>How this breaks in production</h2></div>
+    <!-- ============ 09 ============ -->
+    <section id="s9">
+      <div class="sec-head"><span class="sec-num">09</span><h2>How this breaks in production</h2></div>
 
       <p>
         Ask these in design review. Each one is a real incident that has happened to a real OTA.
@@ -1681,9 +1572,9 @@
       </div>
     </section>
 
-    <!-- ============ 11 ============ -->
-    <section id="s11">
-      <div class="sec-head"><span class="sec-num">11</span><h2>Compliance, in the amount you need to be useful</h2></div>
+    <!-- ============ 10 ============ -->
+    <section id="s10">
+      <div class="sec-head"><span class="sec-num">10</span><h2>Compliance, in the amount you need to be useful</h2></div>
 
       <p>
         You do not need to be the compliance expert. You need to know enough to not design something that has
@@ -1714,9 +1605,9 @@
       </div>
     </section>
 
-    <!-- ============ 12 ============ -->
-    <section id="s12">
-      <div class="sec-head"><span class="sec-num">12</span><h2>Thirty days to credible</h2></div>
+    <!-- ============ 11 ============ -->
+    <section id="s11">
+      <div class="sec-head"><span class="sec-num">11</span><h2>Thirty days to credible</h2></div>
 
       <p>
         Ordered so that each week produces something you can show or say. Roughly ten focused hours a week.
@@ -1761,9 +1652,9 @@
       </div>
     </section>
 
-    <!-- ============ 13 ============ -->
-    <section id="s13">
-      <div class="sec-head"><span class="sec-num">13</span><h2>What to ask before you write any code</h2></div>
+    <!-- ============ 12 ============ -->
+    <section id="s12">
+      <div class="sec-head"><span class="sec-num">12</span><h2>What to ask before you write any code</h2></div>
 
       <p>
         Roughly in order of how much each answer changes the design.
@@ -1774,7 +1665,7 @@
         <div class="q"><div><b>Which content sources are contracted today, and at which tier?</b><em>Self-Service and Enterprise are different products with different limits. "We use Amadeus" is not an answer.</em></div></div>
         <div class="q"><div><b>Are we IATA/ARC accredited, or fulfilling through a consolidator?</b><em>Gates whether we can issue tickets at all.</em></div></div>
         <div class="q"><div><b>What is our contractual look-to-book limit, and what happens if we breach it?</b><em>This is the hard budget every agentic design has to fit inside. Ask for the number.</em></div></div>
-        <div class="q"><div><b>What is the actual margin per ticket?</b><em>Sets the AI cost ceiling. Section 09 is unanswerable without it.</em></div></div>
+        <div class="q"><div><b>What is the actual margin per ticket?</b><em>Sets the AI cost ceiling. Section 08 is unanswerable without it.</em></div></div>
         <div class="q"><div><b>Business-to-consumer (B2C), business-to-business (B2B) agent-facing, or corporate travel?</b><em>Corporate means policy engines and approval chains. B2B means a different interface and different latency tolerance.</em></div></div>
         <div class="q"><div><b>Is there a ranking service today, or is it sort-by-price?</b><em>If ranking already exists, the AI work is explanation. If not, that scorer is the first real deliverable.</em></div></div>
         <div class="q"><div><b>Are we merchant of record, and where does PCI scope sit?</b><em>Decides the payment architecture before anyone writes an endpoint.</em></div></div>
@@ -1786,9 +1677,9 @@
       </div>
     </section>
 
-    <!-- ============ 14 ============ -->
-    <section id="s14">
-      <div class="sec-head"><span class="sec-num">14</span><h2>Glossary</h2></div>
+    <!-- ============ 13 ============ -->
+    <section id="s13">
+      <div class="sec-head"><span class="sec-num">13</span><h2>Glossary</h2></div>
 
       <div class="gloss">
         <dl style="margin:0">
@@ -1809,9 +1700,9 @@
       </div>
     </section>
 
-    <!-- ============ 15 ============ -->
-    <section id="s15">
-      <div class="sec-head"><span class="sec-num">15</span><h2>Sources</h2></div>
+    <!-- ============ 14 ============ -->
+    <section id="s14">
+      <div class="sec-head"><span class="sec-num">14</span><h2>Sources</h2></div>
 
       <h4>Frameworks and platform</h4>
       <ul class="srcs">

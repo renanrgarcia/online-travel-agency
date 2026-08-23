@@ -4,6 +4,12 @@ An Azure Durable Functions orchestration for the booking flow: authorize payment
 issue ticket → send confirmation, each step checkpointed, with compensating actions wired to the first
 three steps if a later one fails.
 
+This is the **saga pattern** — a multi-step process broken into local steps, each with a defined
+"undo" (a compensating action) if a later step fails, instead of one all-or-nothing transaction —
+implemented on top of **Durable Functions**. Durable gives the checkpointing (resume exactly where a
+crash left off); saga gives the compensation logic (void the payment, cancel the order) when a later
+step fails. Together, "durable saga."
+
 ## Why a durable saga
 
 Selecting an offer, creating an order, taking payment, and issuing the ticket are four distinct

@@ -24,3 +24,10 @@ code itself.
 
 Each doc names the specific source files it describes, so once you're rebuilding, you can go
 file-by-file against a doc rather than trying to hold the whole system in your head at once.
+
+## Rebuilding step by step
+
+**`specs/`** reorders this same material into build order instead of reading order:
+[`specs/macro-scenario.md`](specs/macro-scenario.md) lays out an 8-step implementation roadmap, and
+[`specs/tasks/`](specs/tasks/README.md) breaks it into 17 individually scoped, testable tasks — start at
+`specs/tasks/01`.

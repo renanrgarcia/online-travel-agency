@@ -52,3 +52,35 @@ decisions; this codebase doesn't care which model sits behind the `IChatClient` 
 provider exposing an OpenAI-compatible chat completions endpoint (including free tiers like Gemini's)
 plugs in the same way — see `08-package-versions.md` for the exact NuGet packages this was verified
 against.
+
+## Connecting to Microsoft Foundry instead
+
+Azure OpenAI above talks to one resource hosting OpenAI's models. Microsoft Foundry is the broader
+platform: one project can hold deployments from multiple model providers (OpenAI, Anthropic, others),
+plus the hosting/governance layer around them. The connection code differs — you go through a project
+client instead of a single-resource client — but it converges on the exact same `IChatClient` shape:
+
+```csharp
+// dotnet add package Azure.AI.Projects
+// dotnet add package Azure.Identity
+// dotnet add package OpenAI
+// dotnet add package Microsoft.Extensions.AI.OpenAI
+var projectClient = new AIProjectClient(
+    new Uri("https://<your-foundry-resource>.services.ai.azure.com/api/projects/<your-project>"),
+    new DefaultAzureCredential());
+
+var chatClient = projectClient.ProjectOpenAIClient.GetChatClient("<deployment-name>");
+IChatClient client = chatClient.AsIChatClient();
+
+var intentAgent = IntentAgentFactory.Create(client);
+var explanationAgent = ExplanationAgentFactory.Create(client);
+```
+
+`ProjectOpenAIClient.GetChatClient(...)` returns the same `OpenAI.Chat.ChatClient` type the Azure OpenAI
+pattern above uses, so `.AsIChatClient()` applies identically — nothing downstream cares whether the
+client came from a single Azure OpenAI resource or a Foundry project. `DefaultAzureCredential` plugs
+straight into the `AIProjectClient` constructor: `Azure.Core.TokenCredential` itself satisfies the
+`AuthenticationTokenProvider` the constructor asks for, no separate adapter needed. What actually
+determines which model runs is the deployment name string passed to `GetChatClient` — swapping an OpenAI
+deployment for an Anthropic one hosted in the same Foundry project is a config change, not a code
+change. See `08-package-versions.md` for the exact packages this was compiled against.
