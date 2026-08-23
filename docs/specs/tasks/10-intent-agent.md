@@ -11,7 +11,10 @@ first AI touchpoint, and the boundary past which nothing reads free text again.
 
 ## Scope
 
-- `SearchRequest` covering what tasks 04–08 consume.
+- `SearchRequest` covering what tasks 04–08 consume, plus a `Language` field.
+- `Language` is inferred from the input query itself (the agent already reads the whole query to
+  extract everything else) — never asked for as a separate input. Task 11 depends on it to answer in
+  the same language the traveller asked in; see that task's evals.
 - `IntentAgentFactory.Create(IChatClient)` using the framework's typed call (`RunAsync<T>`, per
   `docs/08-package-versions.md`).
 - Run against `OfflineChatClient`.
@@ -31,6 +34,7 @@ first AI touchpoint, and the boundary past which nothing reads free text again.
 | E5 | Input with a past date | Rejected by validation | Schema validation includes semantic validity, not just shape |
 | E6 | Any successful result | Is the typed `SearchRequest` — no free-text field survives into it | The boundary claim from `docs/01-architecture-overview.md`, made testable |
 | E7 | Input in Portuguese | Parses equivalently to E1's English | The target market is Brazilian; monolingual intent parsing would be a product bug |
+| E8 | E1's English input, then E7's Portuguese input | `Language` = `"en"` for the first, `"pt-BR"` for the second | `Language` has to actually be populated correctly, not just present as an unused field — task 11 reads it |
 
 ### Locked decisions
 
@@ -41,4 +45,4 @@ first AI touchpoint, and the boundary past which nothing reads free text again.
 
 ## Done when
 
-All seven evals pass.
+All eight evals pass.

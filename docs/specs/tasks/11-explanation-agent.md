@@ -15,6 +15,8 @@ component that resolves numbers are separate, with different trust levels.
 - `ExplanationAgentFactory.Create(IChatClient)` producing prose referencing task 01's tokens.
 - The agent receives tokens only — no offer object carrying a real price reaches it.
 - Rendering through task 02's renderer happens *after* the agent returns, outside the agent.
+- The agent's instructions are built from `SearchRequest.Language` (task 10) — the traveller gets an
+  explanation in the language they asked in, not a fixed language regardless of query.
 
 ## Out of scope
 
@@ -31,14 +33,21 @@ component that resolves numbers are separate, with different trust levels.
 | E5 | Any code path in the factory | No reference to `PriceReferenceStore.TryResolve` | The agent has no *capability* to resolve, structurally — not merely a convention it follows |
 | E6 | Same offers twice, offline client | Identical prose | Determinism through the second AI touchpoint |
 | E7 | Rendered output | Contains real prices, matching the store's registered values exactly | The numbers a traveller sees came from deterministic code, which is the whole thesis |
+| E8 | `SearchRequest.Language = "pt-BR"`, offline client configured to honour it | Prose is in Portuguese | The bilingual requirement made concrete at the output side, not just the input side (task 10 E7/E8) |
+| E9 | `SearchRequest.Language = "en"`, same offers as E8 | Prose is in English | The same mechanism working both directions, not just defaulting to Portuguese |
+| E10 | E8 and E9's rendered output, either language | Still passes task 02's digit/word guard | Confirms `docs/02-price-integrity.md`'s Portuguese magnitude-word check (task 02 E12) actually matters — it protects exactly this path |
 
 ### Locked decisions
 
 - **The agent never holds a reference to the store.** It receives a prompt built from tokens; it cannot
   resolve them even if compromised (E5). This is the difference between a boundary and a guideline.
 - Rendering happens at the call site *after* the agent returns, never inside the agent.
+- **Language comes from `SearchRequest.Language`, decided once by the intent agent** (task 10), not
+  re-detected or re-asked here. One request, one language, end to end — a mid-pipeline language switch
+  is not a case this system handles.
 
 ## Done when
 
-All seven evals pass. E3 and E5 are the load-bearing ones — they're what make this a control rather than
-a comment saying "please don't".
+All ten evals pass. E3 and E5 remain the load-bearing ones for price integrity — they're what make
+this a control rather than a comment saying "please don't". E8–E10 are load-bearing for the bilingual
+requirement in the same sense: without them, "supports Portuguese" is a claim, not a checked property.

@@ -25,7 +25,8 @@ genuinely unpredictable text.
 | E2 | Console demo with the real model | Real prose, all prices resolved, task 02's guard passes | The boundary holds against real model output, not just a fixture's |
 | E3 | Run the same search 20 times | Every run either renders cleanly or is caught by the guard; **no run leaks a raw number to output** | The real test of tasks 01–02. A model *will* eventually type a digit; the system must stay correct when it does |
 | E4 | Any run where the guard fires | Logged with the offending text | You need to *see* the failure mode you designed for actually occur |
-| E5 | Intent parsing, Portuguese input | Correct `SearchRequest` (task 10 E7 against a real model) | The target market |
+| E5 | Intent parsing, Portuguese input | Correct `SearchRequest` with `Language = "pt-BR"` (task 10 E7/E8 against a real model) | The target market |
+| E5b | Explanation for that same Portuguese search | Real model's prose is in Portuguese, passes task 02's guard (task 11 E8/E10 against a real model) | Bilingual support end to end, not just at the parsing edge — the case most likely to have only been true against the offline fixture |
 | E6 | SSE endpoint (task 13) with the real model | `explanation` event streams correctly, no tokens leak | End to end over the real transport |
 | E7 | API key handling | Never in source, never in the SSE payload, never reaching the browser | The model is called server-side only |
 | E8 | Swap Gemini ↔ Foundry (stretch) | Both work; only configuration differs | Proves the model choice and framework choice are genuinely independent |
