@@ -11,7 +11,9 @@ in task 06, with no supplier credentials and fully reproducible behaviour.
 
 ## Scope
 
-- Two or three implementations (e.g. NDC-style and LCC-style) returning deterministic, hand-built offers.
+- All three connectors `docs/01-architecture-overview.md` names explicitly: `MockGdsConnector`,
+  `MockNdcConnector`, `MockLccConnector` — an aggregator, a full-service-direct, and a budget-carrier
+  shape, returning deterministic, hand-built offers.
 - A deliberate failure-injection convention, mirroring the booking saga's (`docs/07-booking-saga.md`).
 - Configurable artificial latency so task 06's timeout can be tested.
 
@@ -34,10 +36,17 @@ in task 06, with no supplier credentials and fully reproducible behaviour.
 
 ### Locked decisions
 
-- **Failure markers:** `FAIL-SEARCH` in a search request fails that connector. Task 16 uses
-  `FAIL-ORDER` and `FAIL-TICKET` for the booking saga — same convention, different stage.
+- **Failure markers are per-connector, not global**: a request whose `Destination` contains
+  `FAIL-SEARCH-{ConnectorName}` (e.g. `FAIL-SEARCH-NDC`) fails only the connector named in the marker.
+  A blanket `FAIL-SEARCH` with no connector name would fail every connector checking the same field,
+  which contradicts E4 — failure has to be triggerable per-connector from a single shared
+  `SearchRequest`, since both connectors see the same request. Task 16 uses plain `FAIL-ORDER` and
+  `FAIL-TICKET` for the booking saga instead, because that marker lives in an offer ID already scoped
+  to one connector's own offer — no equivalent ambiguity there.
 - Offer IDs are prefixed per connector (e.g. `NDC-`, `LCC-`) to guarantee E2.
-- Latency is injected via `Task.Delay` honouring the `CancellationToken`. Nothing more elaborate.
+- Latency is injected via `Task.Delay` honouring the `CancellationToken`, caught and translated to
+  `SupplierSearchResult.Cancelled()` — never left to propagate as an exception, consistent with task
+  04's "failures are returned, not thrown."
 
 ## Done when
 

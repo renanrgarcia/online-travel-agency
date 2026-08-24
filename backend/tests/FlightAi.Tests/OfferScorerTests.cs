@@ -1,4 +1,5 @@
-using FlightAi.Core.Ranking;
+using FlightAi.Core.Models;
+using FlightAi.Core.Services;
 using Xunit;
 
 namespace FlightAi.Tests;

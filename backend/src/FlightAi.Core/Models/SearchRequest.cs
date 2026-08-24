@@ -1,4 +1,4 @@
-namespace FlightAi.Core.Offers;
+namespace FlightAi.Core.Models;
 
 /// <summary>
 /// The typed output of intent parsing (task 10), and the input every <c>ISupplierConnector</c>

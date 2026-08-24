@@ -1,7 +1,7 @@
 using System.Reflection;
-using FlightAi.Core.Offers;
-using FlightAi.Core.Ranking;
-using FlightAi.Core.Suppliers;
+using FlightAi.Core.Interfaces;
+using FlightAi.Core.Models;
+using FlightAi.Core.Services;
 using Xunit;
 
 namespace FlightAi.Tests;
@@ -26,7 +26,8 @@ public class SupplierConnectorContractTests
         Origin: "GRU", Destination: "LIS", DepartureDate: new DateOnly(2027, 3, 12), PassengerCount: 2, Language: "en");
 
     private static Offer AnyOffer(string id) =>
-        new(OfferId: id, Price: 500m, Currency: "USD", Duration: TimeSpan.FromHours(5), Stops: 0, Refundable: true, Margin: 20m);
+        new(OfferId: id, Price: 500m, Currency: "USD", Duration: TimeSpan.FromHours(5), Stops: 0, Refundable: true, Margin: 20m,
+            ExpiresAt: new DateTimeOffset(2027, 3, 1, 0, 20, 0, TimeSpan.Zero));
 
     [Fact] // E1 — the baseline
     public async Task E1_FullSuccess_CarriesAllOffersAndNoFailureReason()
@@ -137,5 +138,14 @@ public class SupplierConnectorContractTests
         // refundable status, which ScorableOffer never carried.
         Assert.Contains("Currency", offerFields);
         Assert.Contains("Refundable", offerFields);
+    }
+
+    [Fact] // E8 — a real offer without an expiry is an omission, added after the fact once noticed
+    public void E8_Offer_CarriesAnExpiresAtOfTypeDateTimeOffset()
+    {
+        var property = typeof(Offer).GetProperty("ExpiresAt", BindingFlags.Public | BindingFlags.Instance);
+
+        Assert.NotNull(property);
+        Assert.Equal(typeof(DateTimeOffset), property.PropertyType);
     }
 }

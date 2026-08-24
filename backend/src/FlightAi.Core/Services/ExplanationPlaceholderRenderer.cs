@@ -1,17 +1,7 @@
 using System.Text.RegularExpressions;
+using FlightAi.Core.Models;
 
-namespace FlightAi.Core.Pricing;
-
-/// <summary>
-/// The result of a render attempt. <see cref="Violations"/> non-empty means the model's raw text
-/// bypassed the token mechanism (a digit or spelled-out number outside any token) — <see cref="Text"/>
-/// is the original, unrendered input in that case, and must never be shown to a user.
-/// </summary>
-public sealed record RenderResult(
-    bool Success,
-    string Text,
-    IReadOnlyList<string> UnresolvedTokens,
-    IReadOnlyList<string> Violations);
+namespace FlightAi.Core.Services;
 
 /// <summary>
 /// The only code allowed to turn a price-reference token into a digit. See docs/02-price-integrity.md.

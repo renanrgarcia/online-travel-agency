@@ -16,7 +16,8 @@ anything above it.
   `docs/03-suppliers-and-budget.md` and `docs/04-ranking.md` actually consume.
 - The canonical `SearchRequest` — origin, destination, date, passenger count, and `Language` (task 10's
   intent agent produces this shape; this task defines it, since it's also every connector's search
-  input). `docs/01-architecture-overview.md` groups both types under `Offers/` for exactly this reason.
+  input). Both live in `Models/` alongside every other data type — see
+  `docs/specs/tasks/README.md`'s note on layer-vs-domain folders.
 - `ISupplierConnector` with an async search method returning a result type that can express **partial
   failure** — a connector that returned some offers and then failed is a real case.
 - Contract only. No implementations beyond a test double.
@@ -39,6 +40,7 @@ throwaway test double and prove each state below is representable without except
 | E5 | A cancelled call (caller's `CancellationToken` fired) distinguishable from a supplier failure | Task 06 enforces timeouts via cancellation; conflating the two would misattribute the fault to the supplier |
 | E6 | Every state above is representable **without throwing** | Exceptions as control flow would make task 06's partial-degradation logic unreadable |
 | E7 | `Offer` carries every field `OfferScorer` (task 03) reads, and every field `PriceReferenceStore` (task 01) registers | Prevents discovering a missing field three tasks later |
+| E8 | `Offer` also carries `ExpiresAt` (`DateTimeOffset`) | The point past which a quoted price can no longer be trusted to still be bookable — added after the fact once it was noticed missing; neither `OfferScorer` nor `PriceReferenceStore` consume it yet, so it's not covered by E7's "every field consumed" check, but a real offer without an expiry is an omission, not a minimal design |
 
 ### Locked decisions
 
@@ -50,5 +52,5 @@ throwaway test double and prove each state below is representable without except
 
 ## Done when
 
-All seven evals are demonstrated against a test double, and the interface is referenced nowhere else
+All eight evals are demonstrated against a test double, and the interface is referenced nowhere else
 yet.

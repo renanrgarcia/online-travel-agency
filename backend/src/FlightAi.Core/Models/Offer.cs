@@ -1,8 +1,9 @@
-namespace FlightAi.Core.Offers;
+namespace FlightAi.Core.Models;
 
 /// <summary>
 /// The canonical offer model. Carries exactly what <c>OfferScorer</c> (task 03) reads and
-/// <c>PriceReferenceStore</c> (task 01) registers — nothing else, deliberately. See
+/// <c>PriceReferenceStore</c> (task 01) registers, plus <see cref="ExpiresAt"/> — the point past which
+/// this quoted price can no longer be trusted to still be bookable. See
 /// docs/specs/tasks/04-supplier-connector-interface.md.
 /// </summary>
 public sealed record Offer(
@@ -12,4 +13,5 @@ public sealed record Offer(
     TimeSpan Duration,
     int Stops,
     bool Refundable,
-    decimal Margin);
+    decimal Margin,
+    DateTimeOffset ExpiresAt);

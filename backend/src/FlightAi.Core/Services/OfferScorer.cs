@@ -1,24 +1,6 @@
-namespace FlightAi.Core.Ranking;
+using FlightAi.Core.Models;
 
-/// <summary>
-/// Minimal offer shape sufficient to score. Replaced by the canonical Offer in task 04 — see
-/// docs/specs/tasks/04-supplier-connector-interface.md.
-/// </summary>
-public sealed record ScorableOffer(string OfferId, decimal Price, TimeSpan Duration, int Stops, decimal Margin);
-
-/// <summary>
-/// Weights for <see cref="OfferScorer"/>. <see cref="MarginWeight"/> defaults to zero: margin is a
-/// commercial lever, turned on deliberately by whoever configures weights, never silently included.
-/// See docs/04-ranking.md and docs/specs/tasks/03-offer-scoring.md.
-/// </summary>
-public sealed record ScoringWeights(
-    decimal PriceWeight = 1m,
-    decimal DurationWeight = 1m,
-    decimal StopsWeight = 1m,
-    decimal MarginWeight = 0m)
-{
-    public static readonly ScoringWeights Default = new();
-}
+namespace FlightAi.Core.Services;
 
 /// <summary>
 /// Deterministic offer ranking. See docs/04-ranking.md for why this is a scoring function and not a

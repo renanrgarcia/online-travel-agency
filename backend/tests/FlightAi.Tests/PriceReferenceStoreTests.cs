@@ -1,5 +1,5 @@
 using System.Reflection;
-using FlightAi.Core.Pricing;
+using FlightAi.Core.Services;
 using Xunit;
 
 namespace FlightAi.Tests;

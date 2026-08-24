@@ -2,7 +2,7 @@
 
 ## The canonical offer model
 
-`FlightAi.Core/Offers/Offer.cs` defines one shape every supplier adapter maps onto, regardless of
+`FlightAi.Core/Models/Offer.cs` defines one shape every supplier adapter maps onto, regardless of
 whether the source is a GDS booking record or an NDC offer. This is the single highest-leverage type in
 the whole system — the scorer, the price-integrity boundary, and the explanation agent all depend on
 suppliers never leaking their own schema past the adapter layer. Version this type carefully in any
@@ -14,7 +14,7 @@ it reaches checkout.
 
 ## `ISupplierConnector`
 
-One interface every supplier sits behind (`FlightAi.Core/Suppliers/ISupplierConnector.cs`). A GDS, an
+One interface every supplier sits behind (`FlightAi.Core/Interfaces/ISupplierConnector.cs`). A GDS, an
 NDC gateway, and an aggregator all implement it the same way — their wire formats never escape the
 adapter. This is what makes the fan-out orchestrator supplier-agnostic.
 
@@ -35,7 +35,7 @@ manager calls.
 ## `SupplierCircuitBreaker`
 
 Hand-rolled on purpose, so its behavior is readable in one small file rather than buried in a general
-resilience library's configuration surface (`FlightAi.Core/Suppliers/SupplierCircuitBreaker.cs`). Reach
+resilience library's configuration surface (`FlightAi.Core/Services/SupplierCircuitBreaker.cs`). Reach
 for Polly in a real service — this exists here to be a legible teaching example, not a production
 recommendation.
 

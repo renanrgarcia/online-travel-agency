@@ -44,3 +44,24 @@ change it in the task note first, then let the failing test drive the code chang
 Work through them in order — each one assumes the tasks before it are done. If a task feels too big to
 finish in one sitting, that's a signal to stop and split it yourself rather than push through; these
 tasks are scoped for learning, not for velocity.
+
+## A note on `FlightAi.Core`'s folder structure
+
+Tasks 01–07 were originally implemented with folders by *domain concept* — `Offers/`, `Pricing/`,
+`Ranking/`, `Suppliers/` — each holding everything related to one idea (a supplier's interface, its
+result types, its guardrails, its mock implementations, all together). That's what
+`docs/01-architecture-overview.md` described until it was changed.
+
+It's now folders by *technical layer* instead — `Models/` (data types), `Interfaces/` (contracts),
+`Services/` (behavior) — at the owner's explicit preference, since it's the convention they're more
+used to working in day to day. Every file that existed before the change moved without any behavior
+change: a data-only type went to `Models/`, a class that does something went to `Services/`, and a
+couple of files that had mixed a model with a service in one file (`OfferScorer.cs` held
+`ScorableOffer`/`ScoringWeights` alongside `OfferScorer` itself; `ExplanationPlaceholderRenderer.cs`
+held `RenderResult` alongside the renderer) were split so each half landed in the right layer folder.
+
+If you're rebuilding from scratch rather than following this repo's history, you can pick either
+convention — both are legitimate, and the trade-off is real: domain folders keep one concept's pieces
+together at the cost of scattering technical roles; layer folders keep one technical role together at
+the cost of scattering one concept across three folders. Neither is "more correct." This project uses
+layer folders because that's what its owner prefers to navigate.

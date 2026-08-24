@@ -10,10 +10,13 @@ already-priced result set into readable prose. Nothing in between calls a model.
 ```
 src/
   FlightAi.Core/                Domain + deterministic logic. No AI dependency at all.
-    Offers/                     The canonical offer model and the typed SearchRequest.
-    Suppliers/                  ISupplierConnector, fan-out orchestrator, look-to-book budget, circuit breaker.
-    Ranking/                    OfferScorer — the weighted scoring function.
-    Pricing/                    PriceReferenceStore + ExplanationPlaceholderRenderer — the price-integrity boundary.
+    Models/                     Data types: Offer, SearchRequest, ScoringWeights, SupplierSearchResult, ...
+    Interfaces/                 ISupplierConnector.
+    Services/                   OfferScorer, PriceReferenceStore, ExplanationPlaceholderRenderer,
+                                 SupplierFanOutOrchestrator, LookToBookBudget, SupplierCircuitBreaker,
+                                 and the mock connectors — everything with behavior, grouped by
+                                 technical role (layer) rather than by domain concept. See
+                                 docs/specs/tasks/README.md's note on this choice.
   FlightAi.Agents/              The AI layer. Depends on Microsoft.Agents.AI + Microsoft.Extensions.AI.Abstractions.
     IntentAgentFactory.cs       NL -> typed SearchRequest via RunAsync<T>.
     ExplanationAgentFactory.cs  Ranked offers -> prose, using opaque tokens instead of numbers.
