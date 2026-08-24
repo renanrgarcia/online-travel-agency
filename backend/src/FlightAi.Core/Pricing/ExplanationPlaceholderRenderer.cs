@@ -20,23 +20,16 @@ public sealed record RenderResult(
 /// scan runs on the model's raw input, before any resolution, since resolution itself legitimately
 /// introduces digits into the final text.
 /// </summary>
-public sealed class ExplanationPlaceholderRenderer
+public sealed partial class ExplanationPlaceholderRenderer(PriceReferenceStore store)
 {
-    private static readonly Regex TokenPattern = new(@"\{\{[A-Za-z0-9_]+\}\}", RegexOptions.Compiled);
-    private static readonly Regex DigitPattern = new(@"\d+", RegexOptions.Compiled);
+    private static readonly Regex TokenPattern = TokenRegex();
+    private static readonly Regex DigitPattern = DigitRegex();
 
     // Magnitude words only -- deliberately excludes one-to-twenty spelled out ("one", "two", "um",
     // "dois", ...), which are common pronouns/adjectives in both languages and would produce an
     // unacceptable false-positive rate. See task 02's Locked decisions for the disclosed gap this
     // leaves: a model writing "five stops" instead of a STOPS token is not caught.
-    private static readonly Regex MagnitudeWordPattern = new(
-        @"\b(hundred|thousand|million|billion|cem|cento|duzentos|trezentos|quatrocentos|quinhentos|" +
-        @"seiscentos|setecentos|oitocentos|novecentos|mil|milh(?:a|õ)o|milh(?:a|õ)es|bilh(?:a|õ)o|bilh(?:a|õ)es)\b",
-        RegexOptions.Compiled | RegexOptions.IgnoreCase);
-
-    private readonly PriceReferenceStore _store;
-
-    public ExplanationPlaceholderRenderer(PriceReferenceStore store) => _store = store;
+    private static readonly Regex MagnitudeWordPattern = MagnitudeWordsRegex();
 
     public RenderResult Render(string rawText)
     {
@@ -52,7 +45,7 @@ public sealed class ExplanationPlaceholderRenderer
         var unresolved = new List<string>();
         var rendered = TokenPattern.Replace(rawText, match =>
         {
-            if (_store.TryResolve(match.Value, out var value))
+            if (store.TryResolve(match.Value, out var value))
                 return value;
             unresolved.Add(match.Value);
             return match.Value; // left visibly unresolved, never silently dropped
@@ -80,4 +73,15 @@ public sealed class ExplanationPlaceholderRenderer
         var end = Math.Min(text.Length, index + length + 12);
         return text[start..end];
     }
+
+    [GeneratedRegex(@"\{\{[A-Za-z0-9_]+\}\}", RegexOptions.Compiled)]
+    private static partial Regex TokenRegex();
+
+    [GeneratedRegex(@"\d+", RegexOptions.Compiled)]
+    private static partial Regex DigitRegex();
+
+    [GeneratedRegex(
+        @"\b(hundred|thousand|million|billion|cem|cento|duzentos|trezentos|quatrocentos|quinhentos|seiscentos|setecentos|oitocentos|novecentos|mil|milh(?:a|õ)o|milh(?:a|õ)es|bilh(?:a|õ)o|bilh(?:a|õ)es)\b",
+        RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.CultureInvariant)]
+    private static partial Regex MagnitudeWordsRegex();
 }
