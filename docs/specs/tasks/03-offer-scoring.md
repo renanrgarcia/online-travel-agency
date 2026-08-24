@@ -10,6 +10,10 @@ Build `ScoringWeights` and `OfferScorer`. Ranking is a deterministic scoring fun
 call — this task is where you internalise why: ranking must be explainable, reproducible, and fast,
 and a model call guarantees none of the three.
 
+See [`assets/offer-scorer-ranking.svg`](assets/offer-scorer-ranking.svg) for a worked example against
+this task's own fixture set — default weights on top, margin-only weights on the bottom, showing why
+those two configurations rank the same three offers in opposite orders.
+
 ## Scope
 
 - A minimal offer shape sufficient to score (price, duration, stops). Task 04 defines the canonical

@@ -1,0 +1,113 @@
+<svg viewBox="0 0 980 720" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system, Helvetica, Arial, sans-serif">
+  <rect width="980" height="720" fill="#ffffff"/>
+
+  <text x="30" y="34" font-size="19" font-weight="700" fill="#111">OfferScorer.Rank — how a ranking is built</text>
+  <text x="30" y="56" font-size="12.5" fill="#555">Score = Price·Pw + DurationMinutes·Dw + Stops·Sw  −  Margin·Mw       (lower score wins)</text>
+
+  <!-- Offer cards -->
+  <g font-size="12">
+    <!-- CHEAP -->
+    <rect x="30" y="86" width="230" height="122" rx="8" fill="#eef6ff" stroke="#8ab4e8"/>
+    <text x="46" y="110" font-size="14" font-weight="700" fill="#1a4d8f">CHEAP</text>
+    <text x="46" y="132" fill="#333">Price   400</text>
+    <text x="46" y="150" fill="#333">Duration 11h  (660 min)</text>
+    <text x="46" y="168" fill="#333">Stops   2</text>
+    <text x="46" y="186" fill="#333">Margin  80</text>
+
+    <!-- FAST -->
+    <rect x="290" y="86" width="230" height="122" rx="8" fill="#eef6ff" stroke="#8ab4e8"/>
+    <text x="306" y="110" font-size="14" font-weight="700" fill="#1a4d8f">FAST</text>
+    <text x="306" y="132" fill="#333">Price   700</text>
+    <text x="306" y="150" fill="#333">Duration 6h  (360 min)</text>
+    <text x="306" y="168" fill="#333">Stops   0</text>
+    <text x="306" y="186" fill="#333">Margin  20</text>
+
+    <!-- MID -->
+    <rect x="550" y="86" width="230" height="122" rx="8" fill="#eef6ff" stroke="#8ab4e8"/>
+    <text x="566" y="110" font-size="14" font-weight="700" fill="#1a4d8f">MID</text>
+    <text x="566" y="132" fill="#333">Price   550</text>
+    <text x="566" y="150" fill="#333">Duration 8h  (480 min)</text>
+    <text x="566" y="168" fill="#333">Stops   1</text>
+    <text x="566" y="186" fill="#333">Margin  50</text>
+
+    <!-- weights box -->
+    <rect x="810" y="86" width="150" height="122" rx="8" fill="#fff7e6" stroke="#e0b34d"/>
+    <text x="826" y="106" font-size="12.5" font-weight="700" fill="#8a5a00">Weights</text>
+    <text x="826" y="126" fill="#333">Pw = 1</text>
+    <text x="826" y="144" fill="#333">Dw = 1</text>
+    <text x="826" y="162" fill="#333">Sw = 1</text>
+    <text x="826" y="180" fill="#333">Mw = 0  ← default</text>
+  </g>
+
+  <!-- arrows down -->
+  <g stroke="#999" stroke-width="1.6" marker-end="url(#arrow)">
+    <line x1="145" y1="208" x2="145" y2="248"/>
+    <line x1="405" y1="208" x2="405" y2="248"/>
+    <line x1="665" y1="208" x2="665" y2="248"/>
+  </g>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#999"/>
+    </marker>
+  </defs>
+
+  <!-- Score computation, default weights -->
+  <g font-size="12.5">
+    <rect x="30" y="252" width="230" height="86" rx="8" fill="#fafafa" stroke="#ccc"/>
+    <text x="46" y="274" fill="#333">400·1 + 660·1 + 2·1 − 80·0</text>
+    <text x="46" y="294" fill="#111" font-weight="700">= 1062</text>
+
+    <rect x="290" y="252" width="230" height="86" rx="8" fill="#fafafa" stroke="#ccc"/>
+    <text x="306" y="274" fill="#333">700·1 + 360·1 + 0·1 − 20·0</text>
+    <text x="306" y="294" fill="#111" font-weight="700">= 1060</text>
+
+    <rect x="550" y="252" width="230" height="86" rx="8" fill="#fafafa" stroke="#ccc"/>
+    <text x="566" y="274" fill="#333">550·1 + 480·1 + 1·1 − 50·0</text>
+    <text x="566" y="294" fill="#111" font-weight="700">= 1031</text>
+  </g>
+
+  <text x="30" y="362" font-size="12.5" fill="#555">Sort ascending (lowest score first) →</text>
+
+  <!-- ranked output, default -->
+  <g font-size="13">
+    <rect x="30" y="376" width="230" height="40" rx="8" fill="#eaf7ea" stroke="#7fc17f"/>
+    <text x="145" y="401" text-anchor="middle" font-weight="700" fill="#1d6b1d">#1 MID  (1031)</text>
+    <rect x="290" y="376" width="230" height="40" rx="8" fill="#eaf7ea" stroke="#7fc17f"/>
+    <text x="405" y="401" text-anchor="middle" font-weight="700" fill="#1d6b1d">#2 FAST  (1060)</text>
+    <rect x="550" y="376" width="230" height="40" rx="8" fill="#eaf7ea" stroke="#7fc17f"/>
+    <text x="665" y="401" text-anchor="middle" font-weight="700" fill="#1d6b1d">#3 CHEAP  (1062)</text>
+  </g>
+
+  <line x1="30" y1="450" x2="950" y2="450" stroke="#e2e2e2"/>
+
+  <text x="30" y="482" font-size="15" font-weight="700" fill="#111">Turn on the margin weight instead (Pw=Dw=Sw=0, Mw=1)</text>
+  <text x="30" y="502" font-size="12.5" fill="#555">Score = 0 − Margin·1  =  −Margin.  Higher margin → more negative → LOWER score → ranks BETTER.</text>
+
+  <g font-size="12.5">
+    <rect x="30" y="518" width="230" height="60" rx="8" fill="#fafafa" stroke="#ccc"/>
+    <text x="46" y="540" fill="#333">−80  (CHEAP's margin)</text>
+    <text x="46" y="558" fill="#111" font-weight="700">Score = −80</text>
+
+    <rect x="290" y="518" width="230" height="60" rx="8" fill="#fafafa" stroke="#ccc"/>
+    <text x="306" y="540" fill="#333">−20  (FAST's margin)</text>
+    <text x="306" y="558" fill="#111" font-weight="700">Score = −20</text>
+
+    <rect x="550" y="518" width="230" height="60" rx="8" fill="#fafafa" stroke="#ccc"/>
+    <text x="566" y="540" fill="#333">−50  (MID's margin)</text>
+    <text x="566" y="558" fill="#111" font-weight="700">Score = −50</text>
+  </g>
+
+  <text x="30" y="604" font-size="12.5" fill="#555">Sort ascending (most negative first) →</text>
+
+  <g font-size="13">
+    <rect x="30" y="618" width="230" height="40" rx="8" fill="#eaf7ea" stroke="#7fc17f"/>
+    <text x="145" y="643" text-anchor="middle" font-weight="700" fill="#1d6b1d">#1 CHEAP  (−80)</text>
+    <rect x="290" y="618" width="230" height="40" rx="8" fill="#eaf7ea" stroke="#7fc17f"/>
+    <text x="405" y="643" text-anchor="middle" font-weight="700" fill="#1d6b1d">#2 MID  (−50)</text>
+    <rect x="550" y="618" width="230" height="40" rx="8" fill="#eaf7ea" stroke="#7fc17f"/>
+    <text x="665" y="643" text-anchor="middle" font-weight="700" fill="#1d6b1d">#3 FAST  (−20)</text>
+  </g>
+
+  <text x="30" y="694" font-size="12" fill="#777">Price · Duration · Stops are costs: higher input → higher score number → ranks worse.</text>
+  <text x="30" y="710" font-size="12" fill="#777">Margin is a benefit: it's SUBTRACTED, so higher input → lower score number → ranks better (once its weight is non-zero).</text>
+</svg>
