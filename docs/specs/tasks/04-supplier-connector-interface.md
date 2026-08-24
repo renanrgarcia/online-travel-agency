@@ -14,6 +14,9 @@ anything above it.
 
 - The canonical `Offer` — the real one, replacing task 03's stub. Scope to what
   `docs/03-suppliers-and-budget.md` and `docs/04-ranking.md` actually consume.
+- The canonical `SearchRequest` — origin, destination, date, passenger count, and `Language` (task 10's
+  intent agent produces this shape; this task defines it, since it's also every connector's search
+  input). `docs/01-architecture-overview.md` groups both types under `Offers/` for exactly this reason.
 - `ISupplierConnector` with an async search method returning a result type that can express **partial
   failure** — a connector that returned some offers and then failed is a real case.
 - Contract only. No implementations beyond a test double.
