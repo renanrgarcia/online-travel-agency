@@ -1,5 +1,6 @@
-using FlightAi.Core.Models;
-using FlightAi.Core.Services;
+using FlightAi.Core.Models.Offers;
+using FlightAi.Core.Models.Suppliers;
+using FlightAi.Core.Services.Suppliers;
 using Xunit;
 
 namespace FlightAi.Tests;

@@ -1,7 +1,9 @@
 using System.Reflection;
-using FlightAi.Core.Interfaces;
-using FlightAi.Core.Models;
-using FlightAi.Core.Services;
+using FlightAi.Core.Interfaces.Suppliers;
+using FlightAi.Core.Models.Offers;
+using FlightAi.Core.Models.Ranking;
+using FlightAi.Core.Models.Suppliers;
+using FlightAi.Core.Services.Ranking;
 using Xunit;
 
 namespace FlightAi.Tests;

@@ -1,7 +1,7 @@
 using System.Text.RegularExpressions;
-using FlightAi.Core.Models;
+using FlightAi.Core.Models.Pricing;
 
-namespace FlightAi.Core.Services;
+namespace FlightAi.Core.Services.Pricing;
 
 /// <summary>
 /// The only code allowed to turn a price-reference token into a digit. See docs/02-price-integrity.md.
@@ -64,7 +64,7 @@ public sealed partial class ExplanationPlaceholderRenderer(PriceReferenceStore s
         return text[start..end];
     }
 
-    [GeneratedRegex(@"\{\{[A-Za-z0-9_]+\}\}", RegexOptions.Compiled)]
+    [GeneratedRegex(@"\{\{[A-Za-z0-9_-]+\}\}", RegexOptions.Compiled)]
     private static partial Regex TokenRegex();
 
     [GeneratedRegex(@"\d+", RegexOptions.Compiled)]

@@ -1,4 +1,4 @@
-namespace FlightAi.Core.Services;
+namespace FlightAi.Core.Services.Suppliers;
 
 /// <summary>
 /// A ceiling on supplier search calls per rolling window. Suppliers meter search volume against actual

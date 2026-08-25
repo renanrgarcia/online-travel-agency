@@ -1,4 +1,4 @@
-namespace FlightAi.Core.Models;
+namespace FlightAi.Core.Models.Ranking;
 
 /// <summary>
 /// Weights for <c>OfferScorer</c>. <see cref="MarginWeight"/> defaults to zero: margin is a

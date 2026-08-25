@@ -36,5 +36,5 @@ time; it's not something you write by hand, and it isn't physically present in t
 
 ## Reference implementation
 
-[`backend/src/FlightAi.Core/Services/ExplanationPlaceholderRenderer.cs`](../../backend/src/FlightAi.Core/Services/ExplanationPlaceholderRenderer.cs) —
+[`backend/src/FlightAi.Core/Services/Pricing/ExplanationPlaceholderRenderer.cs`](../../backend/src/FlightAi.Core/Services/Pricing/ExplanationPlaceholderRenderer.cs) —
 `TokenRegex()`, `DigitRegex()`, `MagnitudeWordsRegex()`.

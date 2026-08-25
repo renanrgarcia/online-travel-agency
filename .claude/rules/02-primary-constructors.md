@@ -40,5 +40,5 @@ actually constructed.
 
 ## Reference implementation
 
-[`backend/src/FlightAi.Core/Services/ExplanationPlaceholderRenderer.cs`](../../backend/src/FlightAi.Core/Services/ExplanationPlaceholderRenderer.cs) —
+[`backend/src/FlightAi.Core/Services/Pricing/ExplanationPlaceholderRenderer.cs`](../../backend/src/FlightAi.Core/Services/Pricing/ExplanationPlaceholderRenderer.cs) —
 `ExplanationPlaceholderRenderer(PriceReferenceStore store)`.

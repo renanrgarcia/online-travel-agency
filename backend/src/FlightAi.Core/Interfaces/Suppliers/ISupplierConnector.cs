@@ -1,6 +1,7 @@
-using FlightAi.Core.Models;
+using FlightAi.Core.Models.Offers;
+using FlightAi.Core.Models.Suppliers;
 
-namespace FlightAi.Core.Interfaces;
+namespace FlightAi.Core.Interfaces.Suppliers;
 
 /// <summary>
 /// The seam every supplier integration talks through. See

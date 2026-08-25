@@ -1,4 +1,6 @@
-namespace FlightAi.Core.Models;
+using FlightAi.Core.Models.Offers;
+
+namespace FlightAi.Core.Models.Suppliers;
 
 public enum SupplierOutcome
 {

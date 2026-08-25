@@ -1,4 +1,4 @@
-namespace FlightAi.Core.Models;
+namespace FlightAi.Core.Models.Offers;
 
 /// <summary>
 /// The canonical offer model. Carries exactly what <c>OfferScorer</c> (task 03) reads and

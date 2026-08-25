@@ -1,6 +1,6 @@
 # Ranking: a scoring function, not a chat
 
-`FlightAi.Core/Services/OfferScorer.cs` and `FlightAi.Core/Models/ScoringWeights.cs`.
+`FlightAi.Core/Services/Ranking/OfferScorer.cs` and `FlightAi.Core/Models/Ranking/ScoringWeights.cs`.
 
 Ranking flights is a scoring function over structured offers, not a model call — a deterministic
 function you can test, tune, and explain. No model call happens anywhere inside `OfferScorer`: the same

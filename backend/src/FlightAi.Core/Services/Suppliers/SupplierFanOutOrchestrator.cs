@@ -1,7 +1,8 @@
-using FlightAi.Core.Interfaces;
-using FlightAi.Core.Models;
+using FlightAi.Core.Interfaces.Suppliers;
+using FlightAi.Core.Models.Offers;
+using FlightAi.Core.Models.Suppliers;
 
-namespace FlightAi.Core.Services;
+namespace FlightAi.Core.Services.Suppliers;
 
 /// <summary>
 /// Calls every registered connector concurrently, bounds each one with its own timeout, and degrades

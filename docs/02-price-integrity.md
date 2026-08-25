@@ -14,7 +14,7 @@ have deterministic code be the only thing allowed to write a digit into the fina
 
 ## The two-sided contract
 
-**Side one — `PriceReferenceStore`** (`FlightAi.Core/Services/PriceReferenceStore.cs`). Given a set of
+**Side one — `PriceReferenceStore`** (`FlightAi.Core/Services/Pricing/PriceReferenceStore.cs`). Given a set of
 ranked, scored offers, it hands out *tokens*, never numbers: `{{PRICE_OFF8812}}`,
 `{{DURATION_OFF8812}}`, `{{STOPS_OFF8812}}`, `{{REFUNDABLE_OFF8812}}`, plus comparison tokens like
 `{{PRICE_DELTA_OFFA_vs_OFFB}}`. These tokens are what the explanation agent's prompt is built from —
@@ -27,7 +27,7 @@ traveller-facing explanation. This is a design decision, not an oversight, and i
 deliberately in any rebuild: the store's token vocabulary is the actual security boundary, and margin
 simply isn't in that vocabulary.
 
-**Side two — `ExplanationPlaceholderRenderer`** (`FlightAi.Core/Services/ExplanationPlaceholderRenderer.cs`).
+**Side two — `ExplanationPlaceholderRenderer`** (`FlightAi.Core/Services/Pricing/ExplanationPlaceholderRenderer.cs`).
 This is the *only* code allowed to turn a token into a digit. It takes the model's raw output, finds
 every `{{TOKEN}}` pattern, and resolves each one by looking it up in the store — never by trusting
 anything the model wrote near the token. A token the store doesn't recognize (including a hallucinated

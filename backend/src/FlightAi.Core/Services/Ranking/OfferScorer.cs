@@ -1,6 +1,6 @@
-using FlightAi.Core.Models;
+using FlightAi.Core.Models.Ranking;
 
-namespace FlightAi.Core.Services;
+namespace FlightAi.Core.Services.Ranking;
 
 /// <summary>
 /// Deterministic offer ranking. See docs/04-ranking.md for why this is a scoring function and not a

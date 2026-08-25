@@ -63,5 +63,17 @@ held `RenderResult` alongside the renderer) were split so each half landed in th
 If you're rebuilding from scratch rather than following this repo's history, you can pick either
 convention — both are legitimate, and the trade-off is real: domain folders keep one concept's pieces
 together at the cost of scattering technical roles; layer folders keep one technical role together at
-the cost of scattering one concept across three folders. Neither is "more correct." This project uses
-layer folders because that's what its owner prefers to navigate.
+the cost of scattering one concept across three folders. Neither is "more correct."
+
+In practice, this project settled on **both, nested**: layer folders at the top (`Models/`,
+`Interfaces/`, `Services/`), each containing domain subfolders (`Offers/`, `Pricing/`, `Ranking/`,
+`Suppliers/`) — e.g. `Services/Suppliers/SupplierFanOutOrchestrator.cs`. A flat layer folder scales
+badly once it holds a dozen unrelated files (exactly what prompted this second pass, after
+`Services/`'s Suppliers-related files alone reached eight); nesting domain folders inside each layer
+keeps the layer boundary while restoring the "find everything about X in one place" property domain
+folders gave up. Namespaces stayed flat at the layer level (`FlightAi.Core.Services`, not
+`FlightAi.Core.Services.Suppliers`) — the ask was about finding files on disk, not about C# scoping, and
+adding another namespace segment would mean an extra `using` per domain a file touches for no
+corresponding benefit. This does mean a file's namespace and its folder path don't fully match, which
+some IDEs flag as a style suggestion (Roslyn's IDE0130) — a cosmetic nit, not a build warning, and not
+enabled by any `.editorconfig` in this repo.

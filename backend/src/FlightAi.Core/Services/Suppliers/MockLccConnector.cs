@@ -1,6 +1,6 @@
-using FlightAi.Core.Models;
+using FlightAi.Core.Models.Offers;
 
-namespace FlightAi.Core.Services;
+namespace FlightAi.Core.Services.Suppliers;
 
 /// <summary>
 /// A deterministic LCC-style mock connector — budget-carrier shape: more stops, lower margin, lower

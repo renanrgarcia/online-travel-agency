@@ -1,6 +1,6 @@
-using FlightAi.Core.Models;
+using FlightAi.Core.Models.Offers;
 
-namespace FlightAi.Core.Services;
+namespace FlightAi.Core.Services.Suppliers;
 
 /// <summary>
 /// A deterministic NDC-style mock connector — full-service-carrier shape: fewer stops, higher margin,

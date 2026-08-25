@@ -1,4 +1,4 @@
-namespace FlightAi.Core.Services;
+namespace FlightAi.Core.Services.Suppliers;
 
 /// <summary>
 /// Stops calling a connector that has failed <c>failureThreshold</c> times in a row, for

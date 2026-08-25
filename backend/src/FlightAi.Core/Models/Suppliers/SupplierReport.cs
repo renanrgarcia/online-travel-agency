@@ -1,4 +1,6 @@
-namespace FlightAi.Core.Models;
+using FlightAi.Core.Models.Offers;
+
+namespace FlightAi.Core.Models.Suppliers;
 
 /// <summary>
 /// How one connector's participation in a fan-out ended. Deliberately finer-grained than

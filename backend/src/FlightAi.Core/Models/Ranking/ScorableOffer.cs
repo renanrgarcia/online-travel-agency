@@ -1,4 +1,4 @@
-namespace FlightAi.Core.Models;
+namespace FlightAi.Core.Models.Ranking;
 
 /// <summary>
 /// Minimal offer shape sufficient to score. Replaced by the canonical <see cref="Offer"/> for real

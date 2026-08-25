@@ -18,10 +18,14 @@ src/
                                  technical role (layer) rather than by domain concept. See
                                  docs/specs/tasks/README.md's note on this choice.
   FlightAi.Agents/              The AI layer. Depends on Microsoft.Agents.AI + Microsoft.Extensions.AI.Abstractions.
-    IntentAgentFactory.cs       NL -> typed SearchRequest via RunAsync<T>.
-    ExplanationAgentFactory.cs  Ranked offers -> prose, using opaque tokens instead of numbers.
-    OfflineChatClient.cs        Offline IChatClient stand-in — swap out for a real model, see 05-agents-and-intent.md.
-  FlightAi.Demo/                Console app wiring all four pieces into one run.
+    Models/                     IntentResult — the AI layer's own supporting types.
+    Services/                   IntentAgentFactory (NL -> typed SearchRequest via RunAsync<T>),
+                                 ExplanationAgentFactory (ranked offers -> prose, opaque tokens only),
+                                 OfflineChatClient (offline IChatClient stand-in — swap for a real
+                                 model, see 05-agents-and-intent.md). Same Models/Services convention
+                                 as FlightAi.Core.
+  FlightAi.Demo/                Console app wiring the deterministic core into one run (tasks 01-07).
+    DemoPipeline.cs              The actual pipeline logic, kept testable; Program.cs is a thin argv/stdout wrapper.
   FlightAi.Api/                 Minimal API. GET /api/search/stream — Server-Sent Events, one per pipeline stage.
   FlightAi.Booking.Functions/   Azure Durable Functions saga for the booking flow.
 tests/

@@ -2,7 +2,7 @@
 
 ## The canonical offer model
 
-`FlightAi.Core/Models/Offer.cs` defines one shape every supplier adapter maps onto, regardless of
+`FlightAi.Core/Models/Offers/Offer.cs` defines one shape every supplier adapter maps onto, regardless of
 whether the source is a GDS booking record or an NDC offer. This is the single highest-leverage type in
 the whole system — the scorer, the price-integrity boundary, and the explanation agent all depend on
 suppliers never leaking their own schema past the adapter layer. Version this type carefully in any
@@ -14,7 +14,7 @@ it reaches checkout.
 
 ## `ISupplierConnector`
 
-One interface every supplier sits behind (`FlightAi.Core/Interfaces/ISupplierConnector.cs`). A GDS, an
+One interface every supplier sits behind (`FlightAi.Core/Interfaces/Suppliers/ISupplierConnector.cs`). A GDS, an
 NDC gateway, and an aggregator all implement it the same way — their wire formats never escape the
 adapter. This is what makes the fan-out orchestrator supplier-agnostic.
 
@@ -35,16 +35,21 @@ manager calls.
 ## `SupplierCircuitBreaker`
 
 Hand-rolled on purpose, so its behavior is readable in one small file rather than buried in a general
-resilience library's configuration surface (`FlightAi.Core/Services/SupplierCircuitBreaker.cs`). Reach
+resilience library's configuration surface (`FlightAi.Core/Services/Suppliers/SupplierCircuitBreaker.cs`). Reach
 for Polly in a real service — this exists here to be a legible teaching example, not a production
 recommendation.
 
 ## The mock connectors' failure-injection convention
 
-`MockGdsConnector` and `MockNdcConnector` behave reliably. `MockLccConnector` is deliberately
-unreliable — its first two calls stall past any reasonable timeout on purpose, so it exists specifically
-to drive the orchestrator's timeout and circuit-breaker paths in a demo, exercising both the
-"one supplier stalls the whole search" case and a look-to-book budget breach in a single connector.
+All three mock connectors (`MockGdsConnector`, `MockNdcConnector`, `MockLccConnector`) are reliable by
+default — none of them fails or stalls automatically. Failure is triggered explicitly, per connector, by
+a request whose `Destination` contains `FAIL-SEARCH-{ConnectorName}` (e.g. `FAIL-SEARCH-NDC`), and
+latency is injected via an optional constructor delay. This is a deliberate correction from an earlier
+draft of this system, which had one connector auto-fail on its first N calls: that made behavior depend
+on how many times a connector instance had already been called, which quietly broke the "same request
+twice, byte-identical output" reproducibility this whole mock layer exists to guarantee. Explicit,
+request-driven failure keeps every scenario — one supplier down, a timeout, a circuit-breaker trip —
+reproducible on demand instead of timing-dependent.
 
 The same deterministic-failure convention shows up again in the booking saga's mock activities
 (`FAIL-ORDER` / `FAIL-TICKET` markers in an offer ID — see `07-booking-saga.md`), so that failure paths

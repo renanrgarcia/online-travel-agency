@@ -1,6 +1,6 @@
 using System.Globalization;
 
-namespace FlightAi.Core.Services;
+namespace FlightAi.Core.Services.Pricing;
 
 /// <summary>
 /// Hands out opaque tokens for values a traveller may see (price, duration, stops, refund status)

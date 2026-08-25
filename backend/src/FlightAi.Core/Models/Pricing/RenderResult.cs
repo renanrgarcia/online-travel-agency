@@ -1,4 +1,4 @@
-namespace FlightAi.Core.Models;
+namespace FlightAi.Core.Models.Pricing;
 
 /// <summary>
 /// The result of a render attempt. <see cref="Violations"/> non-empty means the model's raw text
