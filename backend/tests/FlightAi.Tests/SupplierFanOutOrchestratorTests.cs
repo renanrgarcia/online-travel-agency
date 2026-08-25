@@ -8,7 +8,9 @@ using Xunit;
 namespace FlightAi.Tests;
 
 /// <summary>
-/// One test per eval in docs/specs/tasks/06-supplier-fan-out-orchestrator.md.
+/// One test per eval in docs/specs/tasks/06-supplier-fan-out-orchestrator.md. Every connector needs an
+/// entry in the policies dictionary (task 07's SupplierPolicy) even when this task doesn't care about
+/// budget/breaker -- <see cref="PoliciesFor"/> builds a plain timeout-only policy per connector name.
 /// </summary>
 public class SupplierFanOutOrchestratorTests
 {
@@ -17,6 +19,9 @@ public class SupplierFanOutOrchestratorTests
 
     private static readonly SearchRequest OrdinaryRequest = RequestTo("LIS");
     private static readonly TimeSpan GenerousTimeout = TimeSpan.FromSeconds(5);
+
+    private static Dictionary<string, SupplierPolicy> PoliciesFor(TimeSpan timeout, params string[] connectorNames) =>
+        connectorNames.ToDictionary(name => name, _ => new SupplierPolicy(timeout));
 
     /// <summary>Deliberately violates task 04's "failures are returned, not thrown" contract, so E2's
     /// "no exception escapes" is tested against a genuinely misbehaving connector.</summary>
@@ -35,7 +40,7 @@ public class SupplierFanOutOrchestratorTests
     public async Task E1_TwoHealthyConnectors_ReturnsAllOffersAndReportsBothSucceeded()
     {
         var orchestrator = new SupplierFanOutOrchestrator(
-            [new MockNdcConnector(), new MockLccConnector()], GenerousTimeout);
+            [new MockNdcConnector(), new MockLccConnector()], PoliciesFor(GenerousTimeout, "NDC", "LCC"));
 
         var result = await orchestrator.SearchAsync(OrdinaryRequest, CancellationToken.None);
 
@@ -48,7 +53,7 @@ public class SupplierFanOutOrchestratorTests
     public async Task E2_OneHealthyOneFailing_ReturnsHealthyOffersAndReportsTheFailure()
     {
         var orchestrator = new SupplierFanOutOrchestrator(
-            [new MockNdcConnector(), new MockLccConnector()], GenerousTimeout);
+            [new MockNdcConnector(), new MockLccConnector()], PoliciesFor(GenerousTimeout, "NDC", "LCC"));
 
         var result = await orchestrator.SearchAsync(RequestTo("LIS-FAIL-SEARCH-NDC"), CancellationToken.None);
 
@@ -64,7 +69,7 @@ public class SupplierFanOutOrchestratorTests
     public async Task E2_ConnectorThatThrows_IsCaughtAndReportedRatherThanEscaping()
     {
         var orchestrator = new SupplierFanOutOrchestrator(
-            [new ThrowingConnector(), new MockLccConnector()], GenerousTimeout);
+            [new ThrowingConnector(), new MockLccConnector()], PoliciesFor(GenerousTimeout, "THROWS", "LCC"));
 
         var result = await orchestrator.SearchAsync(OrdinaryRequest, CancellationToken.None);
 
@@ -79,7 +84,7 @@ public class SupplierFanOutOrchestratorTests
     {
         var orchestrator = new SupplierFanOutOrchestrator(
             [new MockNdcConnector(simulatedDelay: TimeSpan.FromSeconds(10)), new MockLccConnector()],
-            perConnectorTimeout: TimeSpan.FromMilliseconds(200));
+            PoliciesFor(TimeSpan.FromMilliseconds(200), "NDC", "LCC"));
         var stopwatch = Stopwatch.StartNew();
 
         var result = await orchestrator.SearchAsync(OrdinaryRequest, CancellationToken.None);
@@ -96,7 +101,7 @@ public class SupplierFanOutOrchestratorTests
         var delay = TimeSpan.FromMilliseconds(300);
         var orchestrator = new SupplierFanOutOrchestrator(
             [new MockNdcConnector(delay), new MockLccConnector(delay)],
-            perConnectorTimeout: TimeSpan.FromSeconds(1));
+            PoliciesFor(TimeSpan.FromSeconds(1), "NDC", "LCC"));
         var stopwatch = Stopwatch.StartNew();
 
         var result = await orchestrator.SearchAsync(OrdinaryRequest, CancellationToken.None);
@@ -112,7 +117,7 @@ public class SupplierFanOutOrchestratorTests
     {
         var orchestrator = new SupplierFanOutOrchestrator(
             [new MockNdcConnector(simulatedDelay: TimeSpan.FromSeconds(10)), new MockLccConnector()],
-            perConnectorTimeout: TimeSpan.FromMilliseconds(200));
+            PoliciesFor(TimeSpan.FromMilliseconds(200), "NDC", "LCC"));
 
         var result = await orchestrator.SearchAsync(RequestTo("LIS-FAIL-SEARCH-LCC"), CancellationToken.None);
 
@@ -125,7 +130,7 @@ public class SupplierFanOutOrchestratorTests
     public async Task E6_AllConnectorsFail_ReturnsEmptyOffersSuccessfullyWithAllReportedFailed()
     {
         var orchestrator = new SupplierFanOutOrchestrator(
-            [new MockNdcConnector(), new MockLccConnector()], GenerousTimeout);
+            [new MockNdcConnector(), new MockLccConnector()], PoliciesFor(GenerousTimeout, "NDC", "LCC"));
 
         var result = await orchestrator.SearchAsync(RequestTo("FAIL-SEARCH-NDC-FAIL-SEARCH-LCC"), CancellationToken.None);
 
@@ -137,7 +142,7 @@ public class SupplierFanOutOrchestratorTests
     [Fact] // E7 — degenerate case
     public async Task E7_ZeroConnectorsRegistered_ReturnsEmptyResultWithoutThrowing()
     {
-        var orchestrator = new SupplierFanOutOrchestrator([], GenerousTimeout);
+        var orchestrator = new SupplierFanOutOrchestrator([], PoliciesFor(GenerousTimeout));
 
         var result = await orchestrator.SearchAsync(OrdinaryRequest, CancellationToken.None);
 
@@ -149,7 +154,8 @@ public class SupplierFanOutOrchestratorTests
     public async Task E8_EveryRegisteredConnector_AppearsExactlyOnceInTheReport()
     {
         var orchestrator = new SupplierFanOutOrchestrator(
-            [new MockNdcConnector(), new MockLccConnector(), new ThrowingConnector()], GenerousTimeout);
+            [new MockNdcConnector(), new MockLccConnector(), new ThrowingConnector()],
+            PoliciesFor(GenerousTimeout, "NDC", "LCC", "THROWS"));
 
         var result = await orchestrator.SearchAsync(OrdinaryRequest, CancellationToken.None);
 
@@ -161,7 +167,7 @@ public class SupplierFanOutOrchestratorTests
     public async Task E9_MergedOffers_HaveNoIdCollisionsAndADeterministicOrder()
     {
         var orchestrator = new SupplierFanOutOrchestrator(
-            [new MockNdcConnector(), new MockLccConnector()], GenerousTimeout);
+            [new MockNdcConnector(), new MockLccConnector()], PoliciesFor(GenerousTimeout, "NDC", "LCC"));
 
         var first = await orchestrator.SearchAsync(OrdinaryRequest, CancellationToken.None);
         var second = await orchestrator.SearchAsync(OrdinaryRequest, CancellationToken.None);
@@ -170,5 +176,15 @@ public class SupplierFanOutOrchestratorTests
         Assert.Equal(ids.Count, ids.Distinct().Count());
         Assert.Equal(ids, second.Offers.Select(o => o.OfferId));
         Assert.Equal(["NDC-001", "NDC-002", "LCC-001", "LCC-002"], ids); // registration order, then offer ID
+    }
+
+    [Fact] // a connector missing from the policies dictionary fails fast rather than silently misbehaving
+    public void ConnectorWithNoRegisteredPolicy_FailsFastAtConstructionRatherThanBeingSilentlyMisconfigured()
+    {
+        // LCC has no entry on purpose. Policies are consulted while building each connector's
+        // budget/breaker at construction time, so a missing one is caught before any search ever
+        // runs -- not discovered mid-fan-out.
+        Assert.Throws<ArgumentException>(() => new SupplierFanOutOrchestrator(
+            [new MockNdcConnector(), new MockLccConnector()], PoliciesFor(GenerousTimeout, "NDC")));
     }
 }

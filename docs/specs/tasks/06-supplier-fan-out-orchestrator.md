@@ -37,8 +37,10 @@ code here.
 
 ### Locked decisions
 
-- **Timeout is per connector, not for the whole fan-out.** One slow supplier must not consume the
-  budget of the others.
+- **Timeout is per connector, not for the whole fan-out** — and, since task 07's correction, genuinely
+  per-connector in *duration* too, not just independently triggered. Each connector's timeout comes
+  from its own `SupplierPolicy` (task 07), not one shared value. One slow supplier must not consume the
+  budget of the others, and a real supplier's contracted latency has no reason to match another's.
 - A timeout is reported as its own status, distinct from failure (E5).
 - **A connector reporting `Cancelled` (task 04) is a timeout only when the caller's own token has not
   fired.** Both arrive at the orchestrator as the same `SupplierOutcome.Cancelled`, since the connector

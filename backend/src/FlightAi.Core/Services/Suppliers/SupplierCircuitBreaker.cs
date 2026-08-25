@@ -2,54 +2,53 @@ namespace FlightAi.Core.Services.Suppliers;
 
 /// <summary>
 /// Stops calling a connector that has failed <c>failureThreshold</c> times in a row, for
-/// <c>cooldown</c>, rather than spending the per-connector timeout on it every single search. State is
-/// per connector name — one dead supplier never silences the others.
+/// <c>cooldown</c>, rather than spending its timeout on it every single search. One instance is scoped
+/// to exactly one connector — <see cref="Services.Suppliers.SupplierFanOutOrchestrator"/> constructs
+/// one per connector from its <see cref="Models.Suppliers.SupplierPolicy"/>, so one dead supplier can
+/// never affect another's state; there is no shared dictionary to isolate keys within.
 /// <para>
 /// Hand-rolled on purpose so its behaviour is readable in one small file; reach for Polly in a real
 /// service rather than reimplementing this (docs/01-architecture-overview.md). State is in-memory and
-/// per-process, with the same limitation noted on <see cref="LookToBookBudget"/>.
+/// per-process — a restart resets it, and two instances of the host don't share one.
 /// </para>
 /// </summary>
 public sealed class SupplierCircuitBreaker(int failureThreshold, TimeSpan cooldown, TimeProvider? timeProvider = null)
 {
-    private sealed class BreakerState
-    {
-        public int ConsecutiveFailures;
-        public DateTimeOffset? OpenedAt;
-    }
-
     private readonly TimeProvider _clock = timeProvider ?? TimeProvider.System;
     private readonly Lock _gate = new();
-    private readonly Dictionary<string, BreakerState> _states = new(StringComparer.Ordinal);
+    private int _consecutiveFailures;
+    private DateTimeOffset? _openedAt;
 
     /// <summary>
-    /// Whether this connector should be skipped. Closes the circuit as a side effect once the cooldown
-    /// has elapsed, so recovery needs no separate timer or background sweep.
+    /// Whether this connector should currently be skipped. Closes the circuit as a side effect once
+    /// the cooldown has elapsed, so recovery needs no separate timer or background sweep.
     /// </summary>
-    public bool IsOpen(string supplierName)
+    public bool IsOpen
     {
-        lock (_gate)
+        get
         {
-            if (!_states.TryGetValue(supplierName, out var state) || state.OpenedAt is null)
+            lock (_gate)
+            {
+                if (_openedAt is null)
+                    return false;
+
+                if (_clock.GetUtcNow() - _openedAt.Value < cooldown)
+                    return true;
+
+                _openedAt = null;
+                _consecutiveFailures = 0;
                 return false;
-
-            if (_clock.GetUtcNow() - state.OpenedAt.Value < cooldown)
-                return true;
-
-            state.OpenedAt = null;
-            state.ConsecutiveFailures = 0;
-            return false;
+            }
         }
     }
 
     /// <summary>Resets the failure run — the threshold counts <em>consecutive</em> failures.</summary>
-    public void RecordSuccess(string supplierName)
+    public void RecordSuccess()
     {
         lock (_gate)
         {
-            var state = StateFor(supplierName);
-            state.ConsecutiveFailures = 0;
-            state.OpenedAt = null;
+            _consecutiveFailures = 0;
+            _openedAt = null;
         }
     }
 
@@ -58,26 +57,14 @@ public sealed class SupplierCircuitBreaker(int failureThreshold, TimeSpan cooldo
     /// recorded here too: a supplier that always times out is as unusable as one that errors, even
     /// though the two are reported differently to the client.
     /// </summary>
-    public void RecordFailure(string supplierName)
+    public void RecordFailure()
     {
         lock (_gate)
         {
-            var state = StateFor(supplierName);
-            state.ConsecutiveFailures++;
+            _consecutiveFailures++;
 
-            if (state.ConsecutiveFailures >= failureThreshold)
-                state.OpenedAt = _clock.GetUtcNow();
+            if (_consecutiveFailures >= failureThreshold)
+                _openedAt = _clock.GetUtcNow();
         }
-    }
-
-    private BreakerState StateFor(string supplierName)
-    {
-        if (!_states.TryGetValue(supplierName, out var state))
-        {
-            state = new BreakerState();
-            _states[supplierName] = state;
-        }
-
-        return state;
     }
 }

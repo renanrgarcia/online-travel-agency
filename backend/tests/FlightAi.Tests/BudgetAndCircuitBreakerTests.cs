@@ -9,6 +9,11 @@ namespace FlightAi.Tests;
 /// One test per eval in docs/specs/tasks/07-look-to-book-budget-and-circuit-breaker.md. The
 /// time-dependent evals (E3, E6) advance a fake clock rather than sleeping, so they stay fast and
 /// don't flake under load.
+/// <para>
+/// Budget and breaker are configured per connector via <see cref="SupplierPolicy"/>, not shared across
+/// every connector -- several tests below (E4, E9, E11) deliberately give NDC and LCC *different*
+/// policies to demonstrate that directly, which a single shared instance could never have shown.
+/// </para>
 /// </summary>
 public class BudgetAndCircuitBreakerTests
 {
@@ -69,9 +74,15 @@ public class BudgetAndCircuitBreakerTests
     [Fact] // E4 — the breaker stops wasting time on a dead supplier
     public async Task E4_TwoConsecutiveFailures_OpensTheCircuitAndSkipsTheThirdCall()
     {
-        var breaker = new SupplierCircuitBreaker(failureThreshold: 2, cooldown: TimeSpan.FromMinutes(1), NewClock());
-        var orchestrator = new SupplierFanOutOrchestrator(
-            [new MockNdcConnector(), new MockLccConnector()], GenerousTimeout, budget: null, breaker);
+        var clock = NewClock();
+        var policies = new Dictionary<string, SupplierPolicy>
+        {
+            // NDC gets a breaker; LCC deliberately doesn't -- proving the two connectors' policies
+            // are genuinely independent, not just two names pointing at one shared instance.
+            ["NDC"] = new SupplierPolicy(GenerousTimeout, BreakerFailureThreshold: 2, BreakerCooldown: TimeSpan.FromMinutes(1)),
+            ["LCC"] = new SupplierPolicy(GenerousTimeout),
+        };
+        var orchestrator = new SupplierFanOutOrchestrator([new MockNdcConnector(), new MockLccConnector()], policies, clock);
         var failingRequest = RequestTo("LIS-FAIL-SEARCH-NDC");
 
         await orchestrator.SearchAsync(failingRequest, CancellationToken.None);
@@ -84,9 +95,13 @@ public class BudgetAndCircuitBreakerTests
     [Fact] // E5 — breaker state is per connector, never global
     public async Task E5_WithOneConnectorsCircuitOpen_TheOtherIsStillInvoked()
     {
-        var breaker = new SupplierCircuitBreaker(failureThreshold: 2, cooldown: TimeSpan.FromMinutes(1), NewClock());
-        var orchestrator = new SupplierFanOutOrchestrator(
-            [new MockNdcConnector(), new MockLccConnector()], GenerousTimeout, budget: null, breaker);
+        var clock = NewClock();
+        var policies = new Dictionary<string, SupplierPolicy>
+        {
+            ["NDC"] = new SupplierPolicy(GenerousTimeout, BreakerFailureThreshold: 2, BreakerCooldown: TimeSpan.FromMinutes(1)),
+            ["LCC"] = new SupplierPolicy(GenerousTimeout),
+        };
+        var orchestrator = new SupplierFanOutOrchestrator([new MockNdcConnector(), new MockLccConnector()], policies, clock);
         var failingRequest = RequestTo("LIS-FAIL-SEARCH-NDC");
 
         await orchestrator.SearchAsync(failingRequest, CancellationToken.None);
@@ -101,9 +116,12 @@ public class BudgetAndCircuitBreakerTests
     public async Task E6_AfterTheCooldownElapses_TheConnectorIsInvokedAgain()
     {
         var clock = NewClock();
-        var breaker = new SupplierCircuitBreaker(failureThreshold: 2, cooldown: TimeSpan.FromMinutes(1), clock);
-        var orchestrator = new SupplierFanOutOrchestrator(
-            [new MockNdcConnector(), new MockLccConnector()], GenerousTimeout, budget: null, breaker);
+        var policies = new Dictionary<string, SupplierPolicy>
+        {
+            ["NDC"] = new SupplierPolicy(GenerousTimeout, BreakerFailureThreshold: 2, BreakerCooldown: TimeSpan.FromMinutes(1)),
+            ["LCC"] = new SupplierPolicy(GenerousTimeout),
+        };
+        var orchestrator = new SupplierFanOutOrchestrator([new MockNdcConnector(), new MockLccConnector()], policies, clock);
         var failingRequest = RequestTo("LIS-FAIL-SEARCH-NDC");
 
         await orchestrator.SearchAsync(failingRequest, CancellationToken.None);
@@ -122,19 +140,23 @@ public class BudgetAndCircuitBreakerTests
     {
         var breaker = new SupplierCircuitBreaker(failureThreshold: 2, cooldown: TimeSpan.FromMinutes(1), NewClock());
 
-        breaker.RecordFailure("NDC");
-        breaker.RecordSuccess("NDC");
-        breaker.RecordFailure("NDC");
+        breaker.RecordFailure();
+        breaker.RecordSuccess();
+        breaker.RecordFailure();
 
-        Assert.False(breaker.IsOpen("NDC"));
+        Assert.False(breaker.IsOpen);
     }
 
     [Fact] // E8 — "not called" is different information from "called and failed"
     public async Task E8_CircuitOpenStatus_IsDistinctFromFailedAndFromTimedOut()
     {
-        var breaker = new SupplierCircuitBreaker(failureThreshold: 1, cooldown: TimeSpan.FromMinutes(1), NewClock());
-        var orchestrator = new SupplierFanOutOrchestrator(
-            [new MockNdcConnector(), new MockLccConnector()], GenerousTimeout, budget: null, breaker);
+        var clock = NewClock();
+        var policies = new Dictionary<string, SupplierPolicy>
+        {
+            ["NDC"] = new SupplierPolicy(GenerousTimeout, BreakerFailureThreshold: 1, BreakerCooldown: TimeSpan.FromMinutes(1)),
+            ["LCC"] = new SupplierPolicy(GenerousTimeout),
+        };
+        var orchestrator = new SupplierFanOutOrchestrator([new MockNdcConnector(), new MockLccConnector()], policies, clock);
 
         await orchestrator.SearchAsync(RequestTo("LIS-FAIL-SEARCH-NDC"), CancellationToken.None);
         var second = await orchestrator.SearchAsync(RequestTo("LIS-FAIL-SEARCH-LCC"), CancellationToken.None);
@@ -151,10 +173,17 @@ public class BudgetAndCircuitBreakerTests
     [Fact] // E9 — a supplier that always times out is as dead as one that errors
     public async Task E9_TimeoutsCountTowardTheBreakersFailureTally()
     {
-        var breaker = new SupplierCircuitBreaker(failureThreshold: 2, cooldown: TimeSpan.FromMinutes(1), NewClock());
+        var clock = NewClock();
+        // NDC gets a strict timeout paired with its breaker; LCC gets a generous timeout and no
+        // breaker at all -- exactly the kind of heterogeneous, per-supplier tuning a shared
+        // timeout/breaker could never express.
+        var policies = new Dictionary<string, SupplierPolicy>
+        {
+            ["NDC"] = new SupplierPolicy(TimeSpan.FromMilliseconds(150), BreakerFailureThreshold: 2, BreakerCooldown: TimeSpan.FromMinutes(1)),
+            ["LCC"] = new SupplierPolicy(GenerousTimeout),
+        };
         var orchestrator = new SupplierFanOutOrchestrator(
-            [new MockNdcConnector(simulatedDelay: TimeSpan.FromSeconds(10)), new MockLccConnector()],
-            perConnectorTimeout: TimeSpan.FromMilliseconds(150), budget: null, breaker);
+            [new MockNdcConnector(simulatedDelay: TimeSpan.FromSeconds(10)), new MockLccConnector()], policies, clock);
 
         await orchestrator.SearchAsync(OrdinaryRequest, CancellationToken.None);
         await orchestrator.SearchAsync(OrdinaryRequest, CancellationToken.None);
@@ -164,32 +193,41 @@ public class BudgetAndCircuitBreakerTests
     }
 
     [Fact] // E10 — partial results still beat none
-    public async Task E10_BudgetExhaustedMidFanOut_SkipsTheRemainingConnectorButKeepsTheRest()
+    public async Task E10_BudgetExhaustedForOneConnector_SkipsOnlyThatConnectorOnASubsequentSearch()
     {
-        var budget = new LookToBookBudget(ceiling: 1, window: TimeSpan.FromMinutes(1), NewClock());
-        var orchestrator = new SupplierFanOutOrchestrator(
-            [new MockNdcConnector(), new MockLccConnector()], GenerousTimeout, budget, breaker: null);
+        // Per-connector budgets don't compete for one shared pool, so "exhausted" now means "this
+        // connector's own ceiling, reached across repeated searches" rather than "two connectors
+        // raced for the same slot in a single search" -- the latter scenario no longer exists by
+        // construction, which is the whole point of the fix.
+        var clock = NewClock();
+        var policies = new Dictionary<string, SupplierPolicy>
+        {
+            ["NDC"] = new SupplierPolicy(GenerousTimeout, BudgetCeiling: 1, BudgetWindow: TimeSpan.FromMinutes(1)),
+            ["LCC"] = new SupplierPolicy(GenerousTimeout),
+        };
+        var orchestrator = new SupplierFanOutOrchestrator([new MockNdcConnector(), new MockLccConnector()], policies, clock);
 
-        var result = await orchestrator.SearchAsync(OrdinaryRequest, CancellationToken.None);
+        await orchestrator.SearchAsync(OrdinaryRequest, CancellationToken.None); // consumes NDC's only slot
+        var second = await orchestrator.SearchAsync(OrdinaryRequest, CancellationToken.None);
 
-        var statuses = result.Reports.Select(r => r.Status).ToList();
-        Assert.Contains(SupplierStatus.Succeeded, statuses);
-        Assert.Contains(SupplierStatus.SkippedBudgetExhausted, statuses);
-        Assert.Equal(2, result.Offers.Count); // exactly the one connector that got budget
+        Assert.Equal(SupplierStatus.SkippedBudgetExhausted, ReportFor(second, "NDC").Status);
+        Assert.Equal(SupplierStatus.Succeeded, ReportFor(second, "LCC").Status);
+        Assert.Equal(2, second.Offers.Count); // exactly LCC's offers
     }
 
     [Fact] // E11 — integration check across tasks 04-07
-    public async Task E11_HealthyConnectorPlusFlappingOnePlusTightBudget_StillReturnsUsableOffers()
+    public async Task E11_HealthyConnectorPlusFlappingOnePlusPerConnectorLimits_StillReturnsUsableOffers()
     {
         var clock = NewClock();
-        // Ceiling 5 is genuinely tight: the two setup searches consume 4 (both connectors each time),
-        // leaving exactly one call for the third search -- which the open circuit hands to LCC.
-        var budget = new LookToBookBudget(ceiling: 5, window: TimeSpan.FromMinutes(1), clock);
-        var breaker = new SupplierCircuitBreaker(failureThreshold: 2, cooldown: TimeSpan.FromMinutes(1), clock);
-        var orchestrator = new SupplierFanOutOrchestrator(
-            [new MockNdcConnector(), new MockLccConnector()], GenerousTimeout, budget, breaker);
+        var policies = new Dictionary<string, SupplierPolicy>
+        {
+            ["NDC"] = new SupplierPolicy(GenerousTimeout, BudgetCeiling: 10, BudgetWindow: TimeSpan.FromMinutes(1),
+                BreakerFailureThreshold: 2, BreakerCooldown: TimeSpan.FromMinutes(1)),
+            ["LCC"] = new SupplierPolicy(GenerousTimeout, BudgetCeiling: 10, BudgetWindow: TimeSpan.FromMinutes(1)),
+        };
+        var orchestrator = new SupplierFanOutOrchestrator([new MockNdcConnector(), new MockLccConnector()], policies, clock);
 
-        // NDC flaps: fails twice, opening its circuit. LCC stays healthy throughout.
+        // NDC flaps: fails twice, opening its circuit. LCC stays healthy throughout, under its own budget.
         await orchestrator.SearchAsync(RequestTo("LIS-FAIL-SEARCH-NDC"), CancellationToken.None);
         await orchestrator.SearchAsync(RequestTo("LIS-FAIL-SEARCH-NDC"), CancellationToken.None);
         var result = await orchestrator.SearchAsync(OrdinaryRequest, CancellationToken.None);
