@@ -24,8 +24,6 @@ src/
                                  OfflineChatClient (offline IChatClient stand-in — swap for a real
                                  model, see 05-agents-and-intent.md). Same Models/Services convention
                                  as FlightAi.Core.
-  FlightAi.Demo/                Console app wiring the deterministic core into one run (tasks 01-07).
-    DemoPipeline.cs              The actual pipeline logic, kept testable; Program.cs is a thin argv/stdout wrapper.
   FlightAi.Api/                 Minimal API. GET /api/search/stream — Server-Sent Events, one per pipeline stage.
   FlightAi.Booking.Functions/   Azure Durable Functions saga for the booking flow.
 tests/
@@ -39,18 +37,18 @@ produces two things: a typed object (intent parsing) or prose built from opaque 
 Neither agent ever sees a raw price, and neither agent's output can reach a user without passing back
 through deterministic code first.
 
-## The three ways to run it
+## The two ways to run it
 
-1. **Console demo** (`FlightAi.Demo`) — the whole pipeline in one process: intent parsing, supplier
-   fan-out with simulated failures, ranking, explanation. `dotnet run --project src/FlightAi.Demo`.
-2. **API + React frontend** (`FlightAi.Api` + `web/`) — the same pipeline exposed as a live HTTP
+1. **API + React frontend** (`FlightAi.Api` + `web/`) — the whole pipeline exposed as a live HTTP
    endpoint that streams results as Server-Sent Events, consumed by a real browser UI. See
-   `06-api-sse-contract.md`.
-3. **Booking saga** (`FlightAi.Booking.Functions`) — a separate Azure Durable Functions app handling
+   `06-api-sse-contract.md`. A console demo project existed briefly during development to verify the
+   deterministic core end to end by hand before the AI layer and the API existed; it was removed once
+   the API took over that role — see `docs/specs/tasks/README.md`.
+2. **Booking saga** (`FlightAi.Booking.Functions`) — a separate Azure Durable Functions app handling
    the booking flow (payment, order, ticket, confirmation) as a checkpointed, compensable state
    machine. See `07-booking-saga.md`.
 
-All three share `FlightAi.Core`. Only the first two touch `FlightAi.Agents`.
+Both share `FlightAi.Core`. Only the API touches `FlightAi.Agents`.
 
 ## What's deliberately not here
 

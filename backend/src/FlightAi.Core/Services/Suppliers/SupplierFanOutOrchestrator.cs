@@ -9,13 +9,14 @@ namespace FlightAi.Core.Services.Suppliers;
 /// to partial results instead of failing the whole search. See
 /// docs/specs/tasks/06-supplier-fan-out-orchestrator.md.
 /// <para>
-/// Every connector's timeout, and optionally its own look-to-book budget and circuit breaker, come
-/// from <paramref name="policies"/> — keyed by <see cref="ISupplierConnector.Name"/>, one
-/// <see cref="SupplierPolicy"/> per connector. Real suppliers carry genuinely different commercial
-/// terms; earlier versions of this orchestrator shared one timeout/budget/breaker across every
-/// connector, which both under-modelled that reality and contradicted
-/// docs/03-suppliers-and-budget.md's own "per-session, per-supplier" description of the budget. See
-/// docs/specs/tasks/07-look-to-book-budget-and-circuit-breaker.md.
+/// Every connector's timeout, look-to-book budget, and circuit breaker come from
+/// <paramref name="policies"/> — keyed by <see cref="ISupplierConnector.Name"/>, one
+/// <see cref="SupplierPolicy"/> per connector, all fields required. Real suppliers carry genuinely
+/// different commercial terms; earlier versions of this orchestrator shared one
+/// timeout/budget/breaker across every connector, and a later version made budget/breaker optional
+/// per connector — both under-modelled the reality that a missing budget is a real financial risk,
+/// per docs/03-suppliers-and-budget.md. Every connector gets a real, non-optional budget and breaker
+/// now; see docs/specs/tasks/07-look-to-book-budget-and-circuit-breaker.md.
 /// </para>
 /// </summary>
 public sealed class SupplierFanOutOrchestrator
@@ -36,12 +37,8 @@ public sealed class SupplierFanOutOrchestrator
         foreach (var connector in connectors)
         {
             var policy = PolicyFor(connector);
-
-            if (policy is { BudgetCeiling: { } ceiling, BudgetWindow: { } window })
-                _budgets[connector.Name] = new LookToBookBudget(ceiling, window, timeProvider);
-
-            if (policy is { BreakerFailureThreshold: { } threshold, BreakerCooldown: { } cooldown })
-                _breakers[connector.Name] = new SupplierCircuitBreaker(threshold, cooldown, timeProvider);
+            _budgets[connector.Name] = new LookToBookBudget(policy.BudgetCeiling, policy.BudgetWindow, timeProvider);
+            _breakers[connector.Name] = new SupplierCircuitBreaker(policy.BreakerFailureThreshold, policy.BreakerCooldown, timeProvider);
         }
     }
 
@@ -69,15 +66,15 @@ public sealed class SupplierFanOutOrchestrator
         ISupplierConnector connector, SearchRequest request, CancellationToken cancellationToken)
     {
         var policy = PolicyFor(connector);
-        var breaker = _breakers.GetValueOrDefault(connector.Name);
-        var budget = _budgets.GetValueOrDefault(connector.Name);
+        var breaker = _breakers[connector.Name];
+        var budget = _budgets[connector.Name];
 
-        if (breaker is not null && breaker.IsOpen)
+        if (breaker.IsOpen)
             return Skipped(connector, SupplierStatus.SkippedCircuitOpen, "circuit open");
 
         // Checked after the breaker so a supplier that was never going to be called doesn't spend
         // budget that a healthy one could have used.
-        if (budget is not null && !budget.TryConsume())
+        if (!budget.TryConsume())
             return Skipped(connector, SupplierStatus.SkippedBudgetExhausted, "look-to-book budget exhausted");
 
         using var timeoutSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -92,7 +89,7 @@ public sealed class SupplierFanOutOrchestrator
         {
             // Task 04's contract says connectors return failures rather than throwing. This orchestrator
             // doesn't get to assume every future connector honours that.
-            breaker?.RecordFailure();
+            breaker.RecordFailure();
             return Skipped(connector, SupplierStatus.Failed, ex.Message);
         }
 
@@ -101,22 +98,22 @@ public sealed class SupplierFanOutOrchestrator
 
     private static (IReadOnlyList<Offer> Offers, SupplierReport Report) Translate(
         ISupplierConnector connector, SupplierSearchResult result, CancellationToken cancellationToken,
-        SupplierCircuitBreaker? breaker, TimeSpan timeout)
+        SupplierCircuitBreaker breaker, TimeSpan timeout)
     {
         switch (result.Outcome)
         {
             case SupplierOutcome.Success:
-                breaker?.RecordSuccess();
+                breaker.RecordSuccess();
                 return (result.Offers, new SupplierReport(connector.Name, SupplierStatus.Succeeded, result.Offers.Count, null));
 
             case SupplierOutcome.PartialSuccess:
                 // A supplier that answered at all is alive, so this resets the breaker's failure run
                 // even though something went wrong partway.
-                breaker?.RecordSuccess();
+                breaker.RecordSuccess();
                 return (result.Offers, new SupplierReport(connector.Name, SupplierStatus.PartialSuccess, result.Offers.Count, result.FailureReason));
 
             case SupplierOutcome.Failure:
-                breaker?.RecordFailure();
+                breaker.RecordFailure();
                 return Skipped(connector, SupplierStatus.Failed, result.FailureReason);
 
             case SupplierOutcome.Cancelled:
@@ -125,7 +122,7 @@ public sealed class SupplierFanOutOrchestrator
                 if (cancellationToken.IsCancellationRequested)
                     return Skipped(connector, SupplierStatus.Cancelled, null);
 
-                breaker?.RecordFailure();
+                breaker.RecordFailure();
                 return Skipped(connector, SupplierStatus.TimedOut, $"exceeded {timeout.TotalMilliseconds:F0}ms");
 
             default:

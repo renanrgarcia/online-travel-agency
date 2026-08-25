@@ -79,8 +79,8 @@ public class BudgetAndCircuitBreakerTests
         {
             // NDC gets a breaker; LCC deliberately doesn't -- proving the two connectors' policies
             // are genuinely independent, not just two names pointing at one shared instance.
-            ["NDC"] = new SupplierPolicy(GenerousTimeout, BreakerFailureThreshold: 2, BreakerCooldown: TimeSpan.FromMinutes(1)),
-            ["LCC"] = new SupplierPolicy(GenerousTimeout),
+            ["NDC"] = SupplierPolicy.WithNoLimits(GenerousTimeout) with { BreakerFailureThreshold = 2, BreakerCooldown = TimeSpan.FromMinutes(1) },
+            ["LCC"] = SupplierPolicy.WithNoLimits(GenerousTimeout),
         };
         var orchestrator = new SupplierFanOutOrchestrator([new MockNdcConnector(), new MockLccConnector()], policies, clock);
         var failingRequest = RequestTo("LIS-FAIL-SEARCH-NDC");
@@ -98,8 +98,8 @@ public class BudgetAndCircuitBreakerTests
         var clock = NewClock();
         var policies = new Dictionary<string, SupplierPolicy>
         {
-            ["NDC"] = new SupplierPolicy(GenerousTimeout, BreakerFailureThreshold: 2, BreakerCooldown: TimeSpan.FromMinutes(1)),
-            ["LCC"] = new SupplierPolicy(GenerousTimeout),
+            ["NDC"] = SupplierPolicy.WithNoLimits(GenerousTimeout) with { BreakerFailureThreshold = 2, BreakerCooldown = TimeSpan.FromMinutes(1) },
+            ["LCC"] = SupplierPolicy.WithNoLimits(GenerousTimeout),
         };
         var orchestrator = new SupplierFanOutOrchestrator([new MockNdcConnector(), new MockLccConnector()], policies, clock);
         var failingRequest = RequestTo("LIS-FAIL-SEARCH-NDC");
@@ -118,8 +118,8 @@ public class BudgetAndCircuitBreakerTests
         var clock = NewClock();
         var policies = new Dictionary<string, SupplierPolicy>
         {
-            ["NDC"] = new SupplierPolicy(GenerousTimeout, BreakerFailureThreshold: 2, BreakerCooldown: TimeSpan.FromMinutes(1)),
-            ["LCC"] = new SupplierPolicy(GenerousTimeout),
+            ["NDC"] = SupplierPolicy.WithNoLimits(GenerousTimeout) with { BreakerFailureThreshold = 2, BreakerCooldown = TimeSpan.FromMinutes(1) },
+            ["LCC"] = SupplierPolicy.WithNoLimits(GenerousTimeout),
         };
         var orchestrator = new SupplierFanOutOrchestrator([new MockNdcConnector(), new MockLccConnector()], policies, clock);
         var failingRequest = RequestTo("LIS-FAIL-SEARCH-NDC");
@@ -153,8 +153,8 @@ public class BudgetAndCircuitBreakerTests
         var clock = NewClock();
         var policies = new Dictionary<string, SupplierPolicy>
         {
-            ["NDC"] = new SupplierPolicy(GenerousTimeout, BreakerFailureThreshold: 1, BreakerCooldown: TimeSpan.FromMinutes(1)),
-            ["LCC"] = new SupplierPolicy(GenerousTimeout),
+            ["NDC"] = SupplierPolicy.WithNoLimits(GenerousTimeout) with { BreakerFailureThreshold = 1, BreakerCooldown = TimeSpan.FromMinutes(1) },
+            ["LCC"] = SupplierPolicy.WithNoLimits(GenerousTimeout),
         };
         var orchestrator = new SupplierFanOutOrchestrator([new MockNdcConnector(), new MockLccConnector()], policies, clock);
 
@@ -179,8 +179,8 @@ public class BudgetAndCircuitBreakerTests
         // timeout/breaker could never express.
         var policies = new Dictionary<string, SupplierPolicy>
         {
-            ["NDC"] = new SupplierPolicy(TimeSpan.FromMilliseconds(150), BreakerFailureThreshold: 2, BreakerCooldown: TimeSpan.FromMinutes(1)),
-            ["LCC"] = new SupplierPolicy(GenerousTimeout),
+            ["NDC"] = SupplierPolicy.WithNoLimits(TimeSpan.FromMilliseconds(150)) with { BreakerFailureThreshold = 2, BreakerCooldown = TimeSpan.FromMinutes(1) },
+            ["LCC"] = SupplierPolicy.WithNoLimits(GenerousTimeout),
         };
         var orchestrator = new SupplierFanOutOrchestrator(
             [new MockNdcConnector(simulatedDelay: TimeSpan.FromSeconds(10)), new MockLccConnector()], policies, clock);
@@ -202,8 +202,8 @@ public class BudgetAndCircuitBreakerTests
         var clock = NewClock();
         var policies = new Dictionary<string, SupplierPolicy>
         {
-            ["NDC"] = new SupplierPolicy(GenerousTimeout, BudgetCeiling: 1, BudgetWindow: TimeSpan.FromMinutes(1)),
-            ["LCC"] = new SupplierPolicy(GenerousTimeout),
+            ["NDC"] = SupplierPolicy.WithNoLimits(GenerousTimeout) with { BudgetCeiling = 1, BudgetWindow = TimeSpan.FromMinutes(1) },
+            ["LCC"] = SupplierPolicy.WithNoLimits(GenerousTimeout),
         };
         var orchestrator = new SupplierFanOutOrchestrator([new MockNdcConnector(), new MockLccConnector()], policies, clock);
 
@@ -221,9 +221,12 @@ public class BudgetAndCircuitBreakerTests
         var clock = NewClock();
         var policies = new Dictionary<string, SupplierPolicy>
         {
-            ["NDC"] = new SupplierPolicy(GenerousTimeout, BudgetCeiling: 10, BudgetWindow: TimeSpan.FromMinutes(1),
-                BreakerFailureThreshold: 2, BreakerCooldown: TimeSpan.FromMinutes(1)),
-            ["LCC"] = new SupplierPolicy(GenerousTimeout, BudgetCeiling: 10, BudgetWindow: TimeSpan.FromMinutes(1)),
+            ["NDC"] = SupplierPolicy.WithNoLimits(GenerousTimeout) with
+            {
+                BudgetCeiling = 10, BudgetWindow = TimeSpan.FromMinutes(1),
+                BreakerFailureThreshold = 2, BreakerCooldown = TimeSpan.FromMinutes(1),
+            },
+            ["LCC"] = SupplierPolicy.WithNoLimits(GenerousTimeout) with { BudgetCeiling = 10, BudgetWindow = TimeSpan.FromMinutes(1) },
         };
         var orchestrator = new SupplierFanOutOrchestrator([new MockNdcConnector(), new MockLccConnector()], policies, clock);
 

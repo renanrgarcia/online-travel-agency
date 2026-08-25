@@ -50,8 +50,8 @@ code here.
 - **A connector that throws despite task 04's "failures are returned, not thrown" is caught and
   reported as failed.** The contract says connectors shouldn't throw; the orchestrator does not get to
   assume every future connector honours it, and E2's "no exception escapes" is unconditional.
-- Merge order is by connector registration order, then by offer ID — deterministic, so task 08's output
-  is reproducible.
+- Merge order is by connector registration order, then by offer ID — deterministic, so ranking (task 03)
+  and everything downstream of it receives a reproducible input.
 
 ## Done when
 

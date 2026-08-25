@@ -35,12 +35,7 @@ recurs throughout the system.
 `SupplierCircuitBreaker`. First taste of async/parallel fan-out and failure handling, still with no real
 external dependency since the connectors are mocked.
 
-## 4. Console demo — first vertical slice
-
-Wire steps 1–3 together in a console app. This is the first end-to-end run of the pipeline, and it
-surfaces integration mistakes before web or AI complexity sits on top of them.
-
-## 5. AI layer, offline first
+## 4. AI layer, offline first
 
 **Source:** `docs/05-agents-and-intent.md`
 
@@ -48,13 +43,13 @@ surfaces integration mistakes before web or AI complexity sits on top of them.
 validates the agent plumbing against the price-integrity boundary from step 1 before any real model is
 involved.
 
-## 6. API + SSE
+## 5. API + SSE
 
 **Source:** `docs/06-api-sse-contract.md`
 
 First real ASP.NET Core surface, streaming the pipeline's stages to a client via Server-Sent Events.
 
-## 7. Booking saga
+## 6. Booking saga
 
 **Source:** `docs/07-booking-saga.md`
 
@@ -62,7 +57,7 @@ The most infrastructure-heavy step — Azurite, Durable Functions, Azure Functio
 worth saving for when the rest of the system is stable and you're not debugging two unfamiliar things at
 the same time.
 
-## 8. Swap in a real model
+## 7. Swap in a real model
 
 **Source:** `docs/05-agents-and-intent.md`, `docs/08-package-versions.md`
 
@@ -71,9 +66,9 @@ Gemini's free tier or the Microsoft Foundry pattern, once the offline path works
 ---
 
 Not a numbered step, but worth doing alongside the roadmap: the frontend (React) can slot in any time
-after step 6, in parallel, if you want a visual target sooner than the roadmap otherwise gives you.
-`docs/09-lessons-learned.md` is worth (re-)reading right before step 6 and step 7 specifically — three of
+after step 5, in parallel, if you want a visual target sooner than the roadmap otherwise gives you.
+`docs/09-lessons-learned.md` is worth (re-)reading right before step 5 and step 6 specifically — three of
 the four documented bugs live there, and they're cheaper to avoid than to rediscover.
 
 Deployment is covered separately in [`deployment.md`](deployment.md) — Azure end to end on free tiers.
-Nothing is deployable until step 6, so read it then rather than now.
+Nothing is deployable until step 5, so read it then rather than now.

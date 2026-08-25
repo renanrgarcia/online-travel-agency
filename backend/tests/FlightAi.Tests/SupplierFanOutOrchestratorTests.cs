@@ -21,7 +21,7 @@ public class SupplierFanOutOrchestratorTests
     private static readonly TimeSpan GenerousTimeout = TimeSpan.FromSeconds(5);
 
     private static Dictionary<string, SupplierPolicy> PoliciesFor(TimeSpan timeout, params string[] connectorNames) =>
-        connectorNames.ToDictionary(name => name, _ => new SupplierPolicy(timeout));
+        connectorNames.ToDictionary(name => name, _ => SupplierPolicy.WithNoLimits(timeout));
 
     /// <summary>Deliberately violates task 04's "failures are returned, not thrown" contract, so E2's
     /// "no exception escapes" is tested against a genuinely misbehaving connector.</summary>

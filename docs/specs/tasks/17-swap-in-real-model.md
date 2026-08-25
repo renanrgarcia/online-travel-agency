@@ -1,6 +1,6 @@
 # 17 — Swap in a real model
 
-**Roadmap step:** 8. Real model
+**Roadmap step:** 7. Real model
 **Source doc:** `docs/05-agents-and-intent.md`, `docs/08-package-versions.md`, `docs/specs/deployment.md`
 **Depends on:** 09–11, 13
 
@@ -22,7 +22,7 @@ genuinely unpredictable text.
 | ID | Setup | Expected | Why it matters |
 |---|---|---|---|
 | E1 | `git diff` on `IntentAgentFactory` and `ExplanationAgentFactory` after the swap | No changes | If either needed editing, task 09's seam leaked and is worth fixing before continuing |
-| E2 | Console demo with the real model | Real prose, all prices resolved, task 02's guard passes | The boundary holds against real model output, not just a fixture's |
+| E2 | `IntentAgentFactory` and `ExplanationAgentFactory` invoked directly against the real `IChatClient`, outside any HTTP layer | Real prose, all prices resolved, task 02's guard passes | The boundary holds against real model output, not just a fixture's — checked at the cheapest possible point, before task 13's full HTTP pipeline is even involved |
 | E3 | Run the same search 20 times | Every run either renders cleanly or is caught by the guard; **no run leaks a raw number to output** | The real test of tasks 01–02. A model *will* eventually type a digit; the system must stay correct when it does |
 | E4 | Any run where the guard fires | Logged with the offending text | You need to *see* the failure mode you designed for actually occur |
 | E5 | Intent parsing, Portuguese input | Correct `SearchRequest` with `Language = "pt-BR"` (task 10 E7/E8 against a real model) | The target market |

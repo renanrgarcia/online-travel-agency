@@ -30,16 +30,21 @@ change it in the task note first, then let the failing test drive the code chang
 | [05](05-mock-supplier-connectors.md) | Mock supplier connectors | 3. Suppliers |
 | [06](06-supplier-fan-out-orchestrator.md) | Supplier fan-out orchestrator | 3. Suppliers |
 | [07](07-look-to-book-budget-and-circuit-breaker.md) | Look-to-book budget and circuit breaker | 3. Suppliers |
-| [08](08-console-demo-pipeline.md) | Console demo pipeline | 4. Console demo |
-| [09](09-offline-chat-client.md) | Offline chat client | 5. AI layer, offline |
-| [10](10-intent-agent.md) | Intent agent | 5. AI layer, offline |
-| [11](11-explanation-agent.md) | Explanation agent | 5. AI layer, offline |
-| [12](12-search-api-sse-skeleton.md) | Search API SSE skeleton | 6. API + SSE |
-| [13](13-search-api-sse-full-pipeline.md) | Search API, full pipeline | 6. API + SSE |
-| [14](14-booking-functions-project-setup.md) | Booking Functions project setup | 7. Booking saga |
-| [15](15-booking-saga-orchestrator.md) | Booking saga orchestrator | 7. Booking saga |
-| [16](16-booking-saga-compensation-and-idempotency.md) | Compensation and idempotency | 7. Booking saga |
-| [17](17-swap-in-real-model.md) | Swap in a real model | 8. Real model |
+| [09](09-offline-chat-client.md) | Offline chat client | 4. AI layer, offline |
+| [10](10-intent-agent.md) | Intent agent | 4. AI layer, offline |
+| [11](11-explanation-agent.md) | Explanation agent | 4. AI layer, offline |
+| [12](12-search-api-sse-skeleton.md) | Search API SSE skeleton | 5. API + SSE |
+| [13](13-search-api-sse-full-pipeline.md) | Search API, full pipeline | 5. API + SSE |
+| [14](14-booking-functions-project-setup.md) | Booking Functions project setup | 6. Booking saga |
+| [15](15-booking-saga-orchestrator.md) | Booking saga orchestrator | 6. Booking saga |
+| [16](16-booking-saga-compensation-and-idempotency.md) | Compensation and idempotency | 6. Booking saga |
+| [17](17-swap-in-real-model.md) | Swap in a real model | 7. Real model |
+
+Task `08` (console demo pipeline) was built, used for exploration, and then deliberately removed once
+its job was done — verifying the pipeline by hand (and by a Tech Lead or client) moves to task 13's real
+API from here on. The gap in numbering is intentional; renumbering 09–17 down to close it wasn't worth
+the churn for a retired step. See `git log -- docs/specs/tasks/08-console-demo-pipeline.md` for its
+history if you want to see what it looked like.
 
 Work through them in order — each one assumes the tasks before it are done. If a task feels too big to
 finish in one sitting, that's a signal to stop and split it yourself rather than push through; these

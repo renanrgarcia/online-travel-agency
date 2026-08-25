@@ -20,6 +20,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\FlightAi.Core\FlightAi.Core.csproj" />
+    <ProjectReference Include="..\..\src\FlightAi.Agents\FlightAi.Agents.csproj" />
   </ItemGroup>
 
 </Project>

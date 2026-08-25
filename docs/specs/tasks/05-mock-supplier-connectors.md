@@ -32,7 +32,7 @@ in task 06, with no supplier credentials and fully reproducible behaviour.
 | E4 | Request carrying `FAIL-SEARCH` | The *other* connector still succeeds | Failure is per-connector, never global |
 | E5 | Connector configured with a 5s delay, called with a token cancelled at 100ms | Returns promptly as cancelled, not after 5s | Cancellation is honoured, not merely accepted — task 06's timeout depends on this |
 | E6 | Every offer returned | Has a unique, stable ID and every field task 03's scorer reads | Feeds tasks 06–08 without surprises |
-| E7 | Offer prices | Vary enough that ranking order differs by weight (as in task 03's fixtures) | A demo where every offer scores alike proves nothing in task 08 |
+| E7 | Offer prices | Vary enough that ranking order differs by weight (as in task 03's fixtures) | Fixtures where every offer scores alike would make later ranking/integration testing prove nothing |
 
 ### Locked decisions
 

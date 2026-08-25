@@ -14,7 +14,6 @@ backend/            .NET 10 — the solution lives here, not at the repo root.
   src/
     FlightAi.Core/          Domain + deterministic logic. No AI dependency at all.
     FlightAi.Agents/        The AI layer (the only project that touches a model).
-    FlightAi.Demo/          Console app wiring the pipeline into one run.
     FlightAi.Api/           Minimal API — GET /api/search/stream (Server-Sent Events).
     FlightAi.Booking.Functions/  Azure Durable Functions booking saga.
   tests/
