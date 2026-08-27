@@ -16,6 +16,15 @@ public sealed class OfflineChatClient : IChatClient
 {
     private readonly List<(string PromptContains, string ResponseText)> _rules = [];
 
+    /// <summary>The last call's user message text, captured for tests that need to verify what a
+    /// factory actually sent — e.g. task 11 E2, confirming no raw offer value reached the prompt.</summary>
+    public string? LastUserPrompt { get; private set; }
+
+    /// <summary>The last call's <see cref="ChatOptions.Instructions"/> — <c>AsAIAgent</c>'s
+    /// <c>instructions:</c> parameter arrives here, not as a message in <c>messages</c> (verified
+    /// empirically; it does not appear as a <see cref="ChatRole.System"/> message at all).</summary>
+    public string? LastInstructions { get; private set; }
+
     /// <summary>Registers the response to return whenever the last user message contains
     /// <paramref name="promptContains"/> (ordinal, case-insensitive). Later registrations take
     /// priority when more than one would match, so a specific case can override a broader one.</summary>
@@ -31,6 +40,8 @@ public sealed class OfflineChatClient : IChatClient
         cancellationToken.ThrowIfCancellationRequested();
 
         var prompt = messages.LastOrDefault(m => m.Role == ChatRole.User)?.Text ?? "";
+        LastUserPrompt = prompt;
+        LastInstructions = options?.Instructions;
         var (PromptContains, ResponseText) = _rules.LastOrDefault(r => prompt.Contains(r.PromptContains, StringComparison.OrdinalIgnoreCase));
 
         if (ResponseText is null)
