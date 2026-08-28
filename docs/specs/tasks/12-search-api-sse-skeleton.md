@@ -2,7 +2,17 @@
 
 **Roadmap step:** 6. API + SSE
 **Source doc:** `docs/06-api-sse-contract.md`
-**Depends on:** 08
+**Depends on:** nothing new
+
+## Superseded by task 13
+
+`SkeletonEventSource.cs` and its tests were removed once task 13 wired the real pipeline into
+`GET /api/search/stream` — the same route can only do one thing, so the skeleton's hard-coded events and
+the real ones can't coexist. This note, and the eval table below, stay as a record of a real, deliberate
+step: verifying SSE transport mechanics (headers, framing, streaming, cancellation, UTF-8) in isolation
+*before* wiring anything real into it caught nothing wrong here, but the discipline is what task 13
+builds on with confidence. Unlike task 08 (deleted outright, at the owner's request, once the frontend
+made it redundant), this task's code is retired by replacement, not by request — worth the distinction.
 
 ## Goal
 

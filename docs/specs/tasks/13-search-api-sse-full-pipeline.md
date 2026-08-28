@@ -2,7 +2,7 @@
 
 **Roadmap step:** 6. API + SSE
 **Source doc:** `docs/06-api-sse-contract.md`
-**Depends on:** 12, 08, 10, 11
+**Depends on:** 12, 10, 11
 
 ## Goal
 

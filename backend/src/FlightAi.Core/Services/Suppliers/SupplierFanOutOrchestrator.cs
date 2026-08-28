@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using FlightAi.Core.Interfaces.Suppliers;
 using FlightAi.Core.Models.Offers;
 using FlightAi.Core.Models.Suppliers;
@@ -44,22 +45,40 @@ public sealed class SupplierFanOutOrchestrator
 
     public async Task<FanOutResult> SearchAsync(SearchRequest request, CancellationToken cancellationToken)
     {
+        var byConnectorName = new Dictionary<string, (IReadOnlyList<Offer> Offers, SupplierReport Report)>();
+
+        await foreach (var outcome in SearchStreamingAsync(request, cancellationToken))
+            byConnectorName[outcome.Report.SupplierName] = outcome;
+
+        // SearchStreamingAsync yields in true completion order (task 13's reason for existing); this
+        // re-sorts back to connector registration order so this method's own guarantee is unchanged --
+        // offers within one connector ordered by ID. Both halves matter -- task 03's ranking has to
+        // receive a stable input for reproducible output.
+        var ordered = _connectors.Select(connector => byConnectorName[connector.Name]).ToList();
+        var offers = ordered
+            .SelectMany(outcome => outcome.Offers.OrderBy(offer => offer.OfferId, StringComparer.Ordinal))
+            .ToList();
+
+        return new FanOutResult(offers, [.. ordered.Select(outcome => outcome.Report)]);
+    }
+
+    /// <summary>
+    /// Yields each connector's outcome as it actually finishes, not in registration order — the
+    /// mechanism task 13's SSE endpoint needs to emit one <c>supplier-result</c> event per connector as
+    /// each really completes, rather than batched at the end the way <see cref="SearchAsync"/> returns
+    /// them. <see cref="SearchAsync"/> is implemented on top of this, not the other way around.
+    /// </summary>
+    public async IAsyncEnumerable<(IReadOnlyList<Offer> Offers, SupplierReport Report)> SearchStreamingAsync(
+        SearchRequest request, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
         // Materialised before awaiting so every connector is genuinely in flight at once; awaiting
         // inside the projection would run them one after another.
         var invocations = _connectors
             .Select(connector => InvokeAsync(connector, request, cancellationToken))
             .ToList();
 
-        var outcomes = await Task.WhenAll(invocations);
-
-        // Task.WhenAll preserves input order, so this is connector registration order; offers within
-        // one connector are ordered by ID. Both halves matter -- task 03's ranking has to receive a
-        // stable input for task 08's output to be reproducible.
-        var offers = outcomes
-            .SelectMany(outcome => outcome.Offers.OrderBy(offer => offer.OfferId, StringComparer.Ordinal))
-            .ToList();
-
-        return new FanOutResult(offers, [.. outcomes.Select(outcome => outcome.Report)]);
+        await foreach (var completed in Task.WhenEach(invocations))
+            yield return await completed;
     }
 
     private async Task<(IReadOnlyList<Offer> Offers, SupplierReport Report)> InvokeAsync(
