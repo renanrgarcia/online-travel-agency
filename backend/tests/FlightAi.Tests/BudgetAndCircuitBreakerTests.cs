@@ -6,7 +6,7 @@ using Xunit;
 namespace FlightAi.Tests;
 
 /// <summary>
-/// One test per eval in docs/specs/tasks/07-look-to-book-budget-and-circuit-breaker.md. The
+/// One test per eval in docs/features/01-backend/tasks/07-look-to-book-budget-and-circuit-breaker.md. The
 /// time-dependent evals (E3, E6) advance a fake clock rather than sleeping, so they stay fast and
 /// don't flake under load.
 /// <para>
@@ -36,6 +36,21 @@ public class BudgetAndCircuitBreakerTests
 
     private static SupplierReport ReportFor(FanOutResult result, string name) =>
         result.Reports.Single(r => r.SupplierName == name);
+
+    /// <summary>Drains <see cref="SupplierFanOutOrchestrator.SearchStreamingAsync"/> into one aggregate --
+    /// there's no production <c>SearchAsync</c> anymore.</summary>
+    private static async Task<FanOutResult> CollectAsync(
+        IAsyncEnumerable<(IReadOnlyList<Offer> Offers, SupplierReport Report)> stream)
+    {
+        var offers = new List<Offer>();
+        var reports = new List<SupplierReport>();
+        await foreach (var (outcomeOffers, report) in stream)
+        {
+            offers.AddRange(outcomeOffers);
+            reports.Add(report);
+        }
+        return new FanOutResult(offers, reports);
+    }
 
     [Fact] // E1 — baseline
     public void E1_BudgetCeilingOfThree_PermitsThreeCalls()
@@ -85,9 +100,9 @@ public class BudgetAndCircuitBreakerTests
         var orchestrator = new SupplierFanOutOrchestrator([new MockNdcConnector(), new MockLccConnector()], policies, clock);
         var failingRequest = RequestTo("LIS-FAIL-SEARCH-NDC");
 
-        await orchestrator.SearchAsync(failingRequest, CancellationToken.None);
-        await orchestrator.SearchAsync(failingRequest, CancellationToken.None);
-        var third = await orchestrator.SearchAsync(failingRequest, CancellationToken.None);
+        await CollectAsync(orchestrator.SearchStreamingAsync(failingRequest, CancellationToken.None));
+        await CollectAsync(orchestrator.SearchStreamingAsync(failingRequest, CancellationToken.None));
+        var third = await CollectAsync(orchestrator.SearchStreamingAsync(failingRequest, CancellationToken.None));
 
         Assert.Equal(SupplierStatus.SkippedCircuitOpen, ReportFor(third, "NDC").Status);
     }
@@ -104,9 +119,9 @@ public class BudgetAndCircuitBreakerTests
         var orchestrator = new SupplierFanOutOrchestrator([new MockNdcConnector(), new MockLccConnector()], policies, clock);
         var failingRequest = RequestTo("LIS-FAIL-SEARCH-NDC");
 
-        await orchestrator.SearchAsync(failingRequest, CancellationToken.None);
-        await orchestrator.SearchAsync(failingRequest, CancellationToken.None);
-        var third = await orchestrator.SearchAsync(failingRequest, CancellationToken.None);
+        await CollectAsync(orchestrator.SearchStreamingAsync(failingRequest, CancellationToken.None));
+        await CollectAsync(orchestrator.SearchStreamingAsync(failingRequest, CancellationToken.None));
+        var third = await CollectAsync(orchestrator.SearchStreamingAsync(failingRequest, CancellationToken.None));
 
         Assert.Equal(SupplierStatus.Succeeded, ReportFor(third, "LCC").Status);
         Assert.Equal(2, third.Offers.Count);
@@ -124,14 +139,14 @@ public class BudgetAndCircuitBreakerTests
         var orchestrator = new SupplierFanOutOrchestrator([new MockNdcConnector(), new MockLccConnector()], policies, clock);
         var failingRequest = RequestTo("LIS-FAIL-SEARCH-NDC");
 
-        await orchestrator.SearchAsync(failingRequest, CancellationToken.None);
-        await orchestrator.SearchAsync(failingRequest, CancellationToken.None);
-        Assert.Equal(SupplierStatus.SkippedCircuitOpen, ReportFor(await orchestrator.SearchAsync(failingRequest, CancellationToken.None), "NDC").Status);
+        await CollectAsync(orchestrator.SearchStreamingAsync(failingRequest, CancellationToken.None));
+        await CollectAsync(orchestrator.SearchStreamingAsync(failingRequest, CancellationToken.None));
+        Assert.Equal(SupplierStatus.SkippedCircuitOpen, ReportFor(await CollectAsync(orchestrator.SearchStreamingAsync(failingRequest, CancellationToken.None)), "NDC").Status);
 
         clock.Advance(TimeSpan.FromMinutes(1));
 
         // Now succeeding, so the recovered call is genuinely invoked rather than skipped.
-        var afterCooldown = await orchestrator.SearchAsync(OrdinaryRequest, CancellationToken.None);
+        var afterCooldown = await CollectAsync(orchestrator.SearchStreamingAsync(OrdinaryRequest, CancellationToken.None));
         Assert.Equal(SupplierStatus.Succeeded, ReportFor(afterCooldown, "NDC").Status);
     }
 
@@ -158,8 +173,8 @@ public class BudgetAndCircuitBreakerTests
         };
         var orchestrator = new SupplierFanOutOrchestrator([new MockNdcConnector(), new MockLccConnector()], policies, clock);
 
-        await orchestrator.SearchAsync(RequestTo("LIS-FAIL-SEARCH-NDC"), CancellationToken.None);
-        var second = await orchestrator.SearchAsync(RequestTo("LIS-FAIL-SEARCH-LCC"), CancellationToken.None);
+        await CollectAsync(orchestrator.SearchStreamingAsync(RequestTo("LIS-FAIL-SEARCH-NDC"), CancellationToken.None));
+        var second = await CollectAsync(orchestrator.SearchStreamingAsync(RequestTo("LIS-FAIL-SEARCH-LCC"), CancellationToken.None));
 
         var ndc = ReportFor(second, "NDC");
         var lcc = ReportFor(second, "LCC");
@@ -185,9 +200,9 @@ public class BudgetAndCircuitBreakerTests
         var orchestrator = new SupplierFanOutOrchestrator(
             [new MockNdcConnector(simulatedDelay: TimeSpan.FromSeconds(10)), new MockLccConnector()], policies, clock);
 
-        await orchestrator.SearchAsync(OrdinaryRequest, CancellationToken.None);
-        await orchestrator.SearchAsync(OrdinaryRequest, CancellationToken.None);
-        var third = await orchestrator.SearchAsync(OrdinaryRequest, CancellationToken.None);
+        await CollectAsync(orchestrator.SearchStreamingAsync(OrdinaryRequest, CancellationToken.None));
+        await CollectAsync(orchestrator.SearchStreamingAsync(OrdinaryRequest, CancellationToken.None));
+        var third = await CollectAsync(orchestrator.SearchStreamingAsync(OrdinaryRequest, CancellationToken.None));
 
         Assert.Equal(SupplierStatus.SkippedCircuitOpen, ReportFor(third, "NDC").Status);
     }
@@ -207,8 +222,8 @@ public class BudgetAndCircuitBreakerTests
         };
         var orchestrator = new SupplierFanOutOrchestrator([new MockNdcConnector(), new MockLccConnector()], policies, clock);
 
-        await orchestrator.SearchAsync(OrdinaryRequest, CancellationToken.None); // consumes NDC's only slot
-        var second = await orchestrator.SearchAsync(OrdinaryRequest, CancellationToken.None);
+        await CollectAsync(orchestrator.SearchStreamingAsync(OrdinaryRequest, CancellationToken.None)); // consumes NDC's only slot
+        var second = await CollectAsync(orchestrator.SearchStreamingAsync(OrdinaryRequest, CancellationToken.None));
 
         Assert.Equal(SupplierStatus.SkippedBudgetExhausted, ReportFor(second, "NDC").Status);
         Assert.Equal(SupplierStatus.Succeeded, ReportFor(second, "LCC").Status);
@@ -231,9 +246,9 @@ public class BudgetAndCircuitBreakerTests
         var orchestrator = new SupplierFanOutOrchestrator([new MockNdcConnector(), new MockLccConnector()], policies, clock);
 
         // NDC flaps: fails twice, opening its circuit. LCC stays healthy throughout, under its own budget.
-        await orchestrator.SearchAsync(RequestTo("LIS-FAIL-SEARCH-NDC"), CancellationToken.None);
-        await orchestrator.SearchAsync(RequestTo("LIS-FAIL-SEARCH-NDC"), CancellationToken.None);
-        var result = await orchestrator.SearchAsync(OrdinaryRequest, CancellationToken.None);
+        await CollectAsync(orchestrator.SearchStreamingAsync(RequestTo("LIS-FAIL-SEARCH-NDC"), CancellationToken.None));
+        await CollectAsync(orchestrator.SearchStreamingAsync(RequestTo("LIS-FAIL-SEARCH-NDC"), CancellationToken.None));
+        var result = await CollectAsync(orchestrator.SearchStreamingAsync(OrdinaryRequest, CancellationToken.None));
 
         Assert.NotEmpty(result.Offers);
         Assert.All(result.Offers, offer => Assert.StartsWith("LCC-", offer.OfferId));

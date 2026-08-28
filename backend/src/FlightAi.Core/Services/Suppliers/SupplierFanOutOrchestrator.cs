@@ -8,7 +8,7 @@ namespace FlightAi.Core.Services.Suppliers;
 /// <summary>
 /// Calls every registered connector concurrently, bounds each one with its own timeout, and degrades
 /// to partial results instead of failing the whole search. See
-/// docs/specs/tasks/06-supplier-fan-out-orchestrator.md.
+/// docs/features/01-backend/tasks/06-supplier-fan-out-orchestrator.md.
 /// <para>
 /// Every connector's timeout, look-to-book budget, and circuit breaker come from
 /// <paramref name="policies"/> — keyed by <see cref="ISupplierConnector.Name"/>, one
@@ -16,8 +16,8 @@ namespace FlightAi.Core.Services.Suppliers;
 /// different commercial terms; earlier versions of this orchestrator shared one
 /// timeout/budget/breaker across every connector, and a later version made budget/breaker optional
 /// per connector — both under-modelled the reality that a missing budget is a real financial risk,
-/// per docs/03-suppliers-and-budget.md. Every connector gets a real, non-optional budget and breaker
-/// now; see docs/specs/tasks/07-look-to-book-budget-and-circuit-breaker.md.
+/// per docs/reference/03-suppliers-and-budget.md. Every connector gets a real, non-optional budget and breaker
+/// now; see docs/features/01-backend/tasks/07-look-to-book-budget-and-circuit-breaker.md.
 /// </para>
 /// </summary>
 public sealed class SupplierFanOutOrchestrator
@@ -43,30 +43,13 @@ public sealed class SupplierFanOutOrchestrator
         }
     }
 
-    public async Task<FanOutResult> SearchAsync(SearchRequest request, CancellationToken cancellationToken)
-    {
-        var byConnectorName = new Dictionary<string, (IReadOnlyList<Offer> Offers, SupplierReport Report)>();
-
-        await foreach (var outcome in SearchStreamingAsync(request, cancellationToken))
-            byConnectorName[outcome.Report.SupplierName] = outcome;
-
-        // SearchStreamingAsync yields in true completion order (task 13's reason for existing); this
-        // re-sorts back to connector registration order so this method's own guarantee is unchanged --
-        // offers within one connector ordered by ID. Both halves matter -- task 03's ranking has to
-        // receive a stable input for reproducible output.
-        var ordered = _connectors.Select(connector => byConnectorName[connector.Name]).ToList();
-        var offers = ordered
-            .SelectMany(outcome => outcome.Offers.OrderBy(offer => offer.OfferId, StringComparer.Ordinal))
-            .ToList();
-
-        return new FanOutResult(offers, [.. ordered.Select(outcome => outcome.Report)]);
-    }
-
     /// <summary>
     /// Yields each connector's outcome as it actually finishes, not in registration order — the
     /// mechanism task 13's SSE endpoint needs to emit one <c>supplier-result</c> event per connector as
-    /// each really completes, rather than batched at the end the way <see cref="SearchAsync"/> returns
-    /// them. <see cref="SearchAsync"/> is implemented on top of this, not the other way around.
+    /// each really completes, rather than batched at the end. Completion order is not reproducible run
+    /// to run (it depends on real timing), so a caller that needs a stable, reproducible input for
+    /// ranking (task 03) must sort the merged offers itself once streaming completes — see
+    /// <c>SearchPipeline.RunAsync</c>, the one production consumer of this method.
     /// </summary>
     public async IAsyncEnumerable<(IReadOnlyList<Offer> Offers, SupplierReport Report)> SearchStreamingAsync(
         SearchRequest request, [EnumeratorCancellation] CancellationToken cancellationToken = default)

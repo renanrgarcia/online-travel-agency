@@ -8,7 +8,7 @@ using Xunit;
 namespace FlightAi.Tests;
 
 /// <summary>
-/// One test per eval in docs/specs/tasks/06-supplier-fan-out-orchestrator.md. Every connector needs an
+/// One test per eval in docs/features/01-backend/tasks/06-supplier-fan-out-orchestrator.md. Every connector needs an
 /// entry in the policies dictionary (task 07's SupplierPolicy) even when this task doesn't care about
 /// budget/breaker -- <see cref="PoliciesFor"/> builds a plain timeout-only policy per connector name.
 /// </summary>
@@ -36,13 +36,30 @@ public class SupplierFanOutOrchestratorTests
     private static SupplierReport ReportFor(FanOutResult result, string name) =>
         result.Reports.Single(r => r.SupplierName == name);
 
+    /// <summary>Drains <see cref="SupplierFanOutOrchestrator.SearchStreamingAsync"/> into one aggregate --
+    /// there's no production <c>SearchAsync</c> anymore, since real completion order isn't reproducible
+    /// and nothing production-side needs it batched. Order here is whatever these tests observed it in,
+    /// not registration order; tests that care about a stable order (E9) sort explicitly.</summary>
+    private static async Task<FanOutResult> CollectAsync(
+        IAsyncEnumerable<(IReadOnlyList<Offer> Offers, SupplierReport Report)> stream)
+    {
+        var offers = new List<Offer>();
+        var reports = new List<SupplierReport>();
+        await foreach (var (outcomeOffers, report) in stream)
+        {
+            offers.AddRange(outcomeOffers);
+            reports.Add(report);
+        }
+        return new FanOutResult(offers, reports);
+    }
+
     [Fact] // E1 — baseline
     public async Task E1_TwoHealthyConnectors_ReturnsAllOffersAndReportsBothSucceeded()
     {
         var orchestrator = new SupplierFanOutOrchestrator(
             [new MockNdcConnector(), new MockLccConnector()], PoliciesFor(GenerousTimeout, "NDC", "LCC"));
 
-        var result = await orchestrator.SearchAsync(OrdinaryRequest, CancellationToken.None);
+        var result = await CollectAsync(orchestrator.SearchStreamingAsync(OrdinaryRequest, CancellationToken.None));
 
         Assert.Equal(4, result.Offers.Count);
         Assert.Equal(SupplierStatus.Succeeded, ReportFor(result, "NDC").Status);
@@ -55,7 +72,7 @@ public class SupplierFanOutOrchestratorTests
         var orchestrator = new SupplierFanOutOrchestrator(
             [new MockNdcConnector(), new MockLccConnector()], PoliciesFor(GenerousTimeout, "NDC", "LCC"));
 
-        var result = await orchestrator.SearchAsync(RequestTo("LIS-FAIL-SEARCH-NDC"), CancellationToken.None);
+        var result = await CollectAsync(orchestrator.SearchStreamingAsync(RequestTo("LIS-FAIL-SEARCH-NDC"), CancellationToken.None));
 
         Assert.Equal(2, result.Offers.Count);
         Assert.All(result.Offers, offer => Assert.StartsWith("LCC-", offer.OfferId));
@@ -71,7 +88,7 @@ public class SupplierFanOutOrchestratorTests
         var orchestrator = new SupplierFanOutOrchestrator(
             [new ThrowingConnector(), new MockLccConnector()], PoliciesFor(GenerousTimeout, "THROWS", "LCC"));
 
-        var result = await orchestrator.SearchAsync(OrdinaryRequest, CancellationToken.None);
+        var result = await CollectAsync(orchestrator.SearchStreamingAsync(OrdinaryRequest, CancellationToken.None));
 
         Assert.Equal(2, result.Offers.Count);
         var thrown = ReportFor(result, "THROWS");
@@ -87,7 +104,7 @@ public class SupplierFanOutOrchestratorTests
             PoliciesFor(TimeSpan.FromMilliseconds(200), "NDC", "LCC"));
         var stopwatch = Stopwatch.StartNew();
 
-        var result = await orchestrator.SearchAsync(OrdinaryRequest, CancellationToken.None);
+        var result = await CollectAsync(orchestrator.SearchStreamingAsync(OrdinaryRequest, CancellationToken.None));
         stopwatch.Stop();
 
         Assert.True(stopwatch.Elapsed < TimeSpan.FromSeconds(2), $"expected the timeout to bound this, took {stopwatch.Elapsed}");
@@ -104,7 +121,7 @@ public class SupplierFanOutOrchestratorTests
             PoliciesFor(TimeSpan.FromSeconds(1), "NDC", "LCC"));
         var stopwatch = Stopwatch.StartNew();
 
-        var result = await orchestrator.SearchAsync(OrdinaryRequest, CancellationToken.None);
+        var result = await CollectAsync(orchestrator.SearchStreamingAsync(OrdinaryRequest, CancellationToken.None));
         stopwatch.Stop();
 
         Assert.Equal(4, result.Offers.Count);
@@ -119,7 +136,7 @@ public class SupplierFanOutOrchestratorTests
             [new MockNdcConnector(simulatedDelay: TimeSpan.FromSeconds(10)), new MockLccConnector()],
             PoliciesFor(TimeSpan.FromMilliseconds(200), "NDC", "LCC"));
 
-        var result = await orchestrator.SearchAsync(RequestTo("LIS-FAIL-SEARCH-LCC"), CancellationToken.None);
+        var result = await CollectAsync(orchestrator.SearchStreamingAsync(RequestTo("LIS-FAIL-SEARCH-LCC"), CancellationToken.None));
 
         Assert.Equal(SupplierStatus.TimedOut, ReportFor(result, "NDC").Status);
         Assert.Equal(SupplierStatus.Failed, ReportFor(result, "LCC").Status);
@@ -132,7 +149,7 @@ public class SupplierFanOutOrchestratorTests
         var orchestrator = new SupplierFanOutOrchestrator(
             [new MockNdcConnector(), new MockLccConnector()], PoliciesFor(GenerousTimeout, "NDC", "LCC"));
 
-        var result = await orchestrator.SearchAsync(RequestTo("FAIL-SEARCH-NDC-FAIL-SEARCH-LCC"), CancellationToken.None);
+        var result = await CollectAsync(orchestrator.SearchStreamingAsync(RequestTo("FAIL-SEARCH-NDC-FAIL-SEARCH-LCC"), CancellationToken.None));
 
         Assert.Empty(result.Offers);
         Assert.Equal(2, result.Reports.Count);
@@ -144,7 +161,7 @@ public class SupplierFanOutOrchestratorTests
     {
         var orchestrator = new SupplierFanOutOrchestrator([], PoliciesFor(GenerousTimeout));
 
-        var result = await orchestrator.SearchAsync(OrdinaryRequest, CancellationToken.None);
+        var result = await CollectAsync(orchestrator.SearchStreamingAsync(OrdinaryRequest, CancellationToken.None));
 
         Assert.Empty(result.Offers);
         Assert.Empty(result.Reports);
@@ -157,25 +174,30 @@ public class SupplierFanOutOrchestratorTests
             [new MockNdcConnector(), new MockLccConnector(), new ThrowingConnector()],
             PoliciesFor(GenerousTimeout, "NDC", "LCC", "THROWS"));
 
-        var result = await orchestrator.SearchAsync(OrdinaryRequest, CancellationToken.None);
+        var result = await CollectAsync(orchestrator.SearchStreamingAsync(OrdinaryRequest, CancellationToken.None));
 
+        // SearchStreamingAsync yields in completion order, not registration order -- membership is
+        // the real guarantee (no gap, no duplicate), not which position each one lands in.
         Assert.Equal(3, result.Reports.Count);
-        Assert.Equal(["NDC", "LCC", "THROWS"], result.Reports.Select(r => r.SupplierName));
+        Assert.Equal(
+            new[] { "LCC", "NDC", "THROWS" },
+            result.Reports.Select(r => r.SupplierName).OrderBy(name => name, StringComparer.Ordinal));
     }
 
-    [Fact] // E9 — task 03's ranking must receive a stable input
-    public async Task E9_MergedOffers_HaveNoIdCollisionsAndADeterministicOrder()
+    [Fact] // E9 — task 03's ranking needs a stable input; SearchPipeline (the real consumer) gets one by sorting after streaming, not from this orchestrator
+    public async Task E9_MergedOffers_HaveNoIdCollisionsAndSortingByIdIsReproducible()
     {
         var orchestrator = new SupplierFanOutOrchestrator(
             [new MockNdcConnector(), new MockLccConnector()], PoliciesFor(GenerousTimeout, "NDC", "LCC"));
 
-        var first = await orchestrator.SearchAsync(OrdinaryRequest, CancellationToken.None);
-        var second = await orchestrator.SearchAsync(OrdinaryRequest, CancellationToken.None);
+        var first = await CollectAsync(orchestrator.SearchStreamingAsync(OrdinaryRequest, CancellationToken.None));
+        var second = await CollectAsync(orchestrator.SearchStreamingAsync(OrdinaryRequest, CancellationToken.None));
 
-        var ids = first.Offers.Select(o => o.OfferId).ToList();
-        Assert.Equal(ids.Count, ids.Distinct().Count());
-        Assert.Equal(ids, second.Offers.Select(o => o.OfferId));
-        Assert.Equal(["NDC-001", "NDC-002", "LCC-001", "LCC-002"], ids); // registration order, then offer ID
+        var firstIds = first.Offers.Select(o => o.OfferId).OrderBy(id => id, StringComparer.Ordinal).ToList();
+        var secondIds = second.Offers.Select(o => o.OfferId).OrderBy(id => id, StringComparer.Ordinal).ToList();
+        Assert.Equal(firstIds.Count, firstIds.Distinct().Count());
+        Assert.Equal(firstIds, secondIds);
+        Assert.Equal(["LCC-001", "LCC-002", "NDC-001", "NDC-002"], firstIds);
     }
 
     [Fact] // a connector missing from the policies dictionary fails fast rather than silently misbehaving

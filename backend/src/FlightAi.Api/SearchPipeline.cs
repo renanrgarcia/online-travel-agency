@@ -17,7 +17,7 @@ namespace FlightAi.Api;
 /// <summary>
 /// Streams the real search pipeline as Server-Sent Events: intent parsing, supplier fan-out, ranking,
 /// explanation — one event per stage, emitted as each stage actually finishes. See
-/// docs/06-api-sse-contract.md and docs/specs/tasks/13-search-api-sse-full-pipeline.md.
+/// docs/reference/06-api-sse-contract.md and docs/features/01-backend/tasks/13-search-api-sse-full-pipeline.md.
 /// <para>
 /// Rendering happens here, server-side, always — the browser never receives a token and never learns
 /// the token vocabulary exists. A rendering guard violation degrades only the <c>explanation</c> event
@@ -63,6 +63,9 @@ public static class SearchPipeline
             yield return Event("supplier-result", report);
         }
 
+        // Not sorted here on purpose: SearchStreamingAsync yields in real completion order, but
+        // OfferScorer.Rank orders by score and breaks ties on OfferId, so its output is a total order
+        // independent of what order it received its input in.
         var scorable = allOffers
             .Select(offer => new ScorableOffer(offer.OfferId, offer.Price, offer.Duration, offer.Stops, offer.Margin))
             .ToList();

@@ -3,6 +3,7 @@ using FlightAi.Api;
 using FlightAi.Core.Interfaces.Suppliers;
 using FlightAi.Core.Models.Suppliers;
 using FlightAi.Core.Services.Suppliers;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.AI;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,8 +17,9 @@ var app = builder.Build();
 // Single feature so far -- switch to a MapGroup + IEndpointRouteBuilder-extension-per-feature pattern
 // (an Endpoints/<Feature>/ folder per area) the moment a second one shows up here.
 app.MapGet("/api/search/stream", (
-        string q, HttpContext context, IntentAgent intentAgent, SupplierFanOutOrchestrator orchestrator, IChatClient chatClient) =>
-    Results.ServerSentEvents(SearchPipeline.RunAsync(q, intentAgent, orchestrator, chatClient, context.RequestAborted)));
+        [FromQuery(Name = "q")] string searchQuery, HttpContext context, IntentAgent intentAgent,
+        SupplierFanOutOrchestrator orchestrator, IChatClient chatClient) =>
+    Results.ServerSentEvents(SearchPipeline.RunAsync(searchQuery, intentAgent, orchestrator, chatClient, context.RequestAborted)));
 
 app.Run();
 
