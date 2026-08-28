@@ -9,7 +9,7 @@ using Xunit;
 namespace FlightAi.Tests;
 
 /// <summary>
-/// One test per eval in docs/specs/tasks/04-supplier-connector-interface.md. Task 04 is mostly a
+/// One test per eval in docs/features/01-backend/tasks/04-supplier-connector-interface.md. Task 04 is mostly a
 /// contract, so these evals prove the contract's expressiveness against a throwaway test double
 /// rather than against a real connector (task 05).
 /// </summary>

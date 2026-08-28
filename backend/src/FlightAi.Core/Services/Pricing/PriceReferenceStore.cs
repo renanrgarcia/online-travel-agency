@@ -4,7 +4,7 @@ namespace FlightAi.Core.Services.Pricing;
 
 /// <summary>
 /// Hands out opaque tokens for values a traveller may see (price, duration, stops, refund status)
-/// instead of the values themselves. See docs/02-price-integrity.md — this is one side of the
+/// instead of the values themselves. See docs/reference/02-price-integrity.md — this is one side of the
 /// price-integrity boundary; <see cref="ExplanationPlaceholderRenderer"/> (task 02) is the other.
 /// Only that renderer should ever call <see cref="TryResolve"/> — nothing that generates free text
 /// (an AI agent) should hold a reference to this store.
@@ -69,7 +69,7 @@ public sealed class PriceReferenceStore
     /// Resolves a token to its display text. Returns false for anything the store never issued —
     /// including a hallucinated MARGIN_ reference, which can never resolve because no such token
     /// is ever registered. Callers must not silently drop an unresolved token; see
-    /// docs/02-price-integrity.md for why.
+    /// docs/reference/02-price-integrity.md for why.
     /// </summary>
     public bool TryResolve(string token, out string value) => _resolved.TryGetValue(token, out value!);
 

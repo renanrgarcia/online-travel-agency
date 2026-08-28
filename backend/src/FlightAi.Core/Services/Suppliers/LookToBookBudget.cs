@@ -3,10 +3,10 @@ namespace FlightAi.Core.Services.Suppliers;
 /// <summary>
 /// A ceiling on supplier search calls per rolling window. Suppliers meter search volume against actual
 /// bookings ("look to book"), so unchecked searching is a real commercial constraint, not just a
-/// performance one. See docs/03-suppliers-and-budget.md.
+/// performance one. See docs/reference/03-suppliers-and-budget.md.
 /// <para>
 /// State is in-memory and per-process: a restart resets the budget, and two instances don't share one.
-/// That's a deliberate limitation for this system (docs/01-architecture-overview.md keeps Redis out on
+/// That's a deliberate limitation for this system (docs/reference/01-architecture-overview.md keeps Redis out on
 /// purpose) and would need revisiting before this metered anything real.
 /// </para>
 /// </summary>

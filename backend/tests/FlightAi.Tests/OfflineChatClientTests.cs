@@ -5,7 +5,7 @@ using Xunit;
 namespace FlightAi.Tests;
 
 /// <summary>
-/// One test per eval in docs/specs/tasks/09-offline-chat-client.md.
+/// One test per eval in docs/features/01-backend/tasks/09-offline-chat-client.md.
 /// </summary>
 public class OfflineChatClientTests
 {

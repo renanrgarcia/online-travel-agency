@@ -1,7 +1,7 @@
 # 01 — Price reference tokens
 
 **Roadmap step:** 1. Price integrity core
-**Source doc:** `docs/02-price-integrity.md`
+**Source doc:** `docs/reference/02-price-integrity.md`
 **Depends on:** nothing
 
 ## Goal
@@ -28,7 +28,7 @@ entire point. This is the single most important design decision in the system, s
 These are the acceptance criteria, fixed **before** implementation. Tests assert exactly these. If the
 implementation disagrees with an eval, the implementation is wrong — not the eval.
 
-Token spellings come from `docs/02-price-integrity.md` and are not negotiable. Display formats are
+Token spellings come from `docs/reference/02-price-integrity.md` and are not negotiable. Display formats are
 *decided here* (the source doc doesn't specify them), so that tests have an external target rather than
 asserting whatever the code happens to produce.
 
@@ -60,7 +60,7 @@ These were genuinely open; deciding them here is what stops tests from being sel
   ever resolving them — which defeats opacity. Consequence: re-registering an offer returns the same
   token and overwrites the resolved value (E5, last write wins).
 - **Currency display:** `USD` → `$0.00`, `BRL` → `R$0.00`, `EUR` → `€0.00`, anything else →
-  `0.00 CUR`. Always invariant culture, never `CurrentCulture` — see `docs/09-lessons-learned.md`,
+  `0.00 CUR`. Always invariant culture, never `CurrentCulture` — see `docs/reference/09-lessons-learned.md`,
   where a `CurrentCulture` assumption is one of the four documented real bugs.
 - **Delta sign convention:** the delta argument is B's price minus A's. Positive means B costs more.
 

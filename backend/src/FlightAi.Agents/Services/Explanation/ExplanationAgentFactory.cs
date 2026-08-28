@@ -6,8 +6,8 @@ namespace FlightAi.Agents.Services.Explanation;
 
 /// <summary>
 /// Builds the explanation agent: ranked, tokenised offers in, prose out — written entirely from
-/// opaque tokens (task 01), never a real value. See docs/05-agents-and-intent.md and
-/// docs/specs/tasks/11-explanation-agent.md.
+/// opaque tokens (task 01), never a real value. See docs/reference/05-agents-and-intent.md and
+/// docs/features/01-backend/tasks/11-explanation-agent.md.
 /// </summary>
 public static class ExplanationAgentFactory
 {

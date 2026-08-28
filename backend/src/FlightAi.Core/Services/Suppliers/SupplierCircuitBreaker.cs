@@ -8,7 +8,7 @@ namespace FlightAi.Core.Services.Suppliers;
 /// never affect another's state; there is no shared dictionary to isolate keys within.
 /// <para>
 /// Hand-rolled on purpose so its behaviour is readable in one small file; reach for Polly in a real
-/// service rather than reimplementing this (docs/01-architecture-overview.md). State is in-memory and
+/// service rather than reimplementing this (docs/reference/01-architecture-overview.md). State is in-memory and
 /// per-process — a restart resets it, and two instances of the host don't share one.
 /// </para>
 /// </summary>

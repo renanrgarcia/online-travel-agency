@@ -1,7 +1,7 @@
 # 12 — Search API SSE skeleton
 
 **Roadmap step:** 6. API + SSE
-**Source doc:** `docs/06-api-sse-contract.md`
+**Source doc:** `docs/reference/06-api-sse-contract.md`
 **Depends on:** nothing new
 
 ## Superseded by task 13
@@ -34,9 +34,9 @@ emits one hard-coded event — before any pipeline logic. Isolates "learn SSE an
 | ID | Setup | Expected | Why it matters |
 |---|---|---|---|
 | E1 | `curl -N` the endpoint | Response `Content-Type` is `text/event-stream` | The contract's baseline |
-| E2 | Response headers | Exactly one `Content-Type` header | `docs/09-lessons-learned.md` documents a real double-header bug here — pin it before it recurs |
+| E2 | Response headers | Exactly one `Content-Type` header | `docs/reference/09-lessons-learned.md` documents a real double-header bug here — pin it before it recurs |
 | E3 | Endpoint emits 3 events spaced 500ms apart | Client observes them ≈500ms apart, not all at once at the end | Genuine streaming, not a buffered response pretending. The single most common way this task silently fails |
-| E4 | Event framing | Matches `docs/06-api-sse-contract.md` byte for byte (`event:`/`data:` lines, blank-line terminator) | A browser `EventSource` is unforgiving about framing |
+| E4 | Event framing | Matches `docs/reference/06-api-sse-contract.md` byte for byte (`event:`/`data:` lines, blank-line terminator) | A browser `EventSource` is unforgiving about framing |
 | E5 | Client disconnects mid-stream | Server observes cancellation and stops work | Otherwise abandoned searches burn supplier budget in task 13 |
 | E6 | Payload containing a UTF-8 accented string (e.g. `São Paulo`) | Arrives intact | Brazilian-market data will hit this immediately |
 

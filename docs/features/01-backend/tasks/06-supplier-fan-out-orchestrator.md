@@ -1,7 +1,7 @@
 # 06 — Supplier fan-out orchestrator
 
 **Roadmap step:** 3. Suppliers
-**Source doc:** `docs/03-suppliers-and-budget.md`
+**Source doc:** `docs/reference/03-suppliers-and-budget.md`
 **Depends on:** 05 (mock connectors)
 
 ## Goal

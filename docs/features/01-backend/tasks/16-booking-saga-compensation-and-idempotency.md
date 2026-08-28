@@ -1,7 +1,7 @@
 # 16 — Compensation and idempotency
 
 **Roadmap step:** 7. Booking saga
-**Source doc:** `docs/07-booking-saga.md`
+**Source doc:** `docs/reference/07-booking-saga.md`
 **Depends on:** 15
 
 ## Goal
@@ -13,7 +13,7 @@ saga.
 
 - Failure injection: `FAIL-ORDER` fails order creation, `FAIL-TICKET` fails ticketing (same convention
   as task 05).
-- Compensation per `docs/07-booking-saga.md`'s table.
+- Compensation per `docs/reference/07-booking-saga.md`'s table.
 - `bookingId` **is** the orchestration instance ID.
 - `customStatus` gains `compensated` / `warning` fields.
 
@@ -45,12 +45,12 @@ All ten evals pass. E5 and E9 are the ones with real money attached.
 
 ## Deployment gate
 
-See [`../deployment.md`](../deployment.md), step 3.
+See [`../../../deployment.md`](../../../deployment.md), step 3.
 
 | ID | Requirement |
 |---|---|
 | D1 | `FlightAi.Booking.Functions` deployed to an Azure Functions Consumption plan Function App, backed by a real Azure Storage account — not Azurite |
-| D2 | The happy-path and compensation-path curl examples from `docs/07-booking-saga.md` both succeed against the deployed URL |
+| D2 | The happy-path and compensation-path curl examples from `docs/reference/07-booking-saga.md` both succeed against the deployed URL |
 | D3 | Checkpointing verified against the real runtime, not just Azurite: trigger a booking, and where possible force a transient failure (rather than killing the local host, which isn't available on a managed Function App) to confirm retries and compensation still fire correctly |
 
 This is a materially different deploy from task 13's (Functions vs. App Service), and Durable

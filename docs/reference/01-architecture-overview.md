@@ -16,7 +16,7 @@ src/
                                  SupplierFanOutOrchestrator, LookToBookBudget, SupplierCircuitBreaker,
                                  and the mock connectors — everything with behavior, grouped by
                                  technical role (layer) rather than by domain concept. See
-                                 docs/specs/tasks/README.md's note on this choice.
+                                 docs/features/01-backend/tasks/README.md's note on this choice.
   FlightAi.Agents/              The AI layer. Depends on Microsoft.Agents.AI + Microsoft.Extensions.AI.Abstractions.
     Models/                     IntentResult — the AI layer's own supporting types.
     Services/                   IntentAgentFactory (NL -> typed SearchRequest via RunAsync<T>),
@@ -43,7 +43,7 @@ through deterministic code first.
    endpoint that streams results as Server-Sent Events, consumed by a real browser UI. See
    `06-api-sse-contract.md`. A console demo project existed briefly during development to verify the
    deterministic core end to end by hand before the AI layer and the API existed; it was removed once
-   the API took over that role — see `docs/specs/tasks/README.md`.
+   the API took over that role — see `docs/features/01-backend/tasks/README.md`.
 2. **Booking saga** (`FlightAi.Booking.Functions`) — a separate Azure Durable Functions app handling
    the booking flow (payment, order, ticket, confirmation) as a checkpointed, compensable state
    machine. See `07-booking-saga.md`.

@@ -1,7 +1,7 @@
 # 09 — Offline chat client
 
 **Roadmap step:** 5. AI layer, offline first
-**Source doc:** `docs/05-agents-and-intent.md`, `docs/08-package-versions.md`
+**Source doc:** `docs/reference/05-agents-and-intent.md`, `docs/reference/08-package-versions.md`
 **Depends on:** nothing new
 
 ## Goal
@@ -12,7 +12,7 @@ layer runs with `dotnet run` and no API key. This is the seam that makes task 17
 ## Scope
 
 - Implement the real `IChatClient` from `Microsoft.Extensions.AI.Abstractions` — the actual interface,
-  verified against `docs/08-package-versions.md`, not an invented one.
+  verified against `docs/reference/08-package-versions.md`, not an invented one.
 - Deterministic, pattern-keyed responses so tasks 10–11 can assert specific behaviour.
 - A way to make it emit deliberately misbehaving output (raw digits) for task 11's guard tests.
 

@@ -70,14 +70,44 @@ user-facing to deploy until the API streams real results.
 1. **After task 13** — deploy `FlightAi.Api` to App Service F1, confirm the SSE stream survives a real
    network path (proxies and buffering layers break streaming in ways localhost never will; this is
    the deployment step most likely to surprise you).
-2. **Alongside the frontend** — deploy `frontend/` to Static Web Apps, pointed at the App Service API.
-3. **After task 16** — deploy `FlightAi.Booking.Functions` to a Consumption plan Function App with a
-   real Storage account.
+2. **After backend task 19 and frontend task F08** — deploy `frontend/` to Static Web Apps, pointed at
+   the App Service API. CORS (task 19) is a hard prerequisite: without it the browser cannot read a
+   single response, whatever else is correct.
+3. **After task 16, with task 22** — deploy `FlightAi.Booking.Functions` to a Consumption plan Function
+   App with a real Storage account, provisioned by Bicep rather than by hand.
 4. **After task 17** — move the model API key into App Service configuration / Key Vault. Never commit
    it; never ship it to the browser. The model is called from the backend only.
+5. **Before sharing the URL with anyone** — tasks 20 and 21. A public endpoint with a metered model
+   behind it and a client-supplied price in front of it is fine on localhost and not fine on the open
+   internet.
 
-## What this deliberately isn't
+## Infrastructure as code and CI/CD
 
-No infrastructure-as-code (Bicep/Terraform), no CI/CD pipeline, no staging environment, no custom
-domain, no CDN tuning. Those are all worth learning, and none of them belong in the first pass — add
-them once something is actually deployed and working, if you want a follow-on exercise.
+This section originally said the opposite — that IaC and a pipeline were deliberately out of scope for
+a first pass. That call was revisited once the App Service deploy became real, and both now exist:
+
+- **[`infra/`](../infra/README.md)** — Bicep, subscription-scoped, currently covering the App Service.
+  Chosen over Terraform for a single-cloud project with one operator: no state file to provision and
+  protect, first-class `az` tooling, and it's what AZ-104 expects you to author today.
+- **[`.github/workflows/ci-cd.yml`](../.github/workflows/ci-cd.yml)** — build and test on every push to
+  `main` or `develop` and on PRs into `main`; deploy only on a push to `main`.
+
+Both are incomplete by design rather than by omission: the Functions app is covered by backend task 22,
+and Static Web Apps by frontend task F08. Until those land, those two pieces deploy by hand and exist
+nowhere in the repository — which is the gap those tasks close.
+
+Still deliberately absent: staging environments, deployment slots (App Service F1 doesn't support them),
+custom domains, and CDN tuning.
+
+## What's still missing for the topology above
+
+The table at the top of this document describes a complete system. These are the tasks that close the
+distance between it and what's actually built:
+
+| Gap | Task |
+|---|---|
+| A browser on another origin can't call the API at all | Backend [19](features/01-backend/tasks/19-cors-for-the-browser-client.md) |
+| A public endpoint can exhaust the model quota and F1's CPU allowance | Backend [20](features/01-backend/tasks/20-rate-limiting-and-quota-protection.md) |
+| The booking saga trusts a client-supplied price | Backend [21](features/01-backend/tasks/21-server-authoritative-offer-prices.md) |
+| The Functions app has no Bicep module and no deploy job | Backend [22](features/01-backend/tasks/22-functions-infrastructure-and-cicd.md) |
+| There is no frontend to deploy to Static Web Apps | Feature [02](features/02-frontend/README.md), all tasks |

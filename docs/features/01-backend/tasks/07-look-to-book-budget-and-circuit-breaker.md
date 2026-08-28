@@ -1,7 +1,7 @@
 # 07 — Look-to-book budget and circuit breaker
 
 **Roadmap step:** 3. Suppliers
-**Source doc:** `docs/03-suppliers-and-budget.md`
+**Source doc:** `docs/reference/03-suppliers-and-budget.md`
 **Depends on:** 06 (fan-out orchestrator)
 
 ## Goal
@@ -15,7 +15,7 @@ The first pass at this task shared one `LookToBookBudget` and one `SupplierCircu
 connector the orchestrator held. The breaker was already internally safe (a `Dictionary` keyed by
 connector name kept each connector's failure count isolated), but the budget was a single counter with
 no per-connector tracking at all — meaning every connector drew from the same pool. That contradicted
-`docs/03-suppliers-and-budget.md`'s own description of the budget as **"a per-session, per-supplier
+`docs/reference/03-suppliers-and-budget.md`'s own description of the budget as **"a per-session, per-supplier
 shopping-call budget"**, and it also meant the timeout was one shared duration rather than something a
 real, differently-contracted supplier could be given its own value for.
 

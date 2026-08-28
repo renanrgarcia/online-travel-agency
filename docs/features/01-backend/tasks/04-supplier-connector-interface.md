@@ -1,7 +1,7 @@
 # 04 — Supplier connector interface
 
 **Roadmap step:** 3. Suppliers
-**Source doc:** `docs/03-suppliers-and-budget.md`
+**Source doc:** `docs/reference/03-suppliers-and-budget.md`
 **Depends on:** nothing new
 
 ## Goal
@@ -13,11 +13,11 @@ anything above it.
 ## Scope
 
 - The canonical `Offer` — the real one, replacing task 03's stub. Scope to what
-  `docs/03-suppliers-and-budget.md` and `docs/04-ranking.md` actually consume.
+  `docs/reference/03-suppliers-and-budget.md` and `docs/reference/04-ranking.md` actually consume.
 - The canonical `SearchRequest` — origin, destination, date, passenger count, and `Language` (task 10's
   intent agent produces this shape; this task defines it, since it's also every connector's search
   input). Both live in `Models/` alongside every other data type — see
-  `docs/specs/tasks/README.md`'s note on layer-vs-domain folders.
+  `docs/features/01-backend/tasks/README.md`'s note on layer-vs-domain folders.
 - `ISupplierConnector` with an async search method returning a result type that can express **partial
   failure** — a connector that returned some offers and then failed is a real case.
 - Contract only. No implementations beyond a test double.

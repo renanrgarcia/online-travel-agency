@@ -1,18 +1,18 @@
 # 14 — Booking Functions project setup
 
 **Roadmap step:** 7. Booking saga
-**Source doc:** `docs/07-booking-saga.md`, `docs/09-lessons-learned.md`
+**Source doc:** `docs/reference/07-booking-saga.md`, `docs/reference/09-lessons-learned.md`
 **Depends on:** nothing from earlier tasks
 
 ## Goal
 
 Get an Azure Functions Durable Task project running locally against Azurite with one trivial
-orchestration — before any saga logic. Read `docs/09-lessons-learned.md` first; the Azurite API-version
+orchestration — before any saga logic. Read `docs/reference/09-lessons-learned.md` first; the Azurite API-version
 issue documented there will otherwise cost you real debugging time on exactly this step.
 
 ## Scope
 
-- Azurite and Core Tools per `docs/08-package-versions.md`.
+- Azurite and Core Tools per `docs/reference/08-package-versions.md`.
 - Functions project under `backend/src/FlightAi.Booking.Functions` with the Durable Task extension.
 - One trivial orchestration and an HTTP trigger starting it.
 

@@ -1,7 +1,7 @@
 # 15 — Booking saga orchestrator
 
 **Roadmap step:** 7. Booking saga
-**Source doc:** `docs/07-booking-saga.md`
+**Source doc:** `docs/reference/07-booking-saga.md`
 **Depends on:** 14
 
 ## Goal
@@ -14,7 +14,7 @@ Implement the four booking steps as a Durable orchestration: `AuthorizePayment` 
 - Four activity functions, mocked (no real payment gateway).
 - Sequential orchestration via `CallActivityAsync<T>`.
 - Retry policy per activity: 3 attempts, first retry 2s, backoff 2.0.
-- `POST /api/bookings` and `GET /api/bookings/{bookingId}` matching `docs/07-booking-saga.md` exactly.
+- `POST /api/bookings` and `GET /api/bookings/{bookingId}` matching `docs/reference/07-booking-saga.md` exactly.
 
 ## Out of scope (comes later)
 

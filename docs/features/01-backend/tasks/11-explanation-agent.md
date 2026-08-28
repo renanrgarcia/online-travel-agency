@@ -1,7 +1,7 @@
 # 11 — Explanation agent
 
 **Roadmap step:** 5. AI layer, offline first
-**Source doc:** `docs/05-agents-and-intent.md`, `docs/02-price-integrity.md`
+**Source doc:** `docs/reference/05-agents-and-intent.md`, `docs/reference/02-price-integrity.md`
 **Depends on:** 09 (offline chat client), 01–02 (tokens + renderer)
 
 ## Goal
@@ -35,7 +35,7 @@ component that resolves numbers are separate, with different trust levels.
 | E7 | Rendered output | Contains real prices, matching the store's registered values exactly | The numbers a traveller sees came from deterministic code, which is the whole thesis |
 | E8 | `SearchRequest.Language = "pt-BR"`, offline client configured to honour it | Prose is in Portuguese | The bilingual requirement made concrete at the output side, not just the input side (task 10 E7/E8) |
 | E9 | `SearchRequest.Language = "en"`, same offers as E8 | Prose is in English | The same mechanism working both directions, not just defaulting to Portuguese |
-| E10 | E8 and E9's rendered output, either language | Still passes task 02's digit/word guard | Confirms `docs/02-price-integrity.md`'s Portuguese magnitude-word check (task 02 E12) actually matters — it protects exactly this path |
+| E10 | E8 and E9's rendered output, either language | Still passes task 02's digit/word guard | Confirms `docs/reference/02-price-integrity.md`'s Portuguese magnitude-word check (task 02 E12) actually matters — it protects exactly this path |
 
 ### Locked decisions
 

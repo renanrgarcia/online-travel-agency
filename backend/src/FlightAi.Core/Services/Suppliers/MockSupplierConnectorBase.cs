@@ -6,7 +6,7 @@ namespace FlightAi.Core.Services.Suppliers;
 
 /// <summary>
 /// Shared plumbing for the mock connectors: simulated latency (honouring cancellation) and the
-/// per-connector failure-injection convention. See docs/specs/tasks/05-mock-supplier-connectors.md.
+/// per-connector failure-injection convention. See docs/features/01-backend/tasks/05-mock-supplier-connectors.md.
 /// </summary>
 public abstract class MockSupplierConnectorBase(TimeSpan simulatedDelay) : ISupplierConnector
 {

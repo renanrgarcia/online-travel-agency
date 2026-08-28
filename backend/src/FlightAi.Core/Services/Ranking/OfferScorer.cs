@@ -3,7 +3,7 @@ using FlightAi.Core.Models.Ranking;
 namespace FlightAi.Core.Services.Ranking;
 
 /// <summary>
-/// Deterministic offer ranking. See docs/04-ranking.md for why this is a scoring function and not a
+/// Deterministic offer ranking. See docs/reference/04-ranking.md for why this is a scoring function and not a
 /// model call: ranking must be explainable, reproducible, and fast.
 /// </summary>
 public static class OfferScorer

@@ -1,7 +1,7 @@
 # 03 — Offer scoring
 
 **Roadmap step:** 2. Ranking
-**Source doc:** `docs/04-ranking.md`
+**Source doc:** `docs/reference/04-ranking.md`
 **Depends on:** nothing
 
 ## Goal
@@ -52,7 +52,7 @@ Fixture set for all evals below — three offers, deliberately with no single do
   configures weights, never silently included.
 - **Tie-break:** on equal score, order by offer ID ascending. Arbitrary but deterministic, which is
   what matters.
-- Scoring uses invariant culture throughout (`docs/09-lessons-learned.md`).
+- Scoring uses invariant culture throughout (`docs/reference/09-lessons-learned.md`).
 
 ## Done when
 

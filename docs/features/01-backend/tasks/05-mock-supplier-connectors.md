@@ -1,7 +1,7 @@
 # 05 — Mock supplier connectors
 
 **Roadmap step:** 3. Suppliers
-**Source doc:** `docs/03-suppliers-and-budget.md`
+**Source doc:** `docs/reference/03-suppliers-and-budget.md`
 **Depends on:** 04 (connector interface)
 
 ## Goal
@@ -11,16 +11,16 @@ in task 06, with no supplier credentials and fully reproducible behaviour.
 
 ## Scope
 
-- All three connectors `docs/01-architecture-overview.md` names explicitly: `MockGdsConnector`,
+- All three connectors `docs/reference/01-architecture-overview.md` names explicitly: `MockGdsConnector`,
   `MockNdcConnector`, `MockLccConnector` — an aggregator, a full-service-direct, and a budget-carrier
   shape, returning deterministic, hand-built offers.
-- A deliberate failure-injection convention, mirroring the booking saga's (`docs/07-booking-saga.md`).
+- A deliberate failure-injection convention, mirroring the booking saga's (`docs/reference/07-booking-saga.md`).
 - Configurable artificial latency so task 06's timeout can be tested.
 
 ## Out of scope (comes later)
 
 - Parallel invocation — task 06. Real wire formats — out of scope for the whole system, per
-  `docs/01-architecture-overview.md`.
+  `docs/reference/01-architecture-overview.md`.
 
 ## Evals
 

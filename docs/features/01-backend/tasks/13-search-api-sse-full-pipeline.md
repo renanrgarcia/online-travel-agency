@@ -1,7 +1,7 @@
 # 13 — Search API, full pipeline
 
 **Roadmap step:** 6. API + SSE
-**Source doc:** `docs/06-api-sse-contract.md`
+**Source doc:** `docs/reference/06-api-sse-contract.md`
 **Depends on:** 12, 10, 11
 
 ## Goal
@@ -13,7 +13,7 @@ rather than buffered to the end.
 
 - `parsed-intent` (task 10), `supplier-result` × N (task 06), `ranked-offers` (task 03), `explanation`
   (task 11, rendered through task 02 before it leaves the server).
-- Payload shapes exactly per `docs/06-api-sse-contract.md`.
+- Payload shapes exactly per `docs/reference/06-api-sse-contract.md`.
 
 ## Out of scope
 
@@ -47,7 +47,7 @@ All nine evals pass.
 ## Deployment gate
 
 Task 13 is the first point in the roadmap where there's something real to deploy. See
-[`../deployment.md`](../deployment.md), step 1 (and step 2, once `frontend/` exists to point at it).
+[`../../../deployment.md`](../../../deployment.md), step 1 (and step 2, once `frontend/` exists to point at it).
 
 | ID | Requirement |
 |---|---|

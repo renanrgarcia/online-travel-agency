@@ -1,7 +1,7 @@
 # 17 — Swap in a real model
 
 **Roadmap step:** 7. Real model
-**Source doc:** `docs/05-agents-and-intent.md`, `docs/08-package-versions.md`, `docs/specs/deployment.md`
+**Source doc:** `docs/reference/05-agents-and-intent.md`, `docs/reference/08-package-versions.md`, `docs/deployment.md`
 **Depends on:** 09–11, 13
 
 ## Goal
@@ -12,9 +12,9 @@ genuinely unpredictable text.
 
 ## Scope
 
-- Gemini free tier via the OpenAI-compatible endpoint pattern (`docs/08-package-versions.md`), or
-  Microsoft Foundry via `Azure.AI.Projects` (`docs/05-agents-and-intent.md`). See
-  `docs/specs/deployment.md` for why Gemini is the free choice and Foundry the production one.
+- Gemini free tier via the OpenAI-compatible endpoint pattern (`docs/reference/08-package-versions.md`), or
+  Microsoft Foundry via `Azure.AI.Projects` (`docs/reference/05-agents-and-intent.md`). See
+  `docs/deployment.md` for why Gemini is the free choice and Foundry the production one.
 - Wire it in by **configuration**, not by editing either agent factory.
 
 ## Evals
@@ -43,7 +43,7 @@ E1–E7 pass. E3 is the one that retroactively justifies tasks 01 and 02 having 
 
 ## Deployment gate
 
-See [`../deployment.md`](../deployment.md), step 4.
+See [`../../../deployment.md`](../../../deployment.md), step 4.
 
 | ID | Requirement |
 |---|---|

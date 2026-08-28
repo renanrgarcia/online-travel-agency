@@ -7,7 +7,7 @@ using Xunit;
 namespace FlightAi.Tests;
 
 /// <summary>
-/// One test per eval in docs/specs/tasks/05-mock-supplier-connectors.md.
+/// One test per eval in docs/features/01-backend/tasks/05-mock-supplier-connectors.md.
 /// </summary>
 public class MockSupplierConnectorTests
 {

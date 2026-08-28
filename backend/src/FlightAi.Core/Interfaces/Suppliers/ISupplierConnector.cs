@@ -5,7 +5,7 @@ namespace FlightAi.Core.Interfaces.Suppliers;
 
 /// <summary>
 /// The seam every supplier integration talks through. See
-/// docs/specs/tasks/04-supplier-connector-interface.md.
+/// docs/features/01-backend/tasks/04-supplier-connector-interface.md.
 /// </summary>
 public interface ISupplierConnector
 {

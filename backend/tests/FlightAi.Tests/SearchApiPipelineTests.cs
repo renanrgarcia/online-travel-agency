@@ -13,7 +13,7 @@ using Xunit;
 namespace FlightAi.Tests;
 
 /// <summary>
-/// One test per eval in docs/specs/tasks/13-search-api-sse-full-pipeline.md, against a real HTTP
+/// One test per eval in docs/features/01-backend/tasks/13-search-api-sse-full-pipeline.md, against a real HTTP
 /// request through <see cref="WebApplicationFactory{TEntryPoint}"/> with a custom
 /// <see cref="IChatClient"/> (and, for E2, custom connectors) registered per test -- the same
 /// deterministic mock connectors (task 05) and default scoring weights (task 03) rank LCC-002 first in
@@ -123,7 +123,7 @@ public class SearchApiPipelineTests(WebApplicationFactory<Program> factory) : IC
         var payload = JsonSerializer.Deserialize<JsonElement>(events.Single(e => e.EventType == "explanation").Data);
 
         // "raw" legitimately still contains "{{" -- it's the model's literal pre-render output, kept
-        // for a debug view (docs/06-api-sse-contract.md). Only "text" -- what a browser shows -- must
+        // for a debug view (docs/reference/06-api-sse-contract.md). Only "text" -- what a browser shows -- must
         // be clean of both.
         Assert.Contains("$590.00", payload.GetProperty("text").GetString());
         Assert.DoesNotContain("{{", payload.GetProperty("text").GetString());

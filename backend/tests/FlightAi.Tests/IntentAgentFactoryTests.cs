@@ -7,7 +7,7 @@ using Xunit;
 namespace FlightAi.Tests;
 
 /// <summary>
-/// One test per eval in docs/specs/tasks/10-intent-agent.md, against an <see cref="OfflineChatClient"/>
+/// One test per eval in docs/features/01-backend/tasks/10-intent-agent.md, against an <see cref="OfflineChatClient"/>
 /// registered with canned JSON responses. RunAsync&lt;T&gt;'s actual deserialization behavior (a
 /// missing field leaves the string null rather than throwing; invalid JSON throws
 /// System.Text.Json.JsonException) was verified empirically before writing these tests, not assumed.
@@ -87,7 +87,7 @@ public class IntentAgentFactoryTests
         Assert.Contains("past", result.FailureReason, StringComparison.OrdinalIgnoreCase);
     }
 
-    [Fact] // E6 — the boundary claim from docs/01-architecture-overview.md, made testable
+    [Fact] // E6 — the boundary claim from docs/reference/01-architecture-overview.md, made testable
     public async Task E6_SuccessfulResult_IsTheTypedSearchRequestWithNoFreeTextFieldAnywhere()
     {
         var result = await NewAgent().ParseAsync(EnglishQuery);

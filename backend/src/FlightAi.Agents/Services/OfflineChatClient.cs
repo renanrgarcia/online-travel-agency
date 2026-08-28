@@ -4,7 +4,7 @@ namespace FlightAi.Agents.Services;
 
 /// <summary>
 /// A deterministic stand-in for a real model-backed <see cref="IChatClient"/>, so the whole pipeline
-/// runs with <c>dotnet run</c> and no API key. See docs/specs/tasks/09-offline-chat-client.md.
+/// runs with <c>dotnet run</c> and no API key. See docs/features/01-backend/tasks/09-offline-chat-client.md.
 /// <para>
 /// Responses are keyed by simple substring matching against the last user message — nothing cleverer,
 /// so tasks 10-11 can assert on exact output. Register every prompt a test needs with
