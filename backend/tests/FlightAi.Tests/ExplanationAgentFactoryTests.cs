@@ -8,8 +8,8 @@ using Xunit;
 namespace FlightAi.Tests;
 
 /// <summary>
-/// One test per eval in docs/specs/tasks/11-explanation-agent.md. Read together with
-/// ExplanationPlaceholderRendererTests as one unit, per docs/02-price-integrity.md.
+/// One test per eval in docs/features/01-backend/tasks/11-explanation-agent.md. Read together with
+/// ExplanationPlaceholderRendererTests as one unit, per docs/reference/02-price-integrity.md.
 /// </summary>
 public class ExplanationAgentFactoryTests
 {

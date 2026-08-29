@@ -4,7 +4,7 @@ namespace FlightAi.Core.Models.Offers;
 /// The canonical offer model. Carries exactly what <c>OfferScorer</c> (task 03) reads and
 /// <c>PriceReferenceStore</c> (task 01) registers, plus <see cref="ExpiresAt"/> — the point past which
 /// this quoted price can no longer be trusted to still be bookable. See
-/// docs/specs/tasks/04-supplier-connector-interface.md.
+/// docs/features/01-backend/tasks/04-supplier-connector-interface.md.
 /// </summary>
 public sealed record Offer(
     string OfferId,

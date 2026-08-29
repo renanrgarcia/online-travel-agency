@@ -4,12 +4,12 @@ namespace FlightAi.Core.Models.Suppliers;
 /// One connector's operating parameters: timeout, look-to-book budget, and circuit-breaker
 /// thresholds — all required. Real suppliers carry genuinely different commercial terms; an earlier
 /// version of this system shared one timeout/budget/breaker across every connector, which
-/// contradicted docs/03-suppliers-and-budget.md's own description of the budget as "per-session,
+/// contradicted docs/reference/03-suppliers-and-budget.md's own description of the budget as "per-session,
 /// per-supplier." A second version made budget and breaker optional per connector, which reopened the
 /// same risk in a different shape: a connector with no budget configured ran unmetered, silently,
-/// which is exactly the "contractual and financial incident" docs/03-suppliers-and-budget.md warns
+/// which is exactly the "contractual and financial incident" docs/reference/03-suppliers-and-budget.md warns
 /// about. A policy that can be silently absent isn't a policy. See
-/// docs/specs/tasks/07-look-to-book-budget-and-circuit-breaker.md.
+/// docs/features/01-backend/tasks/07-look-to-book-budget-and-circuit-breaker.md.
 /// </summary>
 public sealed record SupplierPolicy(
     TimeSpan Timeout,

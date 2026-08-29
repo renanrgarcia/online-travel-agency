@@ -7,7 +7,7 @@ namespace FlightAi.Core.Services.Suppliers;
 /// stops than NDC's direct-carrier channel), priced and margined between the NDC and LCC extremes.
 /// Returns the canonical <see cref="Offer"/> directly; it exists to prove the fan-out orchestrator's
 /// contract (task 06), not to parse a real Amadeus/Sabre wire format — see
-/// docs/01-architecture-overview.md, which names all three mock connectors explicitly.
+/// docs/reference/01-architecture-overview.md, which names all three mock connectors explicitly.
 /// </summary>
 public sealed class MockGdsConnector(TimeSpan? simulatedDelay = null)
     : MockSupplierConnectorBase(simulatedDelay ?? TimeSpan.Zero)

@@ -4,8 +4,8 @@ using Xunit;
 namespace FlightAi.Tests;
 
 /// <summary>
-/// One test per eval in docs/specs/tasks/02-explanation-placeholder-renderer.md. Read together with
-/// PriceReferenceStoreTests as one unit, per docs/02-price-integrity.md.
+/// One test per eval in docs/features/01-backend/tasks/02-explanation-placeholder-renderer.md. Read together with
+/// PriceReferenceStoreTests as one unit, per docs/reference/02-price-integrity.md.
 /// </summary>
 public class ExplanationPlaceholderRendererTests
 {

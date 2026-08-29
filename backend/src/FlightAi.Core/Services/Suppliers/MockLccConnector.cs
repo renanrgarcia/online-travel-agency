@@ -6,7 +6,7 @@ namespace FlightAi.Core.Services.Suppliers;
 /// A deterministic LCC-style mock connector — budget-carrier shape: more stops, lower margin, lower
 /// price. Returns the canonical <see cref="Offer"/> directly; it exists to prove the fan-out
 /// orchestrator's contract (task 06), not to parse a real LCC wire format — see
-/// docs/01-architecture-overview.md.
+/// docs/reference/01-architecture-overview.md.
 /// </summary>
 public sealed class MockLccConnector(TimeSpan? simulatedDelay = null)
     : MockSupplierConnectorBase(simulatedDelay ?? TimeSpan.Zero)

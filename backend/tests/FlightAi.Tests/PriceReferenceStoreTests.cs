@@ -5,13 +5,13 @@ using Xunit;
 namespace FlightAi.Tests;
 
 /// <summary>
-/// One test per eval in docs/specs/tasks/01-price-reference-tokens.md. Test names carry the eval ID
+/// One test per eval in docs/features/01-backend/tasks/01-price-reference-tokens.md. Test names carry the eval ID
 /// so a failure points straight at the acceptance criterion it violates. Expected values come from
 /// that task note, which was written before this code existed — not from what the code happens to do.
 /// </summary>
 public class PriceReferenceStoreTests
 {
-    [Fact] // E1 — token spelling is fixed by docs/02-price-integrity.md
+    [Fact] // E1 — token spelling is fixed by docs/reference/02-price-integrity.md
     public void E1_RegisterPrice_ReturnsTheDocumentedTokenSpelling()
     {
         var store = new PriceReferenceStore();

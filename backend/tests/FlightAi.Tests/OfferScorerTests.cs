@@ -5,7 +5,7 @@ using Xunit;
 namespace FlightAi.Tests;
 
 /// <summary>
-/// One test per eval in docs/specs/tasks/03-offer-scoring.md, against that task's fixed fixture set.
+/// One test per eval in docs/features/01-backend/tasks/03-offer-scoring.md, against that task's fixed fixture set.
 /// </summary>
 public class OfferScorerTests
 {

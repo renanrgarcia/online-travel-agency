@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using FlightAi.Core.Interfaces.Suppliers;
 using FlightAi.Core.Models.Offers;
 using FlightAi.Core.Models.Suppliers;
@@ -7,7 +8,7 @@ namespace FlightAi.Core.Services.Suppliers;
 /// <summary>
 /// Calls every registered connector concurrently, bounds each one with its own timeout, and degrades
 /// to partial results instead of failing the whole search. See
-/// docs/specs/tasks/06-supplier-fan-out-orchestrator.md.
+/// docs/features/01-backend/tasks/06-supplier-fan-out-orchestrator.md.
 /// <para>
 /// Every connector's timeout, look-to-book budget, and circuit breaker come from
 /// <paramref name="policies"/> — keyed by <see cref="ISupplierConnector.Name"/>, one
@@ -15,8 +16,8 @@ namespace FlightAi.Core.Services.Suppliers;
 /// different commercial terms; earlier versions of this orchestrator shared one
 /// timeout/budget/breaker across every connector, and a later version made budget/breaker optional
 /// per connector — both under-modelled the reality that a missing budget is a real financial risk,
-/// per docs/03-suppliers-and-budget.md. Every connector gets a real, non-optional budget and breaker
-/// now; see docs/specs/tasks/07-look-to-book-budget-and-circuit-breaker.md.
+/// per docs/reference/03-suppliers-and-budget.md. Every connector gets a real, non-optional budget and breaker
+/// now; see docs/features/01-backend/tasks/07-look-to-book-budget-and-circuit-breaker.md.
 /// </para>
 /// </summary>
 public sealed class SupplierFanOutOrchestrator
@@ -42,7 +43,16 @@ public sealed class SupplierFanOutOrchestrator
         }
     }
 
-    public async Task<FanOutResult> SearchAsync(SearchRequest request, CancellationToken cancellationToken)
+    /// <summary>
+    /// Yields each connector's outcome as it actually finishes, not in registration order — the
+    /// mechanism task 13's SSE endpoint needs to emit one <c>supplier-result</c> event per connector as
+    /// each really completes, rather than batched at the end. Completion order is not reproducible run
+    /// to run (it depends on real timing), so a caller that needs a stable, reproducible input for
+    /// ranking (task 03) must sort the merged offers itself once streaming completes — see
+    /// <c>SearchPipeline.RunAsync</c>, the one production consumer of this method.
+    /// </summary>
+    public async IAsyncEnumerable<(IReadOnlyList<Offer> Offers, SupplierReport Report)> SearchStreamingAsync(
+        SearchRequest request, [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         // Materialised before awaiting so every connector is genuinely in flight at once; awaiting
         // inside the projection would run them one after another.
@@ -50,16 +60,8 @@ public sealed class SupplierFanOutOrchestrator
             .Select(connector => InvokeAsync(connector, request, cancellationToken))
             .ToList();
 
-        var outcomes = await Task.WhenAll(invocations);
-
-        // Task.WhenAll preserves input order, so this is connector registration order; offers within
-        // one connector are ordered by ID. Both halves matter -- task 03's ranking has to receive a
-        // stable input for task 08's output to be reproducible.
-        var offers = outcomes
-            .SelectMany(outcome => outcome.Offers.OrderBy(offer => offer.OfferId, StringComparer.Ordinal))
-            .ToList();
-
-        return new FanOutResult(offers, [.. outcomes.Select(outcome => outcome.Report)]);
+        await foreach (var completed in Task.WhenEach(invocations))
+            yield return await completed;
     }
 
     private async Task<(IReadOnlyList<Offer> Offers, SupplierReport Report)> InvokeAsync(

@@ -4,7 +4,7 @@ using FlightAi.Core.Models.Pricing;
 namespace FlightAi.Core.Services.Pricing;
 
 /// <summary>
-/// The only code allowed to turn a price-reference token into a digit. See docs/02-price-integrity.md.
+/// The only code allowed to turn a price-reference token into a digit. See docs/reference/02-price-integrity.md.
 /// Resolves every token via <see cref="PriceReferenceStore"/>, and rejects raw text where the model
 /// wrote a number itself — as a digit or spelled out — instead of referencing a token. The digit/word
 /// scan runs on the model's raw input, before any resolution, since resolution itself legitimately

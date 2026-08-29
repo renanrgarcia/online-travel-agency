@@ -1,33 +1,38 @@
 # docs
 
-The standalone spec for a .NET 10 + React reference implementation of an AI-assisted flight search and
-booking system. This folder is self-contained — it doesn't reference or depend on any external
-document. It exists so the design decisions behind the implementation survive independently of the
-code itself.
+The standalone spec for an AI-assisted flight search and booking system. This folder is
+self-contained — it doesn't reference or depend on any external document. It exists so the design
+decisions behind the implementation survive independently of the code itself.
 
-## Reading order, if rebuilding from scratch
+It's split three ways, by the question each part answers:
 
-1. **`01-architecture-overview.md`** — the projects, how they relate, the three ways to run the system.
-2. **`02-price-integrity.md`** — the single most important design decision: how the system guarantees a
-   language model can never author a number a user sees.
-3. **`03-suppliers-and-budget.md`** — the supplier adapter interface, parallel fan-out, the look-to-book
-   budget, and the circuit breaker.
-4. **`04-ranking.md`** — why ranking is a deterministic scoring function, not a model call.
-5. **`05-agents-and-intent.md`** — the two AI touchpoints, and how to swap the offline mock for a real
-   model.
-6. **`06-api-sse-contract.md`** — the search API's Server-Sent Events contract.
-7. **`07-booking-saga.md`** — the Durable Functions booking saga: steps, compensation, idempotency.
-8. **`08-package-versions.md`** — verified package versions and API surfaces, so you don't have to
-   rediscover them by trial and error.
-9. **`09-lessons-learned.md`** — four real bugs found while building this, and the general pattern
-   behind them.
+| Folder | Answers | Read it when |
+|---|---|---|
+| [`reference/`](reference/README.md) | *How does the system work?* | Understanding what exists, or rebuilding a piece |
+| [`features/`](features/README.md) | *What do I build next, and how do I know it's right?* | Implementing — each feature carries scoped tasks with evals |
+| [`deployment.md`](deployment.md) | *How does this reach Azure, at what cost?* | Deploying any part of it |
 
-Each doc names the specific source files it describes, so once you're rebuilding, you can go
-file-by-file against a doc rather than trying to hold the whole system in your head at once.
+## reference/ — the system as designed
 
-## Rebuilding step by step
+Nine documents, in reading order, each naming the source files it describes. This is the layer that
+explains *why* — why ranking isn't a model call, why a token vocabulary exists, why the booking flow
+is a saga. Start at [`reference/01-architecture-overview.md`](reference/01-architecture-overview.md).
 
-**`specs/`** reorders this same material into build order instead of reading order:
-[`specs/macro-scenario.md`](specs/macro-scenario.md) lays out an 8-step implementation roadmap, and
-[`specs/tasks/`](specs/tasks/README.md) breaks it into 17 individually scoped, testable tasks — start at
-`specs/tasks/01`.
+## features/ — the build spec, per feature
+
+The same material reordered into *build* order and split by feature. Each feature folder has a
+README (its roadmap) and a `tasks/` folder of individually scoped, testable cards, every one carrying
+an **Evals** table written before the implementation exists.
+
+- [`features/01-backend/`](features/01-backend/README.md) — .NET 10: deterministic core, AI edges,
+  streaming API, booking saga.
+- [`features/02-frontend/`](features/02-frontend/README.md) — React + TypeScript: the chat interface
+  that makes the backend's streamed pipeline something a traveller can actually use.
+
+Features are numbered in the order they were specified, not a strict dependency order — the frontend
+depends on the backend's API contract, but the two can be built in parallel once that contract exists.
+
+## deployment.md — Azure, end to end
+
+Target topology, free-tier constraints, and the deployment order. Individual tasks carry
+**Deployment gate** sections with the acceptance criteria for the step they unlock.

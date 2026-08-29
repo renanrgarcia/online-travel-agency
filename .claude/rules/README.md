@@ -4,7 +4,7 @@ Binding C# conventions for every implementation in this repository — not sugge
 convenient." Live under `.claude/` — Claude Code's own config directory — rather than under `docs/`,
 since this is an instruction to Claude specifically, not project domain spec; referenced from the
 repo-root `CLAUDE.md`, which is what's actually auto-loaded every session. See
-[`../../docs/specs/tasks/`](../../docs/specs/tasks/README.md) for the task-by-task build spec these
+[`../../docs/features/01-backend/tasks/`](../../docs/features/01-backend/tasks/README.md) for the task-by-task build spec these
 rules apply to.
 
 Each rule names what to do, a short why, and points at the real file in `backend/` that demonstrates it

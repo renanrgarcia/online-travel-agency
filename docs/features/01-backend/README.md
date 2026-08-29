@@ -1,0 +1,103 @@
+# Feature 01 — backend
+
+.NET 10. The deterministic core, the two AI edges, the streaming search API, and the Durable
+Functions booking saga.
+
+[`../../reference/`](../../reference/README.md) documents this system in *reading* order:
+architecture first, then the invariant that constrains everything else, then outward to suppliers,
+ranking, AI, the API, and the booking saga. That's the right order to understand the system. It is not
+the right order to *build* it.
+
+This roadmap reorders the same material into *build* order: the pieces with zero external dependencies
+first, so each step can be verified with `dotnet test` alone before the next step adds a new kind of
+complexity (async fan-out, then AI, then a web server, then Azure Functions). Each step points at the
+`reference/0N-*.md` file that is its source of truth, and is broken into individual cards in
+[`tasks/`](tasks/README.md).
+
+## 1. Price integrity core
+
+**Source:** `reference/02-price-integrity.md` · **Tasks:** 01, 02
+
+`PriceReferenceStore` + `ExplanationPlaceholderRenderer`. Pure C#, no I/O. This is the one invariant
+everything else depends on — a language model must never author a digit the traveller sees — so getting
+it right first means every later piece can lean on it instead of re-deriving trust boundaries.
+
+## 2. Ranking
+
+**Source:** `reference/04-ranking.md` · **Tasks:** 03
+
+`OfferScorer` + `ScoringWeights`. Also pure and deterministic, trivially testable. A good second step
+because it's conceptually simple but teaches the "why isn't this just a model call" reasoning that
+recurs throughout the system.
+
+## 3. Suppliers
+
+**Source:** `reference/03-suppliers-and-budget.md` · **Tasks:** 04, 05, 06, 07
+
+`ISupplierConnector`, mock connectors, `SupplierFanOutOrchestrator`, `LookToBookBudget`,
+`SupplierCircuitBreaker`. First taste of async/parallel fan-out and failure handling, still with no real
+external dependency since the connectors are mocked.
+
+## 4. AI layer, offline first
+
+**Source:** `reference/05-agents-and-intent.md` · **Tasks:** 09, 10, 11
+
+`IntentAgentFactory`, `ExplanationAgentFactory`, backed by `OfflineChatClient`. Still zero API keys;
+validates the agent plumbing against the price-integrity boundary from step 1 before any real model is
+involved.
+
+## 5. API + SSE
+
+**Source:** `reference/06-api-sse-contract.md` · **Tasks:** 12, 13
+
+First real ASP.NET Core surface, streaming the pipeline's stages to a client via Server-Sent Events.
+The first deployable thing in the whole roadmap.
+
+## 6. Decision support
+
+**Source:** `reference/02-price-integrity.md`, `reference/04-ranking.md` · **Tasks:** 18
+
+Ranking answers *which offer is best*. This step answers *why, compared to what* — deterministic
+comparison facts (deltas, superlatives) the explanation agent can state without inventing any of them.
+This is where the product stops listing offers and starts helping someone choose, and it extends the
+step-1 invariant from "a model may never author a number" to "a model may never author a comparison
+either."
+
+## 7. Booking saga
+
+**Source:** `reference/07-booking-saga.md` · **Tasks:** 14, 15, 16
+
+The most infrastructure-heavy step — Azurite, Durable Functions, Azure Functions Core Tools — so it's
+worth saving for when the rest of the system is stable and you're not debugging two unfamiliar things at
+the same time.
+
+## 8. Safe to expose
+
+**Source:** `../../deployment.md` · **Tasks:** 19, 20, 21
+
+Everything above works on localhost with a trusted caller. This step covers what changes when a browser
+on another origin calls it, and when the endpoint is reachable by anyone: CORS, rate limiting, and
+server-side price verification at booking time. Task 21 in particular closes a hole the rest of the
+system's own thesis implies — the model can't author a price, but until 21 lands, *the browser can*.
+
+## 9. Swap in a real model
+
+**Source:** `reference/05-agents-and-intent.md`, `reference/08-package-versions.md` · **Tasks:** 17
+
+Gemini's free tier or the Microsoft Foundry pattern, once the offline path works end to end. Task 17's
+20-run stress test is the real payoff of steps 1 and 6 — which is why both should land before it.
+
+## 10. Infrastructure completion
+
+**Source:** `../../deployment.md` · **Tasks:** 22
+
+Bicep and CI/CD already cover the App Service. This step extends both to the Functions app so every
+deployed piece is reproducible from source rather than clicked together in the portal.
+
+---
+
+`reference/09-lessons-learned.md` is worth (re-)reading right before steps 5 and 7 specifically — three
+of the four documented bugs live there, and they're cheaper to avoid than to rediscover.
+
+Deployment is covered in [`../../deployment.md`](../../deployment.md) — Azure end to end on free tiers.
+Nothing is deployable until step 5, so read it then rather than now.

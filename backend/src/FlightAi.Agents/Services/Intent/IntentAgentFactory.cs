@@ -8,8 +8,8 @@ namespace FlightAi.Agents.Services.Intent;
 
 /// <summary>
 /// Builds the intent-parsing agent: natural language in, a typed, schema-validated
-/// <see cref="SearchRequest"/> out. See docs/05-agents-and-intent.md and
-/// docs/specs/tasks/10-intent-agent.md.
+/// <see cref="SearchRequest"/> out. See docs/reference/05-agents-and-intent.md and
+/// docs/features/01-backend/tasks/10-intent-agent.md.
 /// </summary>
 public static class IntentAgentFactory
 {

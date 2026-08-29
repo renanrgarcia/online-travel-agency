@@ -23,7 +23,7 @@ public enum SupplierOutcome
 
 /// <summary>
 /// Every state a supplier search can end in, representable without throwing or returning null. See
-/// docs/specs/tasks/04-supplier-connector-interface.md. Construct via the factory methods, never the
+/// docs/features/01-backend/tasks/04-supplier-connector-interface.md. Construct via the factory methods, never the
 /// primary constructor directly, so the invariants per <see cref="SupplierOutcome"/> value hold.
 /// </summary>
 public sealed record SupplierSearchResult(SupplierOutcome Outcome, IReadOnlyList<Offer> Offers, string? FailureReason)
