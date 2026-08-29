@@ -2,6 +2,7 @@
   <Folder Name="/src/">
     <Project Path="src/FlightAi.Agents/FlightAi.Agents.csproj" />
     <Project Path="src/FlightAi.Api/FlightAi.Api.csproj" />
+    <Project Path="src/FlightAi.Booking.Functions/FlightAi.Booking.Functions.csproj" />
     <Project Path="src/FlightAi.Core/FlightAi.Core.csproj" />
   </Folder>
   <Folder Name="/tests/">

@@ -9,3 +9,10 @@ dist/
 # never something to commit.
 backend/publish/
 backend/*.zip
+
+# Azurite's own local state -- created wherever `azurite` is run from when no --location is given.
+# Regenerated fresh every run; never something to commit, and safe to delete any time Azurite isn't running.
+__blobstorage__/
+__queuestorage__/
+__azurite_db_*__.json
+AzuriteConfig
