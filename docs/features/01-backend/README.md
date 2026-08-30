@@ -87,14 +87,10 @@ system's own thesis implies — the model can't author a price, but until 21 lan
 Gemini's free tier or the Microsoft Foundry pattern, once the offline path works end to end. Task 17's
 20-run stress test is the real payoff of steps 1 and 6 — which is why both should land before it.
 
-## 10. Infrastructure completion
-
-**Source:** `../../deployment.md` · **Tasks:** 22
-
-Bicep and CI/CD already cover the App Service. This step extends both to the Functions app so every
-deployed piece is reproducible from source rather than clicked together in the portal.
-
 ---
+
+Infrastructure for the Functions app (Bicep + CI/CD, extending what already covers the App Service) is
+now its own feature — see [`../03-infra/`](../03-infra/README.md), task 01, originally numbered 22 here.
 
 `reference/09-lessons-learned.md` is worth (re-)reading right before steps 5 and 7 specifically — three
 of the four documented bugs live there, and they're cheaper to avoid than to rediscover.

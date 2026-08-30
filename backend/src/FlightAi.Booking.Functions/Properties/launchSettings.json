@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "FlightAi_Booking_Functions": {
+      "commandName": "Project",
+      "commandLineArgs": "--port 7297",
+      "launchBrowser": false
+    }
+  }
+}

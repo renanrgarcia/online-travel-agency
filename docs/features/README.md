@@ -8,6 +8,7 @@ this folder is what you actually work through.
 |---|---|---|
 | [01 — backend](01-backend/README.md) | .NET 10. Deterministic core, the two AI edges, the streaming search API, the Durable Functions booking saga. | [`01-backend/tasks/`](01-backend/tasks/README.md) |
 | [02 — frontend](02-frontend/README.md) | React + TypeScript + Vite. A chat interface over the backend's SSE search stream and booking saga. | [`02-frontend/tasks/`](02-frontend/tasks/README.md) |
+| [03 — infra](03-infra/README.md) | Bicep + GitHub Actions for the pieces of the system that don't yet have either: the Booking Functions app and the frontend's Static Web App. | [`03-infra/tasks/`](03-infra/tasks/README.md) |
 
 ## The eval discipline
 
@@ -24,7 +25,7 @@ Each task also has a **Locked decisions** section recording choices the source d
 disagree with a locked decision, change it in the task card first, then let the failing test drive the
 code change.
 
-## How the two features relate
+## How the features relate
 
 The frontend depends on one thing from the backend: the SSE contract in
 [`../reference/06-api-sse-contract.md`](../reference/06-api-sse-contract.md), plus the booking saga's
@@ -35,3 +36,8 @@ features rather than one long list.
 Nothing about the backend depends on the frontend existing. The frontend is what makes the backend's
 per-stage streaming *visible*: without it, the `parsed-intent`, `supplier-result`, and `ranked-offers`
 events are only ever observed by `curl` and the test suite.
+
+Infra depends on both, but not on either being *finished* — each of its two tasks only needs the one
+piece of application code its own Bicep module targets (see [`03-infra/README.md`](03-infra/README.md)),
+so infrastructure can be authored and validated ahead of the application code it will eventually deploy,
+rather than waiting on it.

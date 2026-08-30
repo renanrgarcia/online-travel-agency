@@ -30,14 +30,18 @@ The eval discipline these cards follow is described once, in
 | [20](20-rate-limiting-and-quota-protection.md) | Rate limiting and quota protection | 8. Safe to expose |
 | [21](21-server-authoritative-offer-prices.md) | Server-authoritative offer prices | 8. Safe to expose |
 | [17](17-swap-in-real-model.md) | Swap in a real model | 9. Real model |
-| [22](22-functions-infrastructure-and-cicd.md) | Functions infrastructure and CI/CD | 10. Infrastructure completion |
+
+Functions infrastructure (Bicep + CI/CD) was originally task 22 here; it's now
+[`../../03-infra/tasks/01-functions-infrastructure-and-cicd.md`](../../03-infra/tasks/01-functions-infrastructure-and-cicd.md)
+— moved once it became clear provisioning Azure resources is a different kind of work from application
+code, not specific to this feature. Depends on task 16 above.
 
 ## Numbering vs. build order
 
-The table is in **build order**; the numbers are in the order the tasks were *written*. Tasks 18–22 were
-specified after 01–17 already existed, and renumbering to close the gap would have invalidated every
-task reference already embedded in code comments and test names — the same reasoning that left the 08
-gap alone.
+The table is in **build order**; the numbers are in the order the tasks were *written*. Tasks 18–21 were
+specified after 01–17 already existed (task 22 also was, before it moved to `03-infra`), and renumbering
+to close the gaps would have invalidated every task reference already embedded in code comments and test
+names — the same reasoning that left the 08 gap alone.
 
 Two orderings matter and aren't implied by the numbers:
 

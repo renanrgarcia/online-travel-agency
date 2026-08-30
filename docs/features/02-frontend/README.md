@@ -59,9 +59,8 @@ bilingual requirement the target market implies.
 
 ### 5. Deployment
 
-**Tasks:** 08
-
-Azure Static Web Apps, under the same Bicep and CI/CD treatment as the backend.
+Azure Static Web Apps, under the same Bicep and CI/CD treatment as the backend — now its own feature,
+see [`../03-infra/`](../03-infra/README.md), task 02, originally numbered F08 here.
 
 ## Dependencies on feature 01
 
