@@ -13,7 +13,11 @@ feature's roadmap. The eval discipline these cards follow is described once, in
 | [05](05-the-booking-turn.md) | The booking turn | 3. The booking turn |
 | [06](06-degraded-states.md) | Degraded states | 4. Honesty and reach |
 | [07](07-bilingual-ui.md) | Bilingual UI | 4. Honesty and reach |
-| [08](08-static-web-apps-deployment.md) | Static Web Apps deployment | 5. Deployment |
+
+Static Web Apps deployment was originally task 08 here; it's now
+[`../../03-infra/tasks/02-static-web-apps-deployment.md`](../../03-infra/tasks/02-static-web-apps-deployment.md)
+— moved once it became clear provisioning Azure resources is a different kind of work from application
+code, not specific to this feature. Depends on task 03 above (at minimum) and backend task 19.
 
 ## Testing these
 
