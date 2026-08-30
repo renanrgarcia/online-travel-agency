@@ -54,3 +54,33 @@ jobs:
           app-name: flightai-api-dev
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
           package: ./publish
+
+  # Separate job, not a step in `deploy` above -- both only need build-and-test, neither depends on the
+  # other, so they run in parallel and a failure in one doesn't block or hide the other's result.
+  deploy-functions:
+    needs: build-and-test
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Publish
+        run: >
+          dotnet publish backend/src/FlightAi.Booking.Functions/FlightAi.Booking.Functions.csproj
+          --configuration Release
+          --output ./publish-functions
+
+      # Fill in `app-name` with the Function App name from infra/main.bicepparam's environmentName
+      # (flightai-booking-<environmentName>) once it's actually deployed. AZURE_FUNCTIONAPP_PUBLISH_PROFILE
+      # is a separate repo secret from the Web App's -- the Function App is a different resource with its
+      # own publish profile, downloadable from its own Overview blade once it exists.
+      - name: Deploy to Azure Functions
+        uses: Azure/functions-action@v1
+        with:
+          app-name: flightai-booking-dev
+          publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
+          package: ./publish-functions
