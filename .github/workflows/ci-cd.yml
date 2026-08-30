@@ -25,6 +25,32 @@ jobs:
       - name: Test
         run: dotnet test backend/FlightAi.slnx --no-build --configuration Release
 
+  # Separate from build-and-test above (different toolchain, different working directory) -- its own
+  # name so branch protection can require it independently, same reasoning as splitting deploy from
+  # deploy-functions below.
+  build-and-test-frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "lts/*"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Test
+        run: npm test
+
   # Only fires on a push to main -- develop and PR runs stop at build-and-test. Nothing lands on main
   # without build-and-test having already passed on it, since branch protection requires that check.
   deploy:
@@ -84,3 +110,33 @@ jobs:
           app-name: flightai-booking-dev
           publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
           package: ./publish-functions
+
+  # Depends on build-and-test-frontend specifically, not the backend build-and-test -- same
+  # one-CI-job-feeds-one-deploy-job pattern as deploy/deploy-functions above.
+  deploy-frontend:
+    needs: build-and-test-frontend
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # The Azure/static-web-apps-deploy action builds internally (Oryx), given app_location and
+      # output_location -- no separate npm ci/build step needed here, unlike the backend jobs' explicit
+      # dotnet publish. VITE_API_BASE_URL is Vite's build-time env var convention: frontend code reads it
+      # via `import.meta.env.VITE_API_BASE_URL` (task F03's integration point, not yet implemented --
+      # this is where that code picks up the deployed API's URL once it exists).
+      #
+      # Fill in azure_static_web_apps_api_token with a repo secret once the Static Web App is deployed --
+      # NOT a publish profile like the other two jobs. Static Web Apps authenticates deployments with its
+      # own dedicated deployment token, retrieved with:
+      #   az staticwebapp secrets list --name flightai-web-dev --resource-group rg-flightai-dev --query properties.apiKey -o tsv
+      - name: Deploy to Azure Static Web Apps
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          action: "upload"
+          app_location: "frontend"
+          output_location: "dist"
+        env:
+          VITE_API_BASE_URL: https://flightai-api-dev.azurewebsites.net
