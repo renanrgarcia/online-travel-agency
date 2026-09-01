@@ -38,13 +38,3 @@ export type Turn = UserTurn | AssistantTurn
 export function emptyStages(): AssistantStages {
   return { supplierResults: [] }
 }
-
-/** True once any stage has content — i.e. the turn has something to render beyond its pending state. */
-export function hasAnyStage(stages: AssistantStages): boolean {
-  return (
-    stages.parsedIntent !== undefined ||
-    stages.supplierResults.length > 0 ||
-    stages.rankedOffers !== undefined ||
-    stages.explanation !== undefined
-  )
-}

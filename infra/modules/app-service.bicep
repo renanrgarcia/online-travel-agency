@@ -44,5 +44,22 @@ resource webApp 'Microsoft.Web/sites@2023-12-01' = {
   }
 }
 
+// Filesystem app logging (free, capped, self-rotating) rather than Application Insights (task 23):
+// this is a free-tier reference project, and a new resource plus a package dependency isn't worth it
+// just to durably capture the handful of unhandled-exception logs UseExceptionHandler now produces.
+// Declared here so it survives a redeploy -- previously only set by hand via `az webapp log config`,
+// which does not persist through IaC.
+resource webAppLogs 'Microsoft.Web/sites/config@2023-12-01' = {
+  parent: webApp
+  name: 'logs'
+  properties: {
+    applicationLogs: {
+      fileSystem: {
+        level: 'Warning'
+      }
+    }
+  }
+}
+
 output webAppDefaultHostName string = webApp.properties.defaultHostName
 output webAppName string = webApp.name
