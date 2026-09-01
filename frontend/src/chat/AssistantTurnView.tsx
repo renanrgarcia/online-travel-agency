@@ -1,6 +1,17 @@
 import { useLanguage } from '../i18n/LanguageProvider'
-import type { AssistantTurn } from './types'
-import { hasAnyStage } from './types'
+import type { AssistantStages, AssistantTurn } from './types'
+import type { Strings } from '../i18n/strings'
+
+/**
+ * Names the stage still outstanding, not just "still working" — a slow explanation call is otherwise
+ * indistinguishable from a hung page (F03 E3). Order matches the contract: intent, then offers
+ * (supplier results are a sub-step of this one, not their own wait state), then explanation.
+ */
+function pendingLabel(stages: AssistantStages, strings: Strings): string {
+  if (!stages.parsedIntent) return strings.searching
+  if (!stages.rankedOffers) return strings.waitingForOffers
+  return strings.waitingForExplanation
+}
 
 /**
  * One assistant turn, rendering only the stages that have actually arrived.
@@ -71,7 +82,7 @@ export function AssistantTurnView({ turn }: { turn: AssistantTurn }) {
 
       {status === 'streaming' && (
         <p className="turn__pending" role="status">
-          {hasAnyStage(stages) ? strings.stillSearching : strings.searching}
+          {pendingLabel(stages, strings)}
         </p>
       )}
 

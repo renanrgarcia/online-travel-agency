@@ -29,9 +29,11 @@ export interface Strings {
   stageOffers: string
   stageWhy: string
   searching: string
-  stillSearching: string
+  waitingForOffers: string
+  waitingForExplanation: string
   traveller: string
   travellers: string
+  connectionLost: string
 }
 
 const en: Strings = {
@@ -53,10 +55,12 @@ const en: Strings = {
   stageSuppliers: 'Suppliers',
   stageOffers: 'Offers',
   stageWhy: 'Why',
-  searching: 'Searching…',
-  stillSearching: 'Still searching…',
+  searching: 'Understanding your search…',
+  waitingForOffers: 'Checking suppliers…',
+  waitingForExplanation: 'Writing an explanation…',
   traveller: 'traveller',
   travellers: 'travellers',
+  connectionLost: 'Connection lost. Try your search again.',
 }
 
 const ptBR: Strings = {
@@ -78,10 +82,12 @@ const ptBR: Strings = {
   stageSuppliers: 'Fornecedores',
   stageOffers: 'Ofertas',
   stageWhy: 'Por quê',
-  searching: 'Buscando…',
-  stillSearching: 'Ainda buscando…',
+  searching: 'Entendendo sua busca…',
+  waitingForOffers: 'Consultando fornecedores…',
+  waitingForExplanation: 'Escrevendo uma explicação…',
   traveller: 'passageiro',
   travellers: 'passageiros',
+  connectionLost: 'Conexão perdida. Tente sua busca novamente.',
 }
 
 export const STRINGS: Record<Language, Strings> = { en, 'pt-BR': ptBR }

@@ -1,16 +1,12 @@
 import { ChatView } from './chat/ChatView'
-import { useChat } from './chat/useChat'
+import { useSearchChat } from './chat/useSearchChat'
 import { LanguageProvider } from './i18n/LanguageProvider'
 import { LanguageToggle } from './i18n/LanguageToggle'
 import { useLanguage } from './i18n/LanguageProvider'
 
-/**
- * Task F02 is the shell only — nothing opens the search stream yet, so a submitted turn stays in its
- * pending state. Task F03 supplies `useChat`'s `onStart` and pumps events into `applyEvent`.
- */
 function AppShell() {
   const { strings } = useLanguage()
-  const chat = useChat()
+  const chat = useSearchChat()
 
   return (
     <main className="app">
