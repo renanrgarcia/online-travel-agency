@@ -122,9 +122,18 @@ jobs:
 
       # The Azure/static-web-apps-deploy action builds internally (Oryx), given app_location and
       # output_location -- no separate npm ci/build step needed here, unlike the backend jobs' explicit
-      # dotnet publish. VITE_API_BASE_URL is Vite's build-time env var convention: frontend code reads it
-      # via `import.meta.env.VITE_API_BASE_URL` (task F03's integration point, not yet implemented --
-      # this is where that code picks up the deployed API's URL once it exists).
+      # dotnet publish. VITE_API_BASE_URL and VITE_FUNCTIONS_BASE_URL are Vite's build-time env var
+      # convention: frontend code reads them via `import.meta.env.VITE_*` (task F03's integration point
+      # for the API, F05's for Functions -- the browser calls the Function App directly for the booking
+      # saga, per docs/reference/07-booking-saga.md, not through the API).
+      #
+      # Values come from repo variables (Settings -> Secrets and variables -> Actions -> Variables), not
+      # hardcoded here -- infra/main.bicep already outputs both URLs (webAppUrl, functionAppUrl), so
+      # typing them a second time in this file would just be a second source of truth free to drift the
+      # moment either app is renamed. Set/update after any infra deploy that changes them:
+      #   az deployment sub show --name flightai-dev --query "properties.outputs.{api:webAppUrl.value, functions:functionAppUrl.value}"
+      #   gh variable set API_BASE_URL --body "<api>"
+      #   gh variable set FUNCTIONS_BASE_URL --body "<functions>"
       #
       # Fill in azure_static_web_apps_api_token with a repo secret once the Static Web App is deployed --
       # NOT a publish profile like the other two jobs. Static Web Apps authenticates deployments with its
@@ -139,4 +148,5 @@ jobs:
           app_location: "frontend"
           output_location: "dist"
         env:
-          VITE_API_BASE_URL: https://flightai-api-dev.azurewebsites.net
+          VITE_API_BASE_URL: ${{ vars.API_BASE_URL }}
+          VITE_FUNCTIONS_BASE_URL: ${{ vars.FUNCTIONS_BASE_URL }}
