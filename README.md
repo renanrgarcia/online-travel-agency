@@ -20,12 +20,10 @@ output ever reaches a user without passing back through deterministic code first
 | Search API | https://flightai-api-dev.azurewebsites.net |
 | Booking saga (Functions) | https://flightai-booking-dev.azurewebsites.net |
 
-All three are real, deployed, free-tier Azure resources — not a mockup. Two honest caveats before you
-click: App Service's F1 tier cold-starts after idling, so the first request can take a few seconds; and
-the frontend deploy currently tracks `main`, which lags a few merged-but-not-yet-released backend
-features behind `develop` (see [What's built](#whats-built) below) — so the live chat UI may not yet
-reflect everything described here. The API and Functions endpoints below always reflect what's actually
-live.
+All three are real, deployed, free-tier Azure resources — not a mockup. One honest caveat: App Service's
+F1 tier cold-starts after idling, so the first request can take a few seconds. All three redeploy
+automatically on every merge to `main` (see [CI/CD and deployment](#cicd-and-deployment) below), so what's
+live always matches `main` specifically — `develop` can be ahead of it between merges.
 
 **Search** (streams four Server-Sent Events — parsed intent, one `supplier-result` per connector, ranked
 offers, then an explanation):
@@ -71,8 +69,9 @@ until that's deliberately swapped).
 
 ## What's built
 
-Status reflects what's implemented in code today (some of it merged to `develop` but not yet released to
-`main` — see the live-demo caveat above).
+Status reflects what's implemented in code today, on `develop` — the branch this table is meant to stay
+current against. It can be ahead of what's live on `main` between merges; see
+[CI/CD and deployment](#cicd-and-deployment).
 
 **Backend** — [`docs/features/01-backend/`](docs/features/01-backend/README.md)
 
