@@ -4,7 +4,7 @@ Bicep, not Terraform or hand-written ARM JSON -- no state file to manage (Azure 
 deployments itself), first-class `az`/VS Code tooling, and it's what AZ-104 actually expects you to
 author today over raw ARM JSON.
 
-Now covers the App Service and the Booking Functions app. See
+Now covers the App Service, the Booking Functions app, and the Static Web App. See
 [`docs/features/03-infra/README.md`](../docs/features/03-infra/README.md) for why infrastructure for
 both backend and frontend lives in its own feature rather than inside either one.
 
@@ -19,15 +19,24 @@ both backend and frontend lives in its own feature rather than inside either one
   (`kind: 'functionapp'`, `dotnet-isolated` worker), and the Storage account Durable Task and the
   Functions runtime both require (`AzureWebJobsStorage`) -- created by the template, not referenced as
   pre-existing, same rule as everything else here.
+- `modules/static-web-app.bicep` -- **resource-group-scoped**: the Static Web App (Free tier). No
+  `repositoryUrl`/GitHub linkage -- deployed via `ci-cd.yml`'s own job, not Static Web Apps' built-in
+  (and separate) GitHub integration.
+
+`main.bicep` threads the Static Web App's own `defaultHostname` output directly into both backends'
+`allowedOrigins` CORS parameters -- not typed in twice, not a manual copy-paste step. Bicep infers the
+dependency automatically, so the App Service and Function App always deploy (or redeploy, on an
+incremental update) after the Static Web App, whether or not they already exist.
 
 ## Before you deploy
 
 - Azure CLI installed (`az --version`) and logged in (`az login`).
 - Bicep CLI available (`az bicep version`; `az bicep install` if missing).
-- `webAppName` and `functionAppName` (see `main.bicepparam`) must each be **globally unique across all of
-  Azure** -- both become `<name>.azurewebsites.net`. The defaults are `flightai-api-dev` and
-  `flightai-booking-dev`; if deployment fails on a name conflict, uncomment and change the relevant line
-  in `main.bicepparam`.
+- `webAppName`, `functionAppName`, and `staticWebAppName` (see `main.bicepparam`) must each be
+  **globally unique across all of Azure** -- the first two become `<name>.azurewebsites.net`, the last
+  becomes `<name>.azurestaticapps.net`. The defaults are `flightai-api-dev`, `flightai-booking-dev`, and
+  `flightai-web-dev`; if deployment fails on a name conflict, uncomment and change the relevant line in
+  `main.bicepparam`.
 - `storageAccountName` has the same global-uniqueness requirement, plus a stricter format: lowercase
   alphanumeric only, no hyphens, 3-24 characters. The default is `flightaifuncsdev`.
 - `location` is currently `westeurope`, not `brazilsouth` -- see the comment in `main.bicepparam` for
