@@ -10,3 +10,9 @@ public sealed record IssueTicketInput(string BookingId, string OfferId, string O
 public sealed record IssueTicketResult(string TicketNumber);
 
 public sealed record SendConfirmationInput(string BookingId, string TravellerEmail, string TicketNumber);
+
+public sealed record VoidPaymentInput(string BookingId, string OfferId, string AuthorizationId);
+public sealed record VoidPaymentResult(bool AlreadyVoided);
+
+public sealed record CancelOrderInput(string BookingId, string OfferId, string OrderId);
+public sealed record CancelOrderResult(bool AlreadyCancelled);
