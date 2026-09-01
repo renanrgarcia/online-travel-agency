@@ -1,10 +1,12 @@
 using System.Net;
 using System.Text.Json;
 using FlightAi.Booking.Functions.Models;
+using FlightAi.Core.Services.Pricing;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.DurableTask;
 using Microsoft.DurableTask.Client;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace FlightAi.Booking.Functions;
@@ -29,24 +31,59 @@ public static class BookingTriggers
         FunctionContext executionContext)
     {
         var logger = executionContext.GetLogger(nameof(CreateBooking));
-        var body = await JsonSerializer.DeserializeAsync<BookingRequest>(request.Body, JsonOptions);
-        if (body is null)
+        // Static Function methods can't take constructor-injected dependencies the way an instance
+        // class could -- InstanceServices is the isolated worker's own per-invocation service
+        // provider, scoped exactly like a real DI scope, for exactly this case.
+        var priceAssertionService = executionContext.InstanceServices.GetRequiredService<PriceAssertionService>();
+        var httpRequest = await JsonSerializer.DeserializeAsync<CreateBookingRequest>(request.Body, JsonOptions);
+        if (httpRequest is null)
             return await WriteJson(request, HttpStatusCode.BadRequest, new { error = "Request body is required." });
 
-        var existing = await client.GetInstanceAsync(body.BookingId, getInputsAndOutputs: false);
+        // The server's value always wins (task 21 locked decision): the request body's Amount/Currency
+        // are advisory at most. Rejected here, before any orchestration is scheduled -- the same
+        // "reject before the expensive/stateful work" principle task 20 applies to rate limiting.
+        if (httpRequest.PriceAssertion is null)
+        {
+            return await WriteJson(request, HttpStatusCode.BadRequest,
+                new { error = "A price assertion is required.", reason = "missing_price_assertion" });
+        }
+
+        if (!string.Equals(httpRequest.PriceAssertion.OfferId, httpRequest.OfferId, StringComparison.Ordinal))
+        {
+            return await WriteJson(request, HttpStatusCode.BadRequest,
+                new { error = "The price assertion is for a different offer.", reason = "price_assertion_offer_mismatch" });
+        }
+
+        if (!priceAssertionService.TryVerify(httpRequest.PriceAssertion, out var failure))
+        {
+            var (error, reason) = failure switch
+            {
+                PriceAssertionFailure.Expired => ("The price assertion has expired.", "price_assertion_expired"),
+                _ => ("The price assertion is invalid.", "price_assertion_invalid"),
+            };
+            return await WriteJson(request, HttpStatusCode.BadRequest, new { error, reason });
+        }
+
+        // Constructed from the verified assertion, never the request body -- BookingRequest carries
+        // exactly what AuthorizePayment will actually charge.
+        var bookingRequest = new BookingRequest(
+            httpRequest.BookingId, httpRequest.OfferId, httpRequest.TravellerEmail,
+            httpRequest.PriceAssertion.Amount, httpRequest.PriceAssertion.Currency, httpRequest.PaymentMethodToken);
+
+        var existing = await client.GetInstanceAsync(bookingRequest.BookingId, getInputsAndOutputs: false);
         if (existing is null)
         {
             await client.ScheduleNewOrchestrationInstanceAsync(
-                nameof(BookingOrchestrator.RunBookingSaga), body,
-                new StartOrchestrationOptions(body.BookingId));
-            logger.LogInformation("Started booking saga with ID = '{bookingId}'.", body.BookingId);
+                nameof(BookingOrchestrator.RunBookingSaga), bookingRequest,
+                new StartOrchestrationOptions(bookingRequest.BookingId));
+            logger.LogInformation("Started booking saga with ID = '{bookingId}'.", bookingRequest.BookingId);
         }
         else
         {
-            logger.LogInformation("Booking '{bookingId}' already exists; not starting a second saga.", body.BookingId);
+            logger.LogInformation("Booking '{bookingId}' already exists; not starting a second saga.", bookingRequest.BookingId);
         }
 
-        return await client.CreateCheckStatusResponseAsync(request, body.BookingId);
+        return await client.CreateCheckStatusResponseAsync(request, bookingRequest.BookingId);
     }
 
     [Function(nameof(GetBookingStatus))]

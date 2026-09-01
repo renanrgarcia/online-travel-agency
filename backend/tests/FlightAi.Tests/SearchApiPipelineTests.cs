@@ -4,6 +4,7 @@ using FlightAi.Agents.Services.Intent;
 using FlightAi.Api;
 using FlightAi.Core.Interfaces.Suppliers;
 using FlightAi.Core.Models.Suppliers;
+using FlightAi.Core.Services.Pricing;
 using FlightAi.Core.Services.Suppliers;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.AI;
@@ -25,6 +26,11 @@ public class SearchApiPipelineTests(WebApplicationFactory<Program> factory) : IC
     private const string NormalIntentJson =
         """{"Origin":"GRU","Destination":"LIS","DepartureDate":"2027-03-12","PassengerCount":2,"Language":"en"}""";
 
+    // Test-only, never a real secret -- Program.cs requires PriceAssertion:SigningKey to be configured
+    // (task 21) and there's no safe default, so every test hitting the real HTTP pipeline needs one
+    // supplied via UseSetting, the same mechanism a deployed environment would use for the real key.
+    private const string TestSigningKey = "test-signing-key-not-a-real-secret";
+
     private static SupplierFanOutOrchestrator DefaultOrchestrator(params ISupplierConnector[] connectors)
     {
         var policy = new SupplierPolicy(TimeSpan.FromSeconds(5), 100, TimeSpan.FromMinutes(1), 3, TimeSpan.FromMinutes(1));
@@ -32,14 +38,18 @@ public class SearchApiPipelineTests(WebApplicationFactory<Program> factory) : IC
     }
 
     private WebApplicationFactory<Program> WithServices(IChatClient chatClient, SupplierFanOutOrchestrator? orchestrator = null) =>
-        factory.WithWebHostBuilder(builder => builder.ConfigureServices(services =>
+        factory.WithWebHostBuilder(builder =>
         {
-            // Last registration wins for a single (non-IEnumerable) service resolution -- the
-            // standard ASP.NET Core pattern for overriding a service in WebApplicationFactory tests.
-            services.AddSingleton(chatClient);
-            if (orchestrator is not null)
-                services.AddSingleton(orchestrator);
-        }));
+            builder.UseSetting("PriceAssertion:SigningKey", TestSigningKey);
+            builder.ConfigureServices(services =>
+            {
+                // Last registration wins for a single (non-IEnumerable) service resolution -- the
+                // standard ASP.NET Core pattern for overriding a service in WebApplicationFactory tests.
+                services.AddSingleton(chatClient);
+                if (orchestrator is not null)
+                    services.AddSingleton(orchestrator);
+            });
+        });
 
     private static async Task<List<(string EventType, string Data)>> ReadAllEventsAsync(HttpResponseMessage response)
     {
@@ -206,11 +216,12 @@ public class SearchApiPipelineTests(WebApplicationFactory<Program> factory) : IC
         var intentAgent = IntentAgentFactory.Create(chatClient);
         var orchestrator = DefaultOrchestrator(
             new MockGdsConnector(TimeSpan.FromSeconds(5)), new MockNdcConnector(TimeSpan.FromSeconds(5)), new MockLccConnector(TimeSpan.FromSeconds(5)));
+        var priceAssertionService = new PriceAssertionService(TestSigningKey, TimeSpan.FromMinutes(5));
         using var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(100)); // parsed-intent returns near-instantly; this lands just after it
 
         var eventTypes = new List<string>();
         var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-        await foreach (var item in SearchPipeline.RunAsync(Query, intentAgent, orchestrator, chatClient, cts.Token))
+        await foreach (var item in SearchPipeline.RunAsync(Query, intentAgent, orchestrator, chatClient, priceAssertionService, cts.Token))
             eventTypes.Add(item.EventType!);
         stopwatch.Stop();
 
@@ -234,6 +245,28 @@ public class SearchApiPipelineTests(WebApplicationFactory<Program> factory) : IC
         var first = await ReadAllEventsAsync(await http.GetAsync($"/api/search/stream?q={Uri.EscapeDataString(Query)}"));
         var second = await ReadAllEventsAsync(await http.GetAsync($"/api/search/stream?q={Uri.EscapeDataString(Query)}"));
 
-        Assert.Equal(first, second);
+        // parsed-intent, supplier-result, and explanation are still byte-identical across runs -- the
+        // original guarantee this eval predates task 21 by. ranked-offers now carries a price
+        // assertion per offer, whose expiry and signature are deliberately fresh on every issue (task
+        // 21 E8), so it's compared field by field instead: the business data stays deterministic, only
+        // the assertion legitimately differs.
+        Assert.Equal(
+            first.Where(e => e.EventType != "ranked-offers"),
+            second.Where(e => e.EventType != "ranked-offers"));
+
+        var firstOffers = JsonSerializer.Deserialize<JsonElement>(first.Single(e => e.EventType == "ranked-offers").Data);
+        var secondOffers = JsonSerializer.Deserialize<JsonElement>(second.Single(e => e.EventType == "ranked-offers").Data);
+        Assert.Equal(firstOffers.GetArrayLength(), secondOffers.GetArrayLength());
+        for (var i = 0; i < firstOffers.GetArrayLength(); i++)
+        {
+            var (a, b) = (firstOffers[i], secondOffers[i]);
+            Assert.Equal(a.GetProperty("offerId").GetString(), b.GetProperty("offerId").GetString());
+            Assert.Equal(a.GetProperty("price").GetDecimal(), b.GetProperty("price").GetDecimal());
+            Assert.Equal(a.GetProperty("score").GetDecimal(), b.GetProperty("score").GetDecimal());
+            // Deliberately different (task 21 E8) -- confirms freshness holds, not just business data.
+            Assert.NotEqual(
+                a.GetProperty("priceAssertion").GetProperty("signature").GetString(),
+                b.GetProperty("priceAssertion").GetProperty("signature").GetString());
+        }
     }
 }

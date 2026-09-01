@@ -3,6 +3,7 @@ using FlightAi.Agents.Services.Intent;
 using FlightAi.Api;
 using FlightAi.Core.Interfaces.Suppliers;
 using FlightAi.Core.Models.Suppliers;
+using FlightAi.Core.Services.Pricing;
 using FlightAi.Core.Services.Suppliers;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
@@ -53,6 +54,15 @@ builder.Services.AddSingleton<IChatClient>(_ => DemoOfflineChatClient.Create());
 builder.Services.AddSingleton(sp => IntentAgentFactory.Create(sp.GetRequiredService<IChatClient>()));
 builder.Services.AddSingleton(BuildSupplierOrchestrator());
 
+// Signs each offer's price so the booking saga (a separate host, task 21) can verify it came from a
+// real search rather than trusting whatever a client's booking request claims. No safe default for the
+// key -- same rule task 17 applies to the model key: configuration only, never source, and the app
+// should fail to start rather than silently sign with something predictable.
+var signingKey = builder.Configuration["PriceAssertion:SigningKey"]
+    ?? throw new InvalidOperationException("PriceAssertion:SigningKey must be configured.");
+var assertionValidity = TimeSpan.FromMinutes(builder.Configuration.GetValue("PriceAssertion:ValidityMinutes", defaultValue: 5));
+builder.Services.AddSingleton(new PriceAssertionService(signingKey, assertionValidity));
+
 builder.Services.AddProblemDetails();
 
 var app = builder.Build();
@@ -83,8 +93,9 @@ app.UseRateLimiter();
 // (an Endpoints/<Feature>/ folder per area) the moment a second one shows up here.
 app.MapGet("/api/search/stream", (
         [FromQuery(Name = "q")] string searchQuery, HttpContext context, IntentAgent intentAgent,
-        SupplierFanOutOrchestrator orchestrator, IChatClient chatClient) =>
-    Results.ServerSentEvents(SearchPipeline.RunAsync(searchQuery, intentAgent, orchestrator, chatClient, context.RequestAborted)))
+        SupplierFanOutOrchestrator orchestrator, IChatClient chatClient, PriceAssertionService priceAssertionService) =>
+    Results.ServerSentEvents(SearchPipeline.RunAsync(
+        searchQuery, intentAgent, orchestrator, chatClient, priceAssertionService, context.RequestAborted)))
     .RequireCors(FrontendCorsPolicy)
     .RequireRateLimiting(SearchRateLimitPolicy);
 

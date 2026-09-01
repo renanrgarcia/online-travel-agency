@@ -1,3 +1,5 @@
+using FlightAi.Core.Services.Pricing;
+
 namespace FlightAi.Api;
 
 /// <summary>
@@ -7,6 +9,10 @@ namespace FlightAi.Api;
 /// speculatively, with nothing upstream to populate them from, would be exactly the kind of
 /// unrequested field this project avoids. <c>OfferId</c>'s connector prefix (<c>LCC-002</c>) already
 /// communicates which supplier it came from.
+/// <para>
+/// <see cref="PriceAssertion"/> is attached to every offer, not just the explained top few (task 21) --
+/// a traveller can book any ranked offer, and the booking saga only trusts a price it can verify.
+/// </para>
 /// </summary>
 public sealed record RankedOfferView(
     int Rank,
@@ -16,4 +22,5 @@ public sealed record RankedOfferView(
     int DurationMinutes,
     int Stops,
     bool Refundable,
-    decimal Score);
+    decimal Score,
+    PriceAssertion PriceAssertion);

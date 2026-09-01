@@ -44,6 +44,7 @@ public static class SearchPipeline
         IntentAgent intentAgent,
         SupplierFanOutOrchestrator supplierOrchestrator,
         IChatClient chatClient,
+        PriceAssertionService priceAssertionService,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         var intentResult = await intentAgent.ParseAsync(query, cancellationToken);
@@ -84,7 +85,8 @@ public static class SearchPipeline
                     DurationMinutes: (int)offer.Duration.TotalMinutes,
                     Stops: offer.Stops,
                     Refundable: offer.Refundable,
-                    Score: OfferScorer.Score(scored, ScoringWeights.Default));
+                    Score: OfferScorer.Score(scored, ScoringWeights.Default),
+                    PriceAssertion: priceAssertionService.Issue(offer.OfferId, offer.Price, offer.Currency));
             })
             .ToList();
         yield return Event("ranked-offers", rankedViews);

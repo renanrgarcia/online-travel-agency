@@ -44,13 +44,20 @@ public class ErrorHandlingTests(WebApplicationFactory<Program> factory) : IClass
     private (WebApplicationFactory<Program> Factory, CapturingLoggerProvider Logs) WithChatClient(OfflineChatClient chatClient)
     {
         var logs = new CapturingLoggerProvider();
-        var configured = factory.WithWebHostBuilder(builder => builder.ConfigureServices(services =>
+        var configured = factory.WithWebHostBuilder(builder =>
         {
-            // Last registration wins for a single (non-IEnumerable) service resolution, same pattern
-            // SearchApiPipelineTests uses to override the chat client per test.
-            services.AddSingleton<Microsoft.Extensions.AI.IChatClient>(chatClient);
-            services.AddLogging(b => b.AddProvider(logs));
-        }));
+            // Program.cs now requires PriceAssertion:SigningKey to be configured (task 21) with no safe
+            // default, so every test hitting the real HTTP pipeline needs one -- same key,
+            // same mechanism SearchApiPipelineTests uses.
+            builder.UseSetting("PriceAssertion:SigningKey", "test-signing-key-not-a-real-secret");
+            builder.ConfigureServices(services =>
+            {
+                // Last registration wins for a single (non-IEnumerable) service resolution, same pattern
+                // SearchApiPipelineTests uses to override the chat client per test.
+                services.AddSingleton<Microsoft.Extensions.AI.IChatClient>(chatClient);
+                services.AddLogging(b => b.AddProvider(logs));
+            });
+        });
         return (configured, logs);
     }
 
