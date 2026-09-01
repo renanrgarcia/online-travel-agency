@@ -27,6 +27,10 @@ param storageAccountName string = 'flightaifuncs${environmentName}'
 @description('Static Web App name -- must be globally unique across all of Azure, becomes <name>.azurestaticapps.net. Override in main.bicepparam if the default collides.')
 param staticWebAppName string = 'flightai-web-${environmentName}'
 
+@description('Shared HMAC key backend task 21 uses to sign (API) and verify (Booking Functions) price assertions. No default on purpose -- a real secret has no business living in main.bicepparam, which is committed to git. Supply it at deploy time only: --parameters priceAssertionSigningKey=<value>.')
+@secure()
+param priceAssertionSigningKey string
+
 resource rg 'Microsoft.Resources/resourceGroups@2024-11-01' = {
   name: resourceGroupName
   location: location
@@ -55,6 +59,7 @@ module appService 'modules/app-service.bicep' = {
     webAppName: webAppName
     location: location
     allowedOrigins: [frontendOrigin]
+    priceAssertionSigningKey: priceAssertionSigningKey
   }
 }
 
@@ -67,6 +72,7 @@ module functionsApp 'modules/functions.bicep' = {
     functionAppName: functionAppName
     location: location
     allowedOrigins: [frontendOrigin]
+    priceAssertionSigningKey: priceAssertionSigningKey
   }
 }
 

@@ -17,3 +17,8 @@ __blobstorage__/
 __queuestorage__/
 __azurite_db_*__.json
 AzuriteConfig
+
+# Real secrets that back a `readEnvironmentVariable(...)` in a committed .bicepparam file -- e.g.
+# PRICE_ASSERTION_SIGNING_KEY. Source before running `az deployment sub create`; never commit the value
+# itself. See infra/README.md.
+infra/.env
