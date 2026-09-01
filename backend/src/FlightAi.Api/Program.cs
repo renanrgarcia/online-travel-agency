@@ -4,6 +4,7 @@ using FlightAi.Api;
 using FlightAi.Core.Interfaces.Suppliers;
 using FlightAi.Core.Models.Suppliers;
 using FlightAi.Core.Services.Suppliers;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.AI;
@@ -52,7 +53,23 @@ builder.Services.AddSingleton<IChatClient>(_ => DemoOfflineChatClient.Create());
 builder.Services.AddSingleton(sp => IntentAgentFactory.Create(sp.GetRequiredService<IChatClient>()));
 builder.Services.AddSingleton(BuildSupplierOrchestrator());
 
+builder.Services.AddProblemDetails();
+
 var app = builder.Build();
+
+app.UseExceptionHandler(new ExceptionHandlerOptions
+{
+    ExceptionHandler = async context =>
+    {
+        context.Response.ContentType = "application/problem+json";
+        var problemDetailsService = context.RequestServices.GetRequiredService<IProblemDetailsService>();
+        await problemDetailsService.WriteAsync(new ProblemDetailsContext
+        {
+            HttpContext = context,
+            ProblemDetails = { Status = StatusCodes.Status500InternalServerError },
+        });
+    },
+});
 
 // UseCors() with no name just wires the CORS middleware into the pipeline -- it doesn't apply a policy
 // to anything by itself. Each endpoint opts in to a specific named policy via .RequireCors(...) below,

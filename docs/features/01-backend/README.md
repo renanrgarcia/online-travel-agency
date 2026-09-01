@@ -73,12 +73,14 @@ the same time.
 
 ## 8. Safe to expose
 
-**Source:** `../../deployment.md` · **Tasks:** 19, 20, 21
+**Source:** `../../deployment.md` · **Tasks:** 19, 20, 21, 23
 
 Everything above works on localhost with a trusted caller. This step covers what changes when a browser
 on another origin calls it, and when the endpoint is reachable by anyone: CORS, rate limiting, and
 server-side price verification at booking time. Task 21 in particular closes a hole the rest of the
 system's own thesis implies — the model can't author a price, but until 21 lands, *the browser can*.
+Task 23 closes a different gap in the same step: an unhandled exception today reaches the caller as an
+empty `500` and isn't logged anywhere durable either, found live while verifying infra task 02.
 
 ## 9. Swap in a real model
 
