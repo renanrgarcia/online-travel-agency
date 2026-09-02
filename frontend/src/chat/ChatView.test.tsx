@@ -2,7 +2,7 @@ import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 
-import { ChatView } from './ChatView'
+import { ChatView, type ChatViewProps } from './ChatView'
 import { isPinnedToBottom } from './autoScroll'
 import { useChat } from './useChat'
 import { emptyStages, type AssistantTurn, type Turn } from './types'
@@ -13,6 +13,19 @@ import { STRINGS } from '../i18n/strings'
  * English strings — LanguageToggle.test.tsx covers the toggle itself switching them. */
 const strings = STRINGS.en
 
+/** `ChatView` with the booking wiring defaulted to no-ops — F02's own evals don't exercise booking
+ * (that's F05's `useBookingFlow.test.ts`); this keeps every call site here focused on chat/search. */
+function TestChatView(props: Pick<ChatViewProps, 'turns' | 'isStreaming' | 'onSubmit'>) {
+  return (
+    <ChatView
+      {...props}
+      onBookOffer={() => {}}
+      onConfirmBooking={() => {}}
+      onCancelBooking={() => {}}
+    />
+  )
+}
+
 /** A real `useChat` wired to `ChatView`, plus buttons a test can click to drive turn state. */
 function Harness() {
   const chat = useChat()
@@ -22,7 +35,7 @@ function Harness() {
 
   return (
     <>
-      <ChatView turns={chat.turns} isStreaming={chat.isStreaming} onSubmit={chat.submit} />
+      <TestChatView turns={chat.turns} isStreaming={chat.isStreaming} onSubmit={chat.submit} />
       <button
         type="button"
         onClick={() => streamingTurn && chat.completeTurn(streamingTurn.id)}
@@ -76,7 +89,7 @@ describe('ChatView', () => {
       }),
     ]
 
-    renderWithinProvider(<ChatView turns={turns} isStreaming onSubmit={() => {}} />)
+    renderWithinProvider(<TestChatView turns={turns} isStreaming onSubmit={() => {}} />)
 
     // The two stages that arrived.
     expect(screen.getByRole('heading', { name: strings.stageUnderstood })).toBeInTheDocument()
@@ -89,7 +102,7 @@ describe('ChatView', () => {
   })
 
   it('E2 — a turn with no stages yet renders only its pending state', () => {
-    renderWithinProvider(<ChatView turns={[assistantTurn()]} isStreaming onSubmit={() => {}} />)
+    renderWithinProvider(<TestChatView turns={[assistantTurn()]} isStreaming onSubmit={() => {}} />)
 
     expect(screen.getByRole('status')).toHaveTextContent(strings.searching)
     expect(screen.queryByRole('heading', { name: strings.stageUnderstood })).not.toBeInTheDocument()
@@ -97,7 +110,7 @@ describe('ChatView', () => {
   })
 
   it('E3 — the composer is disabled while a search is in flight, with a visible reason', () => {
-    renderWithinProvider(<ChatView turns={[assistantTurn()]} isStreaming onSubmit={() => {}} />)
+    renderWithinProvider(<TestChatView turns={[assistantTurn()]} isStreaming onSubmit={() => {}} />)
 
     expect(screen.getByRole('textbox', { name: /search for a flight/i })).toBeDisabled()
     expect(screen.getByRole('button', { name: strings.composerSubmit })).toBeDisabled()
@@ -147,7 +160,7 @@ describe('ChatView', () => {
 
   it('E6 — follows the newest content while the user is pinned to the bottom', () => {
     const { rerender } = renderWithinProvider(
-      <ChatView turns={[]} isStreaming={false} onSubmit={() => {}} />,
+      <TestChatView turns={[]} isStreaming={false} onSubmit={() => {}} />,
     )
     const log = screen.getByTestId('chat-log')
     Object.defineProperty(log, 'scrollHeight', { value: 1000, configurable: true })
@@ -155,7 +168,7 @@ describe('ChatView', () => {
 
     rerender(
       <LanguageProvider>
-        <ChatView
+        <TestChatView
           turns={[{ id: 'user-0', role: 'user', text: 'lisbon' }]}
           isStreaming={false}
           onSubmit={() => {}}
@@ -168,7 +181,7 @@ describe('ChatView', () => {
 
   it('E6 — does not fight a user who has scrolled back up', () => {
     const { rerender } = renderWithinProvider(
-      <ChatView turns={[]} isStreaming={false} onSubmit={() => {}} />,
+      <TestChatView turns={[]} isStreaming={false} onSubmit={() => {}} />,
     )
     const log = screen.getByTestId('chat-log')
     Object.defineProperty(log, 'scrollHeight', { value: 1000, configurable: true })
@@ -180,7 +193,7 @@ describe('ChatView', () => {
 
     rerender(
       <LanguageProvider>
-        <ChatView
+        <TestChatView
           turns={[{ id: 'user-0', role: 'user', text: 'lisbon' }]}
           isStreaming={false}
           onSubmit={() => {}}
@@ -211,7 +224,7 @@ describe('ChatView', () => {
     const turn = assistantTurn({
       explanation: { text: 'The best value is $590.00.', raw: '', isClean: true },
     })
-    renderWithinProvider(<ChatView turns={[turn]} isStreaming onSubmit={() => {}} />)
+    renderWithinProvider(<TestChatView turns={[turn]} isStreaming onSubmit={() => {}} />)
 
     const liveRegion = screen.getByLabelText(strings.resultsLabel).querySelector('[aria-live]')
     expect(liveRegion).not.toBeNull()
@@ -234,7 +247,7 @@ describe('ChatView', () => {
 
   it('E8 — the empty state disappears once a conversation exists', () => {
     renderWithinProvider(
-      <ChatView
+      <TestChatView
         turns={[{ id: 'user-0', role: 'user', text: 'lisbon' }]}
         isStreaming={false}
         onSubmit={() => {}}

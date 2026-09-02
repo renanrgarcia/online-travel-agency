@@ -5,22 +5,9 @@ import { OfferCard } from './OfferCard'
 import { OfferComparison } from './OfferComparison'
 import { LanguageProvider } from '../i18n/LanguageProvider'
 import type { RankedOffer } from '../api/contract'
+import { makeRankedOffer as offer } from '../test/fixtures'
 
 /** One test per eval in docs/features/02-frontend/tasks/04-offer-cards-and-comparison.md. */
-
-function offer(overrides: Partial<RankedOffer> = {}): RankedOffer {
-  return {
-    rank: 1,
-    offerId: 'LCC-002',
-    price: 590,
-    currency: 'USD',
-    durationMinutes: 480,
-    stops: 1,
-    refundable: false,
-    score: 1071,
-    ...overrides,
-  }
-}
 
 function renderCards(offers: RankedOffer[]) {
   render(

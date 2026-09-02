@@ -1,9 +1,11 @@
 import { useEffect, useRef } from 'react'
 
 import { AssistantTurnView } from './AssistantTurnView'
+import { BookingTurnView } from './BookingTurnView'
 import { Composer } from './Composer'
 import { EmptyState } from './EmptyState'
 import { isPinnedToBottom } from './autoScroll'
+import type { RankedOffer } from '../api/contract'
 import type { Turn } from './types'
 import { useLanguage } from '../i18n/LanguageProvider'
 
@@ -11,9 +13,19 @@ export interface ChatViewProps {
   turns: Turn[]
   isStreaming: boolean
   onSubmit: (text: string) => void
+  onBookOffer: (offer: RankedOffer) => void
+  onConfirmBooking: (turnId: string, bookingId: string, offer: RankedOffer, travellerEmail: string) => void
+  onCancelBooking: (turnId: string) => void
 }
 
-export function ChatView({ turns, isStreaming, onSubmit }: ChatViewProps) {
+export function ChatView({
+  turns,
+  isStreaming,
+  onSubmit,
+  onBookOffer,
+  onConfirmBooking,
+  onCancelBooking,
+}: ChatViewProps) {
   const { strings } = useLanguage()
   const listRef = useRef<HTMLDivElement>(null)
   const pinnedToBottom = useRef(true)
@@ -36,15 +48,26 @@ export function ChatView({ turns, isStreaming, onSubmit }: ChatViewProps) {
         {turns.length === 0 ? (
           <EmptyState onPickSuggestion={onSubmit} />
         ) : (
-          turns.map((turn) =>
-            turn.role === 'user' ? (
-              <article key={turn.id} className="turn turn--user" aria-label={strings.youAskedLabel}>
-                <p>{turn.text}</p>
-              </article>
-            ) : (
-              <AssistantTurnView key={turn.id} turn={turn} />
-            ),
-          )
+          turns.map((turn) => {
+            if (turn.role === 'user') {
+              return (
+                <article key={turn.id} className="turn turn--user" aria-label={strings.youAskedLabel}>
+                  <p>{turn.text}</p>
+                </article>
+              )
+            }
+            if (turn.role === 'booking') {
+              return (
+                <BookingTurnView
+                  key={turn.id}
+                  turn={turn}
+                  onConfirm={onConfirmBooking}
+                  onCancel={onCancelBooking}
+                />
+              )
+            }
+            return <AssistantTurnView key={turn.id} turn={turn} onBookOffer={onBookOffer} />
+          })
         )}
       </div>
 

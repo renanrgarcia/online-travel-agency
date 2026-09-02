@@ -1,6 +1,7 @@
 import { useLanguage } from '../i18n/LanguageProvider'
 import type { AssistantStages, AssistantTurn } from './types'
 import type { Strings } from '../i18n/strings'
+import type { RankedOffer } from '../api/contract'
 import { OfferCard } from './OfferCard'
 import { OfferComparison } from './OfferComparison'
 
@@ -21,7 +22,13 @@ function pendingLabel(stages: AssistantStages, strings: Strings): string {
  * A half-filled turn is the *normal* state here, not an edge case — the four stages land seconds
  * apart — so an absent stage renders nothing at all rather than a placeholder or a reserved gap.
  */
-export function AssistantTurnView({ turn }: { turn: AssistantTurn }) {
+export interface AssistantTurnViewProps {
+  turn: AssistantTurn
+  /** Omitted when there's nowhere for a booking to go (e.g. component-level tests). */
+  onBookOffer?: (offer: RankedOffer) => void
+}
+
+export function AssistantTurnView({ turn, onBookOffer }: AssistantTurnViewProps) {
   const { strings } = useLanguage()
   const { stages, status } = turn
 
@@ -64,7 +71,7 @@ export function AssistantTurnView({ turn }: { turn: AssistantTurn }) {
             <h3 className="stage__title">{strings.stageOffers}</h3>
             <ol className="offer-list">
               {stages.rankedOffers.map((offer) => (
-                <OfferCard key={offer.offerId} offer={offer} />
+                <OfferCard key={offer.offerId} offer={offer} onBook={onBookOffer} />
               ))}
             </ol>
             <OfferComparison offers={stages.rankedOffers} />

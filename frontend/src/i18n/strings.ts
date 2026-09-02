@@ -46,6 +46,27 @@ export interface Strings {
   comparisonDuration: string
   comparisonStops: string
   comparisonRefundable: string
+  bookOffer: string
+  bookingTravellerEmailLabel: string
+  bookingTravellerEmailPlaceholder: string
+  bookingConfirm: string
+  bookingCancel: string
+  bookingEmailRequired: string
+  bookingSubmitting: string
+  bookingStepAuthorizingPayment: string
+  bookingStepCreatingOrder: string
+  bookingStepIssuingTicket: string
+  bookingStepSendingConfirmation: string
+  bookingStepCompensating: string
+  bookingBookedTitle: string
+  bookingTicketNumber: string
+  bookingFailedTitle: string
+  bookingCompensated: string
+  bookingCompensationFailed: string
+  bookingNotCompensated: string
+  bookingErrorTitle: string
+  bookingErrorNotFound: string
+  bookingErrorNetwork: string
 }
 
 const en: Strings = {
@@ -85,6 +106,27 @@ const en: Strings = {
   comparisonDuration: 'Duration',
   comparisonStops: 'Stops',
   comparisonRefundable: 'Refundable',
+  bookOffer: 'Book this offer',
+  bookingTravellerEmailLabel: 'Traveller email',
+  bookingTravellerEmailPlaceholder: 'you@example.com',
+  bookingConfirm: 'Confirm booking',
+  bookingCancel: 'Cancel',
+  bookingEmailRequired: 'Enter an email first',
+  bookingSubmitting: 'Starting your booking…',
+  bookingStepAuthorizingPayment: 'Authorizing payment…',
+  bookingStepCreatingOrder: 'Creating your order…',
+  bookingStepIssuingTicket: 'Issuing your ticket…',
+  bookingStepSendingConfirmation: 'Sending confirmation…',
+  bookingStepCompensating: 'Rolling back this booking…',
+  bookingBookedTitle: 'Booked',
+  bookingTicketNumber: 'Ticket number',
+  bookingFailedTitle: 'Booking failed',
+  bookingCompensated: 'Nothing was charged — any payment authorization and order were undone.',
+  bookingCompensationFailed: 'The rollback itself failed. This needs manual follow-up — do not retry.',
+  bookingNotCompensated: 'The booking stopped before anything needed to be undone.',
+  bookingErrorTitle: 'Something went wrong',
+  bookingErrorNotFound: 'This booking could not be found.',
+  bookingErrorNetwork: 'Could not reach the booking service. Check your connection and try again.',
 }
 
 const ptBR: Strings = {
@@ -124,6 +166,27 @@ const ptBR: Strings = {
   comparisonDuration: 'Duração',
   comparisonStops: 'Escalas',
   comparisonRefundable: 'Reembolsável',
+  bookOffer: 'Reservar esta oferta',
+  bookingTravellerEmailLabel: 'E-mail do passageiro',
+  bookingTravellerEmailPlaceholder: 'voce@exemplo.com',
+  bookingConfirm: 'Confirmar reserva',
+  bookingCancel: 'Cancelar',
+  bookingEmailRequired: 'Digite um e-mail primeiro',
+  bookingSubmitting: 'Iniciando sua reserva…',
+  bookingStepAuthorizingPayment: 'Autorizando pagamento…',
+  bookingStepCreatingOrder: 'Criando seu pedido…',
+  bookingStepIssuingTicket: 'Emitindo sua passagem…',
+  bookingStepSendingConfirmation: 'Enviando confirmação…',
+  bookingStepCompensating: 'Revertendo esta reserva…',
+  bookingBookedTitle: 'Reservado',
+  bookingTicketNumber: 'Número da passagem',
+  bookingFailedTitle: 'Falha na reserva',
+  bookingCompensated: 'Nada foi cobrado — qualquer autorização de pagamento e pedido foram desfeitos.',
+  bookingCompensationFailed: 'A reversão em si falhou. Isso precisa de acompanhamento manual — não tente novamente.',
+  bookingNotCompensated: 'A reserva parou antes que algo precisasse ser desfeito.',
+  bookingErrorTitle: 'Algo deu errado',
+  bookingErrorNotFound: 'Esta reserva não foi encontrada.',
+  bookingErrorNetwork: 'Não foi possível acessar o serviço de reservas. Verifique sua conexão e tente novamente.',
 }
 
 export const STRINGS: Record<Language, Strings> = { en, 'pt-BR': ptBR }

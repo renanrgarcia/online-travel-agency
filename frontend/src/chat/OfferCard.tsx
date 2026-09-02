@@ -2,13 +2,20 @@ import type { RankedOffer } from '../api/contract'
 import { useLanguage } from '../i18n/LanguageProvider'
 import { formatDuration, formatPrice, formatStops } from './offerFormatting'
 
+export interface OfferCardProps {
+  offer: RankedOffer
+  /** Omitted in contexts with nothing to book against (e.g. F04's own tests) — the button only
+   * renders when there's somewhere for the click to go. */
+  onBook?: (offer: RankedOffer) => void
+}
+
 /**
  * One ranked offer, every field the payload sent — price, duration, and stops all visible at once
  * without an interaction, since a trade-off hidden behind a click isn't visible at all (F04 E4).
  * `score` is deliberately absent: a real number with no meaning outside the weighting model, useful
  * for a debug view but not for a traveller (F04's locked decision).
  */
-export function OfferCard({ offer }: { offer: RankedOffer }) {
+export function OfferCard({ offer, onBook }: OfferCardProps) {
   const { strings } = useLanguage()
 
   return (
@@ -38,6 +45,11 @@ export function OfferCard({ offer }: { offer: RankedOffer }) {
         >
           {offer.refundable ? strings.offerRefundable : strings.offerNonRefundable}
         </span>
+        {onBook && (
+          <button type="button" className="offer-card__book" onClick={() => onBook(offer)}>
+            {strings.bookOffer}
+          </button>
+        )}
       </div>
     </li>
   )
