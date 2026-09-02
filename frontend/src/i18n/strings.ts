@@ -34,6 +34,18 @@ export interface Strings {
   traveller: string
   travellers: string
   connectionLost: string
+  offerRank: string
+  offerDuration: string
+  offerRefundable: string
+  offerNonRefundable: string
+  stopsNonstop: string
+  stopsOne: string
+  stopsMany: string
+  comparisonTitle: string
+  comparisonPrice: string
+  comparisonDuration: string
+  comparisonStops: string
+  comparisonRefundable: string
 }
 
 const en: Strings = {
@@ -61,6 +73,18 @@ const en: Strings = {
   traveller: 'traveller',
   travellers: 'travellers',
   connectionLost: 'Connection lost. Try your search again.',
+  offerRank: 'Rank',
+  offerDuration: 'Duration',
+  offerRefundable: 'Refundable',
+  offerNonRefundable: 'Non-refundable',
+  stopsNonstop: 'nonstop',
+  stopsOne: '1 stop',
+  stopsMany: '{n} stops',
+  comparisonTitle: 'Compare',
+  comparisonPrice: 'Price',
+  comparisonDuration: 'Duration',
+  comparisonStops: 'Stops',
+  comparisonRefundable: 'Refundable',
 }
 
 const ptBR: Strings = {
@@ -88,6 +112,18 @@ const ptBR: Strings = {
   traveller: 'passageiro',
   travellers: 'passageiros',
   connectionLost: 'Conexão perdida. Tente sua busca novamente.',
+  offerRank: 'Posição',
+  offerDuration: 'Duração',
+  offerRefundable: 'Reembolsável',
+  offerNonRefundable: 'Não reembolsável',
+  stopsNonstop: 'sem escalas',
+  stopsOne: '1 escala',
+  stopsMany: '{n} escalas',
+  comparisonTitle: 'Comparar',
+  comparisonPrice: 'Preço',
+  comparisonDuration: 'Duração',
+  comparisonStops: 'Escalas',
+  comparisonRefundable: 'Reembolsável',
 }
 
 export const STRINGS: Record<Language, Strings> = { en, 'pt-BR': ptBR }

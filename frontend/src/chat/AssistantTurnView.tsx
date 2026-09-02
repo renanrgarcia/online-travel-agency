@@ -1,6 +1,8 @@
 import { useLanguage } from '../i18n/LanguageProvider'
 import type { AssistantStages, AssistantTurn } from './types'
 import type { Strings } from '../i18n/strings'
+import { OfferCard } from './OfferCard'
+import { OfferComparison } from './OfferComparison'
 
 /**
  * Names the stage still outstanding, not just "still working" — a slow explanation call is otherwise
@@ -60,14 +62,12 @@ export function AssistantTurnView({ turn }: { turn: AssistantTurn }) {
         {stages.rankedOffers && (
           <section className="stage stage--offers">
             <h3 className="stage__title">{strings.stageOffers}</h3>
-            {/* Task F04 replaces this with real cards and the comparison view. */}
             <ol className="offer-list">
               {stages.rankedOffers.map((offer) => (
-                <li key={offer.offerId} className="offer-list__item">
-                  {offer.offerId} · {offer.price} {offer.currency}
-                </li>
+                <OfferCard key={offer.offerId} offer={offer} />
               ))}
             </ol>
+            <OfferComparison offers={stages.rankedOffers} />
           </section>
         )}
 
