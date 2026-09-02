@@ -21,7 +21,10 @@ public static class ExplanationAgentFactory
         $"{LanguageName(language)}. Reference every price, duration, stop count, and refund status only " +
         "using the exact {{TOKEN}} placeholders given to you — never write one as a digit or spell it out " +
         "in words. Every number the traveller needs already has a token; you never need to write a number " +
-        "yourself.";
+        "yourself. Some offers also come with comparison placeholders (how much more or less, how much " +
+        "shorter or longer, or a superlative like the cheapest option) — whenever you say one offer is " +
+        "cheaper, faster, or otherwise better than another, you must use one of these placeholders; never " +
+        "state a comparison or superlative in your own words, since you have no way to know if it's true.";
 
     private static string LanguageName(string language) => language switch
     {
@@ -47,9 +50,19 @@ public sealed class ExplanationAgent(AIAgent agent)
     }
 
     private static string BuildPrompt(IReadOnlyList<TokenizedOffer> offers) =>
-        string.Join(
-            Environment.NewLine,
-            offers.Select(offer =>
-                $"Offer {offer.OfferId}: price {offer.PriceToken}, duration {offer.DurationToken}, " +
-                $"{offer.StopsToken}, refund policy {offer.RefundableToken}."));
+        string.Join(Environment.NewLine, offers.Select(BuildOfferLine));
+
+    private static string BuildOfferLine(TokenizedOffer offer)
+    {
+        var line = $"Offer {offer.OfferId}: price {offer.PriceToken}, duration {offer.DurationToken}, " +
+            $"{offer.StopsToken}, refund policy {offer.RefundableToken}.";
+
+        if (offer.PriceDeltaToken is not null && offer.DurationDeltaToken is not null)
+            line += $" Compared to the top pick: {offer.PriceDeltaToken} on price, {offer.DurationDeltaToken} on duration.";
+
+        if (offer.SuperlativeTokens.Count > 0)
+            line += $" This is {string.Join(" and ", offer.SuperlativeTokens)}.";
+
+        return line;
+    }
 }
