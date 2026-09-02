@@ -27,6 +27,7 @@ function baseTurn(overrides: Partial<BookingTurn> = {}): BookingTurn {
     role: 'booking',
     bookingId: 'b-0',
     offer: makeRankedOffer(),
+    language: 'en',
     status: 'collecting-details',
     ...overrides,
   }
@@ -169,5 +170,19 @@ describe('BookingTurnView', () => {
     renderTurn(baseTurn({ status: 'error', error: { message: 'The price assertion has expired.' } }))
 
     expect(screen.getByText('The price assertion has expired.')).toBeInTheDocument()
+  })
+
+  it('F07 E3 — renders in the language it was booked in, not the app\'s current ambient chrome language', () => {
+    const turn = baseTurn({ language: 'pt-BR', status: 'collecting-details' })
+    render(
+      // The ambient chrome has since moved to English, e.g. from a later English search.
+      <LanguageProvider initialLanguage="en">
+        <BookingTurnView turn={turn} onConfirm={vi.fn()} onCancel={vi.fn()} />
+      </LanguageProvider>,
+    )
+
+    const ptStrings = STRINGS['pt-BR']
+    expect(screen.getByRole('button', { name: ptStrings.bookingConfirm })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: strings.bookingConfirm })).not.toBeInTheDocument()
   })
 })

@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef } from 'react'
 import { createBooking, getBookingStatus, isTerminalRuntimeStatus, type FetchLike } from '../api/bookingApi'
 import type { RankedOffer } from '../api/contract'
 import { getBookingApiBaseUrl } from '../config'
+import type { Language } from '../i18n/strings'
 import type { ChatController } from './useChat'
 
 const POLL_INTERVAL_MS = 1500
@@ -13,7 +14,7 @@ const MOCK_PAYMENT_METHOD_TOKEN = 'tok_test'
 
 export interface BookingFlow {
   /** Creates the booking turn (F02-style: an action becomes a new turn), before any network call. */
-  startBooking: (offer: RankedOffer) => string
+  startBooking: (offer: RankedOffer, language: Language) => string
   /** Submits the booking and starts polling. Takes `bookingId` and `offer` explicitly rather than
    * reading them back off `chat.turns` -- state read through a stale closure in a recursive poll is
    * exactly the bug class worth designing away, not catching later. */

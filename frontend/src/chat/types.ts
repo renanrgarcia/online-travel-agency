@@ -1,5 +1,6 @@
 import type { Explanation, ParsedIntent, RankedOffer, SupplierResult } from '../api/contract'
 import type { BookingCustomStatus, BookingOutput } from '../api/bookingContract'
+import type { Language } from '../i18n/strings'
 
 /**
  * The four stages of one search, as a fixed shape rather than an open list.
@@ -51,6 +52,9 @@ export interface BookingTurn {
    * submission of the same attempt (F05 E4). This is the saga's orchestration instance id. */
   bookingId: string
   offer: RankedOffer
+  /** Frozen at booking-creation time from the assistant turn the offer was booked from (F07 E3) —
+   * a booking turn has no `parsed-intent` of its own to derive it from. */
+  language: Language
   status: BookingTurnStatus
   customStatus?: BookingCustomStatus
   output?: BookingOutput

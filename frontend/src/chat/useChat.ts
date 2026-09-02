@@ -1,6 +1,7 @@
 import { useCallback, useRef, useState } from 'react'
 
 import { assertNeverEvent, type RankedOffer, type SearchStreamEvent } from '../api/contract'
+import type { Language } from '../i18n/strings'
 import { emptyStages, type AssistantTurn, type BookingTurn, type Turn } from './types'
 
 /**
@@ -20,8 +21,10 @@ export interface ChatController {
   completeTurn: (turnId: string) => void
   failTurn: (turnId: string, message: string) => void
   /** Creates a new booking turn in `collecting-details`, with a `bookingId` generated once here and
-   * never regenerated for this attempt (F05 E4). Returns the new turn's id. */
-  startBooking: (offer: RankedOffer) => string
+   * never regenerated for this attempt (F05 E4). `language` is the language the source assistant turn
+   * was answered in (F07 E3) — frozen onto the booking turn, not read back from ambient chrome state.
+   * Returns the new turn's id. */
+  startBooking: (offer: RankedOffer, language: Language) => string
   updateBooking: (turnId: string, update: (turn: BookingTurn) => BookingTurn) => void
   /** Removes a turn outright — only meaningful for a booking turn still in `collecting-details`
    * (Cancel): nothing was submitted yet, so there's no server-side state to reconcile, just a local
@@ -121,7 +124,7 @@ export function useChat(options: UseChatOptions = {}): ChatController {
     [updateAssistantTurn],
   )
 
-  const startBooking = useCallback((offer: RankedOffer): string => {
+  const startBooking = useCallback((offer: RankedOffer, language: Language): string => {
     const id = `booking-${nextId.current++}`
     // A real random id, not a counter -- this becomes the saga's orchestration instance id, and a
     // counter would collide across page loads / concurrent tabs in a way crypto.randomUUID won't.
@@ -131,6 +134,7 @@ export function useChat(options: UseChatOptions = {}): ChatController {
       role: 'booking',
       bookingId,
       offer,
+      language,
       status: 'collecting-details',
     }
     setTurns((current) => [...current, bookingTurn])

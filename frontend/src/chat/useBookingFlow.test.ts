@@ -88,7 +88,7 @@ describe('useBookingFlow', () => {
 
     let turnId = ''
     act(() => {
-      turnId = result.current.booking.startBooking(offer)
+      turnId = result.current.booking.startBooking(offer, 'en')
     })
     const bookingId = bookingTurnOf(result.current.chat.turns).bookingId
     expect(bookingTurnOf(result.current.chat.turns).status).toBe('collecting-details')
@@ -130,7 +130,7 @@ describe('useBookingFlow', () => {
     const offer = makeRankedOffer()
     let turnId = ''
     act(() => {
-      turnId = result.current.booking.startBooking(offer)
+      turnId = result.current.booking.startBooking(offer, 'en')
     })
     const bookingId = bookingTurnOf(result.current.chat.turns).bookingId
 
@@ -153,7 +153,7 @@ describe('useBookingFlow', () => {
     const offer = makeRankedOffer({ offerId: 'NDC-FAIL-TICKET-xyz' })
     let turnId = ''
     act(() => {
-      turnId = result.current.booking.startBooking(offer)
+      turnId = result.current.booking.startBooking(offer, 'en')
     })
     const bookingId = bookingTurnOf(result.current.chat.turns).bookingId
 
@@ -192,7 +192,7 @@ describe('useBookingFlow', () => {
     const offer = makeRankedOffer()
     let turnId = ''
     act(() => {
-      turnId = result.current.booking.startBooking(offer)
+      turnId = result.current.booking.startBooking(offer, 'en')
     })
     const bookingId = bookingTurnOf(result.current.chat.turns).bookingId
 
@@ -214,7 +214,7 @@ describe('useBookingFlow', () => {
     const offer = makeRankedOffer({ offerId: 'NDC-FAIL-ORDER-xyz' })
     let turnId = ''
     act(() => {
-      turnId = result.current.booking.startBooking(offer)
+      turnId = result.current.booking.startBooking(offer, 'en')
     })
     const bookingId = bookingTurnOf(result.current.chat.turns).bookingId
 
@@ -253,7 +253,7 @@ describe('useBookingFlow', () => {
     const offer = makeRankedOffer()
     let turnId = ''
     act(() => {
-      turnId = result.current.booking.startBooking(offer)
+      turnId = result.current.booking.startBooking(offer, 'en')
     })
     const bookingId = bookingTurnOf(result.current.chat.turns).bookingId
 
@@ -282,7 +282,7 @@ describe('useBookingFlow', () => {
     const offer = makeRankedOffer()
     let turnId = ''
     act(() => {
-      turnId = result.current.booking.startBooking(offer)
+      turnId = result.current.booking.startBooking(offer, 'en')
     })
     const bookingId = bookingTurnOf(result.current.chat.turns).bookingId
 
@@ -304,7 +304,7 @@ describe('useBookingFlow', () => {
     const offer = makeRankedOffer({ price: 730, currency: 'USD' })
     let turnId = ''
     act(() => {
-      turnId = result.current.booking.startBooking(offer)
+      turnId = result.current.booking.startBooking(offer, 'en')
     })
     const bookingId = bookingTurnOf(result.current.chat.turns).bookingId
 
@@ -326,7 +326,7 @@ describe('useBookingFlow', () => {
     const offer = makeRankedOffer()
     let turnId = ''
     act(() => {
-      turnId = result.current.booking.startBooking(offer)
+      turnId = result.current.booking.startBooking(offer, 'en')
     })
     const bookingId = bookingTurnOf(result.current.chat.turns).bookingId
 

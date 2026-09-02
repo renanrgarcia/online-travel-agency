@@ -1,9 +1,10 @@
-import { useLanguage } from '../i18n/LanguageProvider'
-import type { AssistantStages, AssistantTurn } from './types'
-import type { Strings } from '../i18n/strings'
+import { LanguageOverride, useLanguage } from '../i18n/LanguageProvider'
+import { STRINGS, type Language, type Strings } from '../i18n/strings'
 import type { RankedOffer, SupplierStatus } from '../api/contract'
 import { OfferCard } from './OfferCard'
 import { OfferComparison } from './OfferComparison'
+import { assistantTurnLanguage } from './turnLanguage'
+import type { AssistantStages, AssistantTurn } from './types'
 
 /**
  * Names the stage still outstanding, not just "still working" — a slow explanation call is otherwise
@@ -64,13 +65,18 @@ function supplierStatusCategory(status: SupplierStatus): 'ok' | 'warn' | 'skip' 
  */
 export interface AssistantTurnViewProps {
   turn: AssistantTurn
-  /** Omitted when there's nowhere for a booking to go (e.g. component-level tests). */
-  onBookOffer?: (offer: RankedOffer) => void
+  /** Omitted when there's nowhere for a booking to go (e.g. component-level tests). Receives the
+   * language this turn was answered in, so the booking turn it starts can freeze the same one (F07 E3). */
+  onBookOffer?: (offer: RankedOffer, language: Language) => void
 }
 
 export function AssistantTurnView({ turn, onBookOffer }: AssistantTurnViewProps) {
-  const { strings } = useLanguage()
+  const { language: ambientLanguage } = useLanguage()
   const { stages, status } = turn
+  // Frozen once this turn's own parsed-intent resolves -- a later, differently-languaged search
+  // changing the app's ambient chrome must never retroactively relabel this turn's content (F07 E3).
+  const turnLanguage = assistantTurnLanguage(turn, ambientLanguage)
+  const strings = STRINGS[turnLanguage]
 
   return (
     <article className="turn turn--assistant" aria-label={strings.resultsLabel}>
@@ -101,7 +107,9 @@ export function AssistantTurnView({ turn, onBookOffer }: AssistantTurnViewProps)
                   <span className="supplier-list__name">{result.supplierName}</span>
                   <span className="supplier-list__status">{supplierStatusLabel(result.status, strings)}</span>
                   <span className="supplier-list__count">
-                    {result.offerCount === 1 ? '1 offer' : `${result.offerCount} offers`}
+                    {result.offerCount === 1
+                      ? strings.offerCountOne
+                      : strings.offerCountMany.replace('{n}', String(result.offerCount))}
                   </span>
                 </li>
               ))}
@@ -117,14 +125,21 @@ export function AssistantTurnView({ turn, onBookOffer }: AssistantTurnViewProps)
               // the same "still working" state as a stage that hasn't arrived yet.
               <p className="offer-list__empty">{strings.noOffersFound}</p>
             ) : (
-              <>
+              // OfferCard and OfferComparison read language from ambient context, not a prop --
+              // this override freezes what they see to this turn's own language (F07 E3) without
+              // either component needing to know turns exist.
+              <LanguageOverride language={turnLanguage}>
                 <ol className="offer-list">
                   {stages.rankedOffers.map((offer) => (
-                    <OfferCard key={offer.offerId} offer={offer} onBook={onBookOffer} />
+                    <OfferCard
+                      key={offer.offerId}
+                      offer={offer}
+                      onBook={onBookOffer ? (o) => onBookOffer(o, turnLanguage) : undefined}
+                    />
                   ))}
                 </ol>
                 <OfferComparison offers={stages.rankedOffers} />
-              </>
+              </LanguageOverride>
             )}
           </section>
         )}

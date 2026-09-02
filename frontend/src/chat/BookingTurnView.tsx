@@ -1,7 +1,6 @@
 import { useState, type FormEvent } from 'react'
 
-import { useLanguage } from '../i18n/LanguageProvider'
-import type { Strings } from '../i18n/strings'
+import { STRINGS, type Strings } from '../i18n/strings'
 import type { BookingCustomStatus } from '../api/bookingContract'
 import type { RankedOffer } from '../api/contract'
 import { formatDuration, formatPrice, formatStops } from './offerFormatting'
@@ -31,7 +30,9 @@ export interface BookingTurnViewProps {
 }
 
 export function BookingTurnView({ turn, onConfirm, onCancel }: BookingTurnViewProps) {
-  const { strings } = useLanguage()
+  // The language this turn's offer was booked in, frozen at creation (F07 E3) -- not the ambient
+  // chrome language, which may have moved on to a later search by the time this renders.
+  const strings = STRINGS[turn.language]
   const [email, setEmail] = useState('')
   const [emailError, setEmailError] = useState<string | null>(null)
 

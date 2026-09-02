@@ -42,6 +42,8 @@ export interface Strings {
   explanationUnavailable: string
   explanationShowRaw: string
   explanationRawLabel: string
+  offerCountOne: string
+  offerCountMany: string
   traveller: string
   travellers: string
   connectionLost: string
@@ -113,6 +115,8 @@ const en: Strings = {
   explanationUnavailable: "An explanation isn't available for this search.",
   explanationShowRaw: 'Show raw model output (debug)',
   explanationRawLabel: 'Raw, unrendered model output:',
+  offerCountOne: '1 offer',
+  offerCountMany: '{n} offers',
   traveller: 'traveller',
   travellers: 'travellers',
   connectionLost: 'Connection lost. Try your search again.',
@@ -184,6 +188,8 @@ const ptBR: Strings = {
   explanationUnavailable: 'Uma explicação não está disponível para esta busca.',
   explanationShowRaw: 'Mostrar saída bruta do modelo (depuração)',
   explanationRawLabel: 'Saída bruta do modelo, sem processamento:',
+  offerCountOne: '1 oferta',
+  offerCountMany: '{n} ofertas',
   traveller: 'passageiro',
   travellers: 'passageiros',
   connectionLost: 'Conexão perdida. Tente sua busca novamente.',
@@ -225,3 +231,12 @@ const ptBR: Strings = {
 export const STRINGS: Record<Language, Strings> = { en, 'pt-BR': ptBR }
 
 export const LANGUAGE_LABELS: Record<Language, string> = { en: 'EN', 'pt-BR': 'PT-BR' }
+
+/**
+ * Maps `parsed-intent.language` (a BCP-47-ish tag the intent agent inferred, e.g. `en`, `pt-BR`) onto
+ * this UI's own two-value {@link Language}. Only pt-BR and en are in scope (F07's own out-of-scope
+ * list) — anything else falls back to `en` rather than rendering chrome in a language with no strings.
+ */
+export function toUiLanguage(raw: string): Language {
+  return raw.toLowerCase().startsWith('pt') ? 'pt-BR' : 'en'
+}

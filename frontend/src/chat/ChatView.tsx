@@ -6,6 +6,7 @@ import { Composer } from './Composer'
 import { EmptyState } from './EmptyState'
 import { isPinnedToBottom } from './autoScroll'
 import type { RankedOffer } from '../api/contract'
+import type { Language } from '../i18n/strings'
 import type { Turn } from './types'
 import { useLanguage } from '../i18n/LanguageProvider'
 
@@ -13,7 +14,7 @@ export interface ChatViewProps {
   turns: Turn[]
   isStreaming: boolean
   onSubmit: (text: string) => void
-  onBookOffer: (offer: RankedOffer) => void
+  onBookOffer: (offer: RankedOffer, language: Language) => void
   onConfirmBooking: (turnId: string, bookingId: string, offer: RankedOffer, travellerEmail: string) => void
   onCancelBooking: (turnId: string) => void
 }

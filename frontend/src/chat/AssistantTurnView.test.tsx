@@ -6,12 +6,19 @@ import { AssistantTurnView } from './AssistantTurnView'
 import { LanguageProvider } from '../i18n/LanguageProvider'
 import { STRINGS } from '../i18n/strings'
 import { makeRankedOffer } from '../test/fixtures'
-import type { SupplierResult, SupplierStatus } from '../api/contract'
+import type { ParsedIntent, SupplierResult, SupplierStatus } from '../api/contract'
 import type { AssistantTurn } from './types'
 
-/** One test per eval in docs/features/02-frontend/tasks/06-degraded-states.md. */
+/**
+ * One test per eval in docs/features/02-frontend/tasks/06-degraded-states.md and
+ * docs/features/02-frontend/tasks/07-bilingual-ui.md.
+ */
 
 const strings = STRINGS.en
+
+function parsedIntent(language: string): ParsedIntent {
+  return { origin: 'GRU', destination: 'LIS', departureDate: '2027-03-12', passengerCount: 1, language }
+}
 
 function baseTurn(overrides: Partial<AssistantTurn> = {}): AssistantTurn {
   return {
@@ -179,5 +186,64 @@ describe('AssistantTurnView — degraded states (F06)', () => {
 
     expect(details).toHaveAttribute('open')
     expect(screen.getByText(/PRICE_LCC-002/)).toBeInTheDocument()
+  })
+})
+
+describe('AssistantTurnView — bilingual UI (F07)', () => {
+  it('E1/E2 — a turn renders in the language its own parsed-intent reports, not the ambient chrome default', () => {
+    const turn = baseTurn({
+      stages: { supplierResults: [], parsedIntent: parsedIntent('pt-BR'), rankedOffers: [] },
+    })
+    // Ambient chrome is still English -- this search's own answer isn't.
+    render(<AssistantTurnView turn={turn} />, { wrapper: LanguageProvider })
+
+    expect(screen.getByText(STRINGS['pt-BR'].stageUnderstood)).toBeInTheDocument()
+    expect(screen.queryByText(strings.stageUnderstood)).not.toBeInTheDocument()
+  })
+
+  it("E3 — a turn keeps the language it was answered in even after the app's ambient chrome moves on", () => {
+    const turn = baseTurn({
+      stages: { supplierResults: [], parsedIntent: parsedIntent('en'), rankedOffers: [] },
+    })
+    // Simulates a later, Portuguese search having already moved chrome on -- this turn must not follow.
+    render(<AssistantTurnView turn={turn} />, {
+      wrapper: ({ children }) => <LanguageProvider initialLanguage="pt-BR">{children}</LanguageProvider>,
+    })
+
+    expect(screen.getByText(strings.stageUnderstood)).toBeInTheDocument()
+    expect(screen.queryByText(STRINGS['pt-BR'].stageUnderstood)).not.toBeInTheDocument()
+  })
+
+  it('E3 — offer cards and the comparison table nested in a turn stay frozen to that turn\'s language too', () => {
+    const turn = baseTurn({
+      stages: {
+        supplierResults: [],
+        parsedIntent: parsedIntent('en'),
+        rankedOffers: [makeRankedOffer({ rank: 1, offerId: 'A', refundable: true }), makeRankedOffer({ rank: 2, offerId: 'B' })],
+      },
+    })
+    render(<AssistantTurnView turn={turn} />, {
+      wrapper: ({ children }) => <LanguageProvider initialLanguage="pt-BR">{children}</LanguageProvider>,
+    })
+
+    // OfferCard and OfferComparison read language from ambient context internally -- only the
+    // LanguageOverride wrapping them inside AssistantTurnView keeps this in English. Both the card
+    // and the comparison table render "Refundable", so there are two matches, not one.
+    expect(screen.getAllByText(strings.offerRefundable).length).toBeGreaterThan(0)
+    expect(screen.queryByText(STRINGS['pt-BR'].offerRefundable)).not.toBeInTheDocument()
+    expect(screen.getByText(strings.comparisonTitle)).toBeInTheDocument()
+  })
+
+  it('E5 — supplier offer counts are translated, not an inline English literal', () => {
+    const turn = baseTurn({
+      stages: {
+        supplierResults: [supplierResult({ offerCount: 3 })],
+        parsedIntent: parsedIntent('pt-BR'),
+      },
+    })
+    render(<AssistantTurnView turn={turn} />, { wrapper: LanguageProvider })
+
+    expect(screen.getByText(STRINGS['pt-BR'].offerCountMany.replace('{n}', '3'))).toBeInTheDocument()
+    expect(screen.queryByText('3 offers')).not.toBeInTheDocument()
   })
 })
