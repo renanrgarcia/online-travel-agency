@@ -31,6 +31,17 @@ export interface Strings {
   searching: string
   waitingForOffers: string
   waitingForExplanation: string
+  supplierStatusSucceeded: string
+  supplierStatusPartialSuccess: string
+  supplierStatusFailed: string
+  supplierStatusTimedOut: string
+  supplierStatusCancelled: string
+  supplierStatusSkippedCircuitOpen: string
+  supplierStatusSkippedBudgetExhausted: string
+  noOffersFound: string
+  explanationUnavailable: string
+  explanationShowRaw: string
+  explanationRawLabel: string
   traveller: string
   travellers: string
   connectionLost: string
@@ -91,6 +102,17 @@ const en: Strings = {
   searching: 'Understanding your search…',
   waitingForOffers: 'Checking suppliers…',
   waitingForExplanation: 'Writing an explanation…',
+  supplierStatusSucceeded: 'Succeeded',
+  supplierStatusPartialSuccess: 'Partial results',
+  supplierStatusFailed: 'Failed',
+  supplierStatusTimedOut: 'Timed out',
+  supplierStatusCancelled: 'Cancelled',
+  supplierStatusSkippedCircuitOpen: 'Skipped (temporarily paused)',
+  supplierStatusSkippedBudgetExhausted: 'Skipped (budget reached)',
+  noOffersFound: 'No offers found for this search.',
+  explanationUnavailable: "An explanation isn't available for this search.",
+  explanationShowRaw: 'Show raw model output (debug)',
+  explanationRawLabel: 'Raw, unrendered model output:',
   traveller: 'traveller',
   travellers: 'travellers',
   connectionLost: 'Connection lost. Try your search again.',
@@ -151,6 +173,17 @@ const ptBR: Strings = {
   searching: 'Entendendo sua busca…',
   waitingForOffers: 'Consultando fornecedores…',
   waitingForExplanation: 'Escrevendo uma explicação…',
+  supplierStatusSucceeded: 'Concluído',
+  supplierStatusPartialSuccess: 'Resultados parciais',
+  supplierStatusFailed: 'Falhou',
+  supplierStatusTimedOut: 'Tempo esgotado',
+  supplierStatusCancelled: 'Cancelado',
+  supplierStatusSkippedCircuitOpen: 'Ignorado (pausado temporariamente)',
+  supplierStatusSkippedBudgetExhausted: 'Ignorado (orçamento esgotado)',
+  noOffersFound: 'Nenhuma oferta encontrada para esta busca.',
+  explanationUnavailable: 'Uma explicação não está disponível para esta busca.',
+  explanationShowRaw: 'Mostrar saída bruta do modelo (depuração)',
+  explanationRawLabel: 'Saída bruta do modelo, sem processamento:',
   traveller: 'passageiro',
   travellers: 'passageiros',
   connectionLost: 'Conexão perdida. Tente sua busca novamente.',

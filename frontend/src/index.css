@@ -7,6 +7,7 @@
   --text-muted: #9aa3b2;
   --accent: #6aa6ff;
   --danger: #ff8f8f;
+  --warn: #e8b34d;
 
   color-scheme: dark;
   font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
@@ -168,6 +169,14 @@ body {
   color: var(--text-muted);
 }
 
+.supplier-list__item--warn .supplier-list__status {
+  color: var(--warn);
+}
+
+.supplier-list__item--skip .supplier-list__status {
+  font-style: italic;
+}
+
 /* Offer cards */
 .offer-list {
   margin: 0;
@@ -292,6 +301,47 @@ body {
 
 .offer-comparison__row-label {
   min-width: 6rem;
+}
+
+.offer-list__empty {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* Explanation */
+.explanation__unavailable {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.explanation__debug {
+  margin-top: 0.6rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.explanation__debug summary {
+  cursor: pointer;
+  user-select: none;
+}
+
+.explanation__raw-label {
+  margin: 0.5rem 0 0.25rem;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.explanation__raw {
+  margin: 0;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 0.8rem;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 /* Empty state */
