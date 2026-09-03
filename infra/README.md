@@ -60,6 +60,35 @@ incremental update) after the Static Web App, whether or not they already exist.
 
   and adjust the parameter if the listed string differs.
 
+## Secrets
+
+Two `@secure()` parameters flow from environment variables into `main.bicepparam` via
+`readEnvironmentVariable(...)`, never as literal values in a file committed to git -- `.bicepparam`
+files can't be layered with an inline CLI `--parameters` override the way classic `parameters.json`
+files can (confirmed empirically: `BCP258` on every non-defaulted param not assigned inside the file),
+so this is the supported way to keep a real secret out of source control while still using the file.
+
+- `PRICE_ASSERTION_SIGNING_KEY` -- required, no fallback. `FlightAi.Api` and
+  `FlightAi.Booking.Functions` both throw at startup if this is missing (backend task 21) -- deploying
+  without it set fails loudly rather than silently shipping two apps that crash-loop in production, which
+  is exactly what happened the first time this landed without the app setting wired up.
+- `GEMINI_API_KEY` -- optional, defaults to an empty string. Backend task 17: present means
+  `FlightAi.Api` builds a real Gemini-backed `IChatClient`; absent means it falls back to the
+  deterministic offline client, same as local dev with no key set. Only `FlightAi.Api` ever calls a
+  model, so this is threaded into `modules/app-service.bicep` alone, not `modules/functions.bicep`.
+
+Set whichever you need before `az bicep build-params` / `what-if` / `create`:
+
+```bash
+export PRICE_ASSERTION_SIGNING_KEY="$(openssl rand -base64 32)"   # must match what's already live -- see below
+export GEMINI_API_KEY="<your key>"                                 # omit entirely to deploy without a real model
+```
+
+`PRICE_ASSERTION_SIGNING_KEY` in particular must stay **stable** across redeploys -- regenerating it
+invalidates any price assertion currently in flight between a search response and a booking request.
+Keep it in a local, gitignored `infra/.env` (already in `.gitignore`) and `source` that file rather than
+generating a fresh value each time.
+
 ## Deploy
 
 Both files were validated locally with `az bicep build` / `az bicep build-params` (catches syntax and

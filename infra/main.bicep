@@ -31,6 +31,10 @@ param staticWebAppName string = 'flightai-web-${environmentName}'
 @secure()
 param priceAssertionSigningKey string
 
+@description('Gemini API key (task 17) -- only FlightAi.Api reads it, so it is threaded into the appService module alone, not functionsApp. Empty default: unlike priceAssertionSigningKey, deploying with no key set is a supported state -- Program.cs falls back to the offline chat client rather than failing.')
+@secure()
+param geminiApiKey string = ''
+
 resource rg 'Microsoft.Resources/resourceGroups@2024-11-01' = {
   name: resourceGroupName
   location: location
@@ -60,6 +64,7 @@ module appService 'modules/app-service.bicep' = {
     location: location
     allowedOrigins: [frontendOrigin]
     priceAssertionSigningKey: priceAssertionSigningKey
+    geminiApiKey: geminiApiKey
   }
 }
 

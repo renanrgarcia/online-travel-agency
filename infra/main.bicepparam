@@ -20,3 +20,8 @@ param location = 'westeurope'
 // supported way to keep the value itself out of source control while still using this file. Set
 // PRICE_ASSERTION_SIGNING_KEY in the shell before deploying; see infra/README.md.
 param priceAssertionSigningKey = readEnvironmentVariable('PRICE_ASSERTION_SIGNING_KEY')
+
+// Unlike PRICE_ASSERTION_SIGNING_KEY above, this one has a fallback ('') as its second argument --
+// deploying with no Gemini key set is a supported state (Program.cs falls back to the offline chat
+// client), so an unset GEMINI_API_KEY shouldn't fail the deployment the way an unset signing key does.
+param geminiApiKey = readEnvironmentVariable('GEMINI_API_KEY', '')

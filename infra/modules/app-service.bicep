@@ -17,13 +17,19 @@ param allowedOrigins array = []
 @secure()
 param priceAssertionSigningKey string
 
+@description('Gemini API key (task 17) -- read by Program.cs to decide whether to build a real Gemini IChatClient or fall back to the deterministic offline one. Only FlightAi.Api ever calls a model, so this is not threaded into functions.bicep. Empty is a safe default, unlike priceAssertionSigningKey: Program.cs already treats a missing key as "use the offline client," not a startup failure.')
+@secure()
+param geminiApiKey string = ''
+
 // A for-expression can only be the direct value of a resource/module/variable/output -- not nested
 // inside a function call like concat(...) -- so the CORS entries are built here first, then combined
 // with the static signing-key setting below.
-var corsAppSettings = [for (origin, i) in allowedOrigins: {
-  name: 'Cors__AllowedOrigins__${i}'
-  value: origin
-}]
+var corsAppSettings = [
+  for (origin, i) in allowedOrigins: {
+    name: 'Cors__AllowedOrigins__${i}'
+    value: origin
+  }
+]
 
 // F1 (Free) and D1 (Shared) tiers only exist on Windows App Service plans -- there is no free tier on
 // Linux. `reserved: false` is what selects Windows (Linux plans set this true).
@@ -53,6 +59,10 @@ resource webApp 'Microsoft.Web/sites@2023-12-01' = {
           {
             name: 'PriceAssertion__SigningKey'
             value: priceAssertionSigningKey
+          }
+          {
+            name: 'Gemini__ApiKey'
+            value: geminiApiKey
           }
         ],
         corsAppSettings
