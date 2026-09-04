@@ -3,6 +3,7 @@
     "telemetryMode": "OpenTelemetry",
     "extensions": {
         "durableTask": {
+            "hubName": "default",
             "storageProvider": {
                 "type": "azureManaged",
                 "connectionStringName": "DURABLE_TASK_SCHEDULER_CONNECTION_STRING"
