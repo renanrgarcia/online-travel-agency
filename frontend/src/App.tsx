@@ -25,7 +25,11 @@ function AppShell() {
   return (
     <main className="app">
       <header className="app__header">
-        <h1 className="app__title">{strings.appTitle}</h1>
+        <h1 className="app__title">
+          <button className="app__home" type="button" onClick={chat.resetConversation}>
+            {strings.appTitle}
+          </button>
+        </h1>
         <LanguageToggle />
       </header>
       <ChatView
@@ -35,6 +39,7 @@ function AppShell() {
         onBookOffer={booking.startBooking}
         onConfirmBooking={booking.confirmBooking}
         onCancelBooking={chat.removeTurn}
+        onResetConversation={chat.resetConversation}
       />
     </main>
   )

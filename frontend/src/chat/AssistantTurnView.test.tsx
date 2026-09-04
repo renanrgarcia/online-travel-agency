@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { AssistantTurnView } from './AssistantTurnView'
 import { LanguageProvider } from '../i18n/LanguageProvider'
@@ -141,6 +141,18 @@ describe('AssistantTurnView — degraded states (F06)', () => {
 
     expect(screen.getByRole('alert')).toHaveTextContent('missing origin')
     expect(screen.queryByRole('status')).not.toBeInTheDocument()
+  })
+
+  it('E6b — a failed turn offers a new search recovery action', async () => {
+    const resetConversation = vi.fn()
+    const turn = baseTurn({ status: 'failed', failure: { message: strings.connectionLost } })
+    render(<AssistantTurnView turn={turn} onResetConversation={resetConversation} />, {
+      wrapper: LanguageProvider,
+    })
+
+    await userEvent.click(screen.getByRole('button', { name: strings.newSearch }))
+
+    expect(resetConversation).toHaveBeenCalledOnce()
   })
 
   it('E7 — a dropped connection keeps prior stages visible next to the stated interruption', () => {

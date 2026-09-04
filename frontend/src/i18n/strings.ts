@@ -47,6 +47,8 @@ export interface Strings {
   traveller: string
   travellers: string
   connectionLost: string
+  aiUnavailable: string
+  newSearch: string
   offerRank: string
   offerDuration: string
   offerRefundable: string
@@ -120,6 +122,8 @@ const en: Strings = {
   traveller: 'traveller',
   travellers: 'travellers',
   connectionLost: 'Connection lost. Try your search again.',
+  aiUnavailable: 'The AI service is temporarily unavailable. Try again later.',
+  newSearch: 'New search',
   offerRank: 'Rank',
   offerDuration: 'Duration',
   offerRefundable: 'Refundable',
@@ -193,6 +197,8 @@ const ptBR: Strings = {
   traveller: 'passageiro',
   travellers: 'passageiros',
   connectionLost: 'Conexão perdida. Tente sua busca novamente.',
+  aiUnavailable: 'O serviço de IA está temporariamente indisponível. Tente novamente mais tarde.',
+  newSearch: 'Nova busca',
   offerRank: 'Posição',
   offerDuration: 'Duração',
   offerRefundable: 'Reembolsável',

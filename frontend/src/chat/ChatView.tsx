@@ -17,6 +17,7 @@ export interface ChatViewProps {
   onBookOffer: (offer: RankedOffer, language: Language) => void
   onConfirmBooking: (turnId: string, bookingId: string, offer: RankedOffer, travellerEmail: string) => void
   onCancelBooking: (turnId: string) => void
+  onResetConversation: () => void
 }
 
 export function ChatView({
@@ -26,6 +27,7 @@ export function ChatView({
   onBookOffer,
   onConfirmBooking,
   onCancelBooking,
+  onResetConversation,
 }: ChatViewProps) {
   const { strings } = useLanguage()
   const listRef = useRef<HTMLDivElement>(null)
@@ -67,7 +69,14 @@ export function ChatView({
                 />
               )
             }
-            return <AssistantTurnView key={turn.id} turn={turn} onBookOffer={onBookOffer} />
+            return (
+              <AssistantTurnView
+                key={turn.id}
+                turn={turn}
+                onBookOffer={onBookOffer}
+                onResetConversation={onResetConversation}
+              />
+            )
           })
         )}
       </div>

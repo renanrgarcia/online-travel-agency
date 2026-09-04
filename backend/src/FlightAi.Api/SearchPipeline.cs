@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using FlightAi.Agents.Models.Explanation;
+using FlightAi.Agents.Models.Intent;
 using FlightAi.Agents.Services.Explanation;
 using FlightAi.Agents.Services.Intent;
 using FlightAi.Core.Models.Offers;
@@ -47,8 +48,33 @@ public static class SearchPipeline
         PriceAssertionService priceAssertionService,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        var intentResult = await intentAgent.ParseAsync(query, cancellationToken);
-        if (!intentResult.Success)
+        IntentResult? intentResult = null;
+        var aiUnavailable = false;
+        try
+        {
+            intentResult = await intentAgent.ParseAsync(query, cancellationToken);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            yield break;
+        }
+        catch (Exception)
+        {
+            aiUnavailable = true;
+        }
+
+        if (aiUnavailable)
+        {
+            yield return Event("error", new
+            {
+                code = "ai-unavailable",
+                message = "The AI service is temporarily unavailable. Please start a new search later.",
+                rawModelResponse = (string?)null,
+            });
+            yield break;
+        }
+
+        if (!intentResult!.Success)
         {
             yield return Event("error", new
             {
