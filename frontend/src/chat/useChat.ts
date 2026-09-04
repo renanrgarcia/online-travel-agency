@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from 'react'
 
-import { assertNeverEvent, type RankedOffer, type SearchStreamEvent } from '../api/contract'
+import { assertNeverEvent, type RankedOffer, type SearchError, type SearchStreamEvent } from '../api/contract'
 import type { Language } from '../i18n/strings'
 import { emptyStages, type AssistantTurn, type BookingTurn, type Turn } from './types'
 
@@ -38,14 +38,33 @@ export interface UseChatOptions {
   /** Called after the turns are created, so F03 can open the stream for this query. */
   onStart?: (query: string, turnId: string) => void
   aiUnavailableMessage?: string
+  missingDepartureDateMessage?: string
 }
 
 export function useChat(options: UseChatOptions = {}): ChatController {
   const { onStart } = options
   const aiUnavailableMessage = options.aiUnavailableMessage ?? 'The AI service is temporarily unavailable. Try again later.'
+  const missingDepartureDateMessage =
+    options.missingDepartureDateMessage ?? "Let me know when you'd like to travel — I need a departure date to search."
   const [turns, setTurns] = useState<Turn[]>([])
   const [isStreaming, setIsStreaming] = useState(false)
   const nextId = useRef(0)
+
+  // A `code` maps to a friendly, localized message; anything without one falls back to the server's
+  // own diagnostic text, same as before this mapping existed.
+  const friendlyErrorMessage = useCallback(
+    (error: SearchError): string => {
+      switch (error.code) {
+        case 'ai-unavailable':
+          return aiUnavailableMessage
+        case 'missing-departure-date':
+          return missingDepartureDateMessage
+        default:
+          return error.message
+      }
+    },
+    [aiUnavailableMessage, missingDepartureDateMessage],
+  )
 
   const updateAssistantTurn = useCallback(
     (turnId: string, update: (turn: AssistantTurn) => AssistantTurn) => {
@@ -105,9 +124,7 @@ export function useChat(options: UseChatOptions = {}): ChatController {
             return {
               ...turn,
               status: 'failed',
-              failure: {
-                message: event.data.code === 'ai-unavailable' ? aiUnavailableMessage : event.data.message,
-              },
+              failure: { message: friendlyErrorMessage(event.data) },
             }
           default:
             return assertNeverEvent(event)
@@ -116,7 +133,7 @@ export function useChat(options: UseChatOptions = {}): ChatController {
 
       if (event.type === 'error') setIsStreaming(false)
     },
-    [updateAssistantTurn],
+    [updateAssistantTurn, friendlyErrorMessage],
   )
 
   const completeTurn = useCallback(

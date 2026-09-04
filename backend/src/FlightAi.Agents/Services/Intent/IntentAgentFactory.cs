@@ -76,7 +76,7 @@ public sealed class IntentAgent(AIAgent agent, CapturingChatClient capturingClie
         if (string.IsNullOrWhiteSpace(request.Language))
             return IntentResult.Failed("missing language", rawModelResponse);
         if (request.DepartureDate is null)
-            return IntentResult.Failed("missing departure date", rawModelResponse);
+            return IntentResult.Failed("missing departure date", rawModelResponse, code: "missing-departure-date");
         if (request.DepartureDate < DateOnly.FromDateTime(DateTime.UtcNow))
             return IntentResult.Failed("departure date is in the past", rawModelResponse);
 

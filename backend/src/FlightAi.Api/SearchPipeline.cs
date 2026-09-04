@@ -78,6 +78,7 @@ public static class SearchPipeline
         {
             yield return Event("error", new
             {
+                code = intentResult.Code,
                 message = intentResult.FailureReason,
                 rawModelResponse = intentResult.RawModelResponse,
             });

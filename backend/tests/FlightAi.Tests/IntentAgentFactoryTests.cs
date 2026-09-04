@@ -81,6 +81,9 @@ public class IntentAgentFactoryTests
         Assert.Null(result.Request);
         Assert.Contains("departure date", result.FailureReason, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("\"DepartureDate\":null", result.RawModelResponse);
+        // A stable code, not just the diagnostic message text, so the SSE layer and the frontend can
+        // show a friendly, localized prompt instead of this internal string verbatim.
+        Assert.Equal("missing-departure-date", result.Code);
     }
 
     [Fact] // E4 — real models return junk sometimes; this is expected, not exceptional

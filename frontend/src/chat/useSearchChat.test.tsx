@@ -6,6 +6,7 @@ import type { AssistantTurn } from './types'
 import { fakeEventSourceFactory } from '../test/fakeEventSource'
 import {
   ERROR_JSON,
+  ERROR_MISSING_DEPARTURE_DATE_JSON,
   EXPLANATION_JSON,
   PARSED_INTENT_JSON,
   RANKED_OFFERS_JSON,
@@ -206,6 +207,22 @@ describe('useSearchChat', () => {
     consoleError.mockRestore()
     // Nothing to retry automatically toward (F06's locked decision) -- the composer just unlocks.
     expect(result.current.isStreaming).toBe(false)
+  })
+
+  it('a missing-departure-date error shows the friendly prompt, not the raw diagnostic string', () => {
+    const { result, source } = setup()
+    act(() => result.current.submit('cheapest flight from São Paulo to Lisbon'))
+
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+    act(() => source().emit('error', ERROR_MISSING_DEPARTURE_DATE_JSON))
+    consoleError.mockRestore()
+
+    const turn = assistantTurnOf(result.current.turns)
+    expect(turn.status).toBe('failed')
+    expect(turn.failure?.message).toBe(
+      "Let me know when you'd like to travel — I need a departure date to search.",
+    )
+    expect(turn.failure?.message).not.toContain('missing departure date')
   })
 
   it('does not fail the turn over a single malformed frame — the stream is still alive', () => {
