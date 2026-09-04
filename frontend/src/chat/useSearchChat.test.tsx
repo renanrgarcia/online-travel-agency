@@ -193,11 +193,17 @@ describe('useSearchChat', () => {
     act(() => result.current.submit('lisbon'))
     expect(result.current.isStreaming).toBe(true)
 
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
     act(() => source().emit('error', ERROR_JSON))
 
     const turn = assistantTurnOf(result.current.turns)
     expect(turn.status).toBe('failed')
     expect(turn.failure?.message).toBe('missing origin')
+    expect(consoleError).toHaveBeenCalledWith(
+      'Intent model raw response:',
+      '{"departureDate":"12 March 2027"}',
+    )
+    consoleError.mockRestore()
     // Nothing to retry automatically toward (F06's locked decision) -- the composer just unlocks.
     expect(result.current.isStreaming).toBe(false)
   })

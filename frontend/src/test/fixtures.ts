@@ -32,7 +32,8 @@ export const RANKED_OFFERS_JSON =
 export const EXPLANATION_JSON =
   '{"text":"The best value is $590.00, taking 8h with 1 stop (non-refundable).","raw":"The best value is {{PRICE_LCC-002}}, taking {{DURATION_LCC-002}} with {{STOPS_LCC-002}} ({{REFUNDABLE_LCC-002}}).","isClean":true}'
 
-export const ERROR_JSON = '{"message":"missing origin"}'
+export const ERROR_JSON =
+  '{"message":"missing origin","rawModelResponse":"{\\"departureDate\\":\\"12 March 2027\\"}"}'
 
 /** Intent for a Portuguese query — the accented city name is the point (F01 E4). */
 export const PARSED_INTENT_ACCENTED_JSON =

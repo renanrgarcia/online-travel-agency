@@ -22,19 +22,25 @@ public static class IntentAgentFactory
         "Extract flight search parameters from the traveller's query as JSON matching the requested " +
         "schema. Infer the Language field from the language the query itself was written in — never " +
         "ask for it separately. Language must be exactly \"en\" for English or \"pt-BR\" for Portuguese " +
-        "— never a bare language code like \"pt\" or a different regional variant.";
+        "— never a bare language code like \"pt\" or a different regional variant. " +
+        "DepartureDate must be an ISO 8601 date string in exactly yyyy-MM-dd format.";
 
-    public static IntentAgent Create(IChatClient chatClient) => new(chatClient.AsAIAgent(instructions: Instructions));
+    public static IntentAgent Create(IChatClient chatClient)
+    {
+        var capturingClient = new CapturingChatClient(chatClient);
+        return new(capturingClient.AsAIAgent(instructions: Instructions), capturingClient);
+    }
 }
 
 /// <summary>
 /// Wraps the underlying <see cref="AIAgent"/>. Nothing downstream of <see cref="ParseAsync"/> ever
 /// reads free text again — every later pipeline stage works with the typed <see cref="SearchRequest"/>.
 /// </summary>
-public sealed class IntentAgent(AIAgent agent)
+public sealed class IntentAgent(AIAgent agent, CapturingChatClient capturingClient)
 {
     public async Task<IntentResult> ParseAsync(string query, CancellationToken cancellationToken = default)
     {
+        capturingClient.LastResponseText = null;
         SearchRequest parsed;
         try
         {
@@ -47,7 +53,9 @@ public sealed class IntentAgent(AIAgent agent)
             // returning a failure value (verified empirically, not assumed) -- this is the one place
             // that exception is caught and translated into this project's "return, don't throw"
             // convention, matching task 04's for suppliers.
-            return IntentResult.Failed($"model output was not valid JSON: {ex.Message}");
+            return IntentResult.Failed(
+                $"model output was not valid JSON: {ex.Message}",
+                capturingClient.LastResponseText);
         }
 
         // Validation happens here, after the typed parse, in deterministic code -- never delegated to
@@ -71,4 +79,35 @@ public sealed class IntentAgent(AIAgent agent)
 
         return IntentResult.Ok(request);
     }
+}
+
+public sealed class CapturingChatClient(IChatClient inner) : IChatClient
+{
+    public string? LastResponseText { get; set; }
+
+    public async Task<ChatResponse> GetResponseAsync(
+        IEnumerable<ChatMessage> messages,
+        ChatOptions? options = null,
+        CancellationToken cancellationToken = default)
+    {
+        var response = await inner.GetResponseAsync(messages, options, cancellationToken);
+        LastResponseText = response.Text;
+        return response;
+    }
+
+    public async IAsyncEnumerable<ChatResponseUpdate> GetStreamingResponseAsync(
+        IEnumerable<ChatMessage> messages,
+        ChatOptions? options = null,
+        [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        await foreach (var update in inner.GetStreamingResponseAsync(messages, options, cancellationToken))
+        {
+            LastResponseText = update.Text;
+            yield return update;
+        }
+    }
+
+    public object? GetService(Type serviceType, object? serviceKey = null) => inner.GetService(serviceType, serviceKey);
+
+    public void Dispose() => inner.Dispose();
 }

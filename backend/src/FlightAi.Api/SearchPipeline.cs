@@ -50,7 +50,11 @@ public static class SearchPipeline
         var intentResult = await intentAgent.ParseAsync(query, cancellationToken);
         if (!intentResult.Success)
         {
-            yield return Event("error", new { message = intentResult.FailureReason });
+            yield return Event("error", new
+            {
+                message = intentResult.FailureReason,
+                rawModelResponse = intentResult.RawModelResponse,
+            });
             yield break;
         }
 

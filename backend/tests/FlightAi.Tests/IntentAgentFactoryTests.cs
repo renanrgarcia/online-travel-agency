@@ -76,6 +76,7 @@ public class IntentAgentFactoryTests
 
         Assert.False(result.Success);
         Assert.NotNull(result.FailureReason);
+        Assert.Equal("sorry, I cannot help with that", result.RawModelResponse);
     }
 
     [Fact] // E5 — schema validation includes semantic validity, not just shape
