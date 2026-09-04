@@ -22,6 +22,7 @@ export function useSearchChat(options: UseSearchChatOptions = {}): ChatControlle
 
   const chat = useChat({
     aiUnavailableMessage: strings.aiUnavailable,
+    missingDepartureDateMessage: strings.missingDepartureDate,
     onStart: (query, turnId) => {
       // One in-flight search at a time (the composer enforces this), but guard anyway: a leftover
       // handle here would mean two streams silently racing to update the same or a stale turn.

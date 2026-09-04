@@ -12,10 +12,15 @@ public sealed record IntentResult(
     bool Success,
     SearchRequest? Request,
     string? FailureReason,
-    string? RawModelResponse = null)
+    string? RawModelResponse = null,
+    string? Code = null)
 {
     public static IntentResult Ok(SearchRequest request) => new(true, request, FailureReason: null);
 
-    public static IntentResult Failed(string reason, string? rawModelResponse = null) =>
-        new(false, Request: null, reason, rawModelResponse);
+    /// <param name="code">A stable, machine-readable identifier for this specific failure -- e.g.
+    /// "missing-departure-date" -- so a caller (the SSE error event, then the frontend) can show a
+    /// friendly, localized message instead of this string, which is diagnostic text, not
+    /// traveller-facing copy. Null for failures that don't yet have a dedicated frontend treatment.</param>
+    public static IntentResult Failed(string reason, string? rawModelResponse = null, string? code = null) =>
+        new(false, Request: null, reason, rawModelResponse, code);
 }

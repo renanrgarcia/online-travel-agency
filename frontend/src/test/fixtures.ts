@@ -35,6 +35,11 @@ export const EXPLANATION_JSON =
 export const ERROR_JSON =
   '{"message":"missing origin","rawModelResponse":"{\\"departureDate\\":\\"12 March 2027\\"}"}'
 
+/** A `code`-bearing error -- distinct from {@link ERROR_JSON} above, which has none -- so a friendly,
+ * localized message replaces the server's own diagnostic text instead of showing it verbatim. */
+export const ERROR_MISSING_DEPARTURE_DATE_JSON =
+  '{"code":"missing-departure-date","message":"missing departure date","rawModelResponse":"{\\"departureDate\\":null}"}'
+
 /** Intent for a Portuguese query — the accented city name is the point (F01 E4). */
 export const PARSED_INTENT_ACCENTED_JSON =
   '{"origin":"São Paulo","destination":"Lisboa","departureDate":"2027-03-12","passengerCount":2,"language":"pt-BR"}'

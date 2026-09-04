@@ -101,6 +101,23 @@ public class SearchApiPipelineTests(WebApplicationFactory<Program> factory) : IC
         Assert.Equal("ai-unavailable", payload.RootElement.GetProperty("code").GetString());
     }
 
+    [Fact]
+    public async Task MissingDepartureDate_IsReportedWithAStableCode()
+    {
+        var client = new OfflineChatClient()
+            .RegisterResponse("São Paulo",
+                """{"Origin":"GRU","Destination":"LIS","DepartureDate":null,"PassengerCount":1,"Language":"en"}""");
+        using var http = WithServices(client).CreateClient();
+
+        var response = await http.GetAsync($"/api/search/stream?q={Uri.EscapeDataString(Query)}");
+        var events = await ReadAllEventsAsync(response);
+        var error = Assert.Single(events);
+
+        Assert.Equal("error", error.EventType);
+        using var payload = JsonDocument.Parse(error.Data);
+        Assert.Equal("missing-departure-date", payload.RootElement.GetProperty("code").GetString());
+    }
+
     [Fact] // E2 — per-stage streaming is real, the reason for SSE at all
     public async Task E2_ConnectorsWithDifferentDelays_SupplierResultsArriveIncrementally()
     {

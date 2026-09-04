@@ -48,6 +48,7 @@ export interface Strings {
   travellers: string
   connectionLost: string
   aiUnavailable: string
+  missingDepartureDate: string
   newSearch: string
   offerRank: string
   offerDuration: string
@@ -96,7 +97,7 @@ const en: Strings = {
   emptyStateBody:
     'Describe the trip you want. Offers are ranked by a deterministic scorer, and the explanation ' +
     'is written from resolved values — never numbers a model made up.',
-  emptyStateSuggestion: 'cheapest flight from São Paulo to Lisbon',
+  emptyStateSuggestion: 'cheapest flight from São Paulo to Lisbon on March 12, 2027',
   youAskedLabel: 'You asked',
   resultsLabel: 'Search results',
   stageUnderstood: 'Understood',
@@ -123,6 +124,7 @@ const en: Strings = {
   travellers: 'travellers',
   connectionLost: 'Connection lost. Try your search again.',
   aiUnavailable: 'The AI service is temporarily unavailable. Try again later.',
+  missingDepartureDate: "Let me know when you'd like to travel — I need a departure date to search.",
   newSearch: 'New search',
   offerRank: 'Rank',
   offerDuration: 'Duration',
@@ -171,7 +173,7 @@ const ptBR: Strings = {
   emptyStateBody:
     'Descreva a viagem que você quer. As ofertas são ranqueadas por um algoritmo determinístico, e a ' +
     'explicação é escrita a partir de valores resolvidos — nunca números inventados por um modelo.',
-  emptyStateSuggestion: 'voo mais barato de São Paulo para Lisboa',
+  emptyStateSuggestion: 'voo mais barato de São Paulo para Lisboa em 12 de março de 2027',
   youAskedLabel: 'Você perguntou',
   resultsLabel: 'Resultados da busca',
   stageUnderstood: 'Entendido',
@@ -198,6 +200,7 @@ const ptBR: Strings = {
   travellers: 'passageiros',
   connectionLost: 'Conexão perdida. Tente sua busca novamente.',
   aiUnavailable: 'O serviço de IA está temporariamente indisponível. Tente novamente mais tarde.',
+  missingDepartureDate: 'Me diga quando você gostaria de viajar — preciso de uma data de partida para buscar.',
   newSearch: 'Nova busca',
   offerRank: 'Posição',
   offerDuration: 'Duração',
