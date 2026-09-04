@@ -16,10 +16,13 @@ have deterministic code be the only thing allowed to write a digit into the fina
 
 **Side one — `PriceReferenceStore`** (`FlightAi.Core/Services/Pricing/PriceReferenceStore.cs`). Given a set of
 ranked, scored offers, it hands out *tokens*, never numbers: `{{PRICE_OFF8812}}`,
-`{{DURATION_OFF8812}}`, `{{STOPS_OFF8812}}`, `{{REFUNDABLE_OFF8812}}`, plus comparison tokens like
-`{{PRICE_DELTA_OFFA_vs_OFFB}}`. These tokens are what the explanation agent's prompt is built from —
-the agent never receives an actual price, duration, or stop count as a value it could restate,
-recompute, or hallucinate a variant of.
+`{{DURATION_OFF8812}}`, `{{STOPS_OFF8812}}`, `{{REFUNDABLE_OFF8812}}`, plus the comparison tokens
+`ComparisonFacts` (`FlightAi.Core/Services/Pricing/ComparisonFacts.cs`, see also
+`04-ranking.md`) decides are true — `{{PRICE_DELTA_OFFA_vs_OFFB}}`, `{{DURATION_DELTA_OFFA_vs_OFFB}}`,
+and superlatives like `{{SUPERLATIVE_CHEAPEST_OFFA}}`. These tokens are what the explanation agent's
+prompt is built from — the agent never receives an actual price, duration, stop count, or comparison as
+a value it could restate, recompute, or hallucinate a variant of. Resolved text is localized by request
+language (English or Brazilian Portuguese); number and date formats stay invariant-culture regardless.
 
 Note what's deliberately absent: **there is no `MARGIN_` token.** Your commercial margin has no
 resolvable token at all, so there is no path — intentional or hallucinated — for it to reach a
@@ -45,9 +48,22 @@ number directly, rather than referencing a token, fails this check even though n
 that's precisely the failure mode structural enforcement exists to catch, and it's the difference
 between a real control and a comment that says "please don't."
 
+## One deliberate exception to the raw-digit scan
+
+An offer's own ID (`LCC-002`, `GDS-001`, ...) is given to the explanation agent as plain text — never a
+token, since it isn't a value the traveller needs protected, just a label to write "Offer LCC-002" in
+prose. But an offer ID often contains digits, and the raw-digit scan can't otherwise tell "a digit that's
+part of an identifier the model was explicitly given" from "a digit the model invented." Found live
+against a real model (task 17): the model naturally wrote offer IDs in prose, and every mention tripped
+the guard as a false positive. `PriceReferenceStore` now tracks every offer ID it issues a token for
+(`KnownOfferIds`), and `ExplanationPlaceholderRenderer` masks those the same way it already masks
+`{{TOKEN}}` spans, before scanning for stray digits — so a real invented price still gets caught
+alongside a known offer ID, but the ID itself no longer does.
+
 ## Read together
 
-Study `PriceReferenceStore.cs`, `ExplanationPlaceholderRenderer.cs`, and
-`FlightAi.Tests/ExplanationPlaceholderRendererTests.cs` as one unit — the tests exist specifically to
-prove the claims above are actually true of the code, including a test where a mock model deliberately
+Study `PriceReferenceStore.cs`, `ExplanationPlaceholderRenderer.cs`, `ComparisonFacts.cs`, and
+`FlightAi.Tests/ExplanationPlaceholderRendererTests.cs` /
+`FlightAi.Tests/ComparativeDecisionSupportTests.cs` as one unit — the tests exist specifically to prove
+the claims above are actually true of the code, including a test where a mock model deliberately
 ignores its instructions and types a raw number, and the renderer catches it anyway.
