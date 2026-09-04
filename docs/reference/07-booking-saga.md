@@ -88,7 +88,14 @@ rolled back — which is also exactly what was compensated.
 
 ## Trying it locally
 
-Needs Azurite (`--skipApiVersionCheck` — see `09-lessons-learned.md`) and Azure Functions Core Tools.
+Needs Azurite (`--skipApiVersionCheck` — see `09-lessons-learned.md`), the Durable Task Scheduler
+emulator, and Azure Functions Core Tools. Start the emulator before the Functions host; it listens on
+`http://localhost:8080` and its dashboard is available at `http://localhost:8082`.
+
+The emulator connection is configured in `local.settings.json` as
+`DURABLE_TASK_SCHEDULER_CONNECTION_STRING` with `TaskHub=default` and `Authentication=None`.
+Azurite is still required for the Functions host's own `AzureWebJobsStorage`; it is separate from the
+Durable Task Scheduler backend.
 
 ```bash
 # Happy path
