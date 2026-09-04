@@ -31,6 +31,8 @@ file-by-file against a doc rather than trying to hold the whole system in your h
     policy.
 11. **[`11-bilingual-ui.md`](11-bilingual-ui.md)** — how the UI's own chrome follows the query's
     detected language without an i18n library, and without ever retranslating a completed turn.
+12. **[`12-supplier-api-options.md`](12-supplier-api-options.md)** — current mock-provider behavior,
+    free-versus-paid flight API options, and the recommended path to a real Duffel adapter.
 
 ## A note on drift
 
