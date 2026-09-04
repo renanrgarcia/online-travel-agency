@@ -17,6 +17,18 @@ param allowedOrigins array = []
 @secure()
 param priceAssertionSigningKey string
 
+@description('Durable Task Scheduler endpoint used by the booking saga.')
+param durableTaskSchedulerEndpoint string
+
+@description('Durable Task Scheduler task hub name used by the booking saga.')
+param durableTaskSchedulerTaskHubName string = 'default'
+
+@description('Resource ID of the user-assigned identity used to access the scheduler.')
+param durableTaskSchedulerIdentityResourceId string
+
+@description('Client ID of the user-assigned identity used to access the scheduler.')
+param durableTaskSchedulerIdentityClientId string
+
 // Required by both Durable Task (orchestration history, queues) and the Functions runtime itself
 // (AzureWebJobsStorage) -- created here, not referenced as pre-existing, so this deployment stays
 // self-contained (the same rule backend task 14 established: nothing needs to pre-exist).
@@ -52,6 +64,12 @@ resource functionApp 'Microsoft.Web/sites@2023-12-01' = {
   name: functionAppName
   location: location
   kind: 'functionapp'
+  identity: {
+    type: 'UserAssigned'
+    userAssignedIdentities: {
+      '${durableTaskSchedulerIdentityResourceId}': {}
+    }
+  }
   properties: {
     serverFarmId: functionsPlan.id
     siteConfig: {
@@ -74,6 +92,14 @@ resource functionApp 'Microsoft.Web/sites@2023-12-01' = {
         {
           name: 'PriceAssertion__SigningKey'
           value: priceAssertionSigningKey
+        }
+        {
+          name: 'DURABLE_TASK_SCHEDULER_CONNECTION_STRING'
+          value: 'Endpoint=${durableTaskSchedulerEndpoint};Authentication=ManagedIdentity;ClientID=${durableTaskSchedulerIdentityClientId}'
+        }
+        {
+          name: 'TASKHUB_NAME'
+          value: durableTaskSchedulerTaskHubName
         }
       ]
     }

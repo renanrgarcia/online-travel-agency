@@ -27,6 +27,15 @@ param storageAccountName string = 'flightaifuncs${environmentName}'
 @description('Static Web App name -- must be globally unique across all of Azure, becomes <name>.azurestaticapps.net. Override in main.bicepparam if the default collides.')
 param staticWebAppName string = 'flightai-web-${environmentName}'
 
+@description('Durable Task Scheduler name -- must be unique within the resource group.')
+param durableTaskSchedulerName string = 'flightai-dts-${environmentName}'
+
+@description('Durable Task Scheduler task hub name.')
+param durableTaskSchedulerTaskHubName string = 'default'
+
+@description('User-assigned managed identity name for the Durable Task Scheduler connection.')
+param durableTaskSchedulerIdentityName string = 'flightai-booking-identity-${environmentName}'
+
 @description('Shared HMAC key backend task 21 uses to sign (API) and verify (Booking Functions) price assertions. No default on purpose -- a real secret has no business living in main.bicepparam, which is committed to git. Supply it at deploy time only: --parameters priceAssertionSigningKey=<value>.')
 @secure()
 param priceAssertionSigningKey string
@@ -45,6 +54,17 @@ module staticWebApp 'modules/static-web-app.bicep' = {
   scope: rg
   params: {
     staticWebAppName: staticWebAppName
+    location: location
+  }
+}
+
+module durableTaskScheduler 'modules/durable-task-scheduler.bicep' = {
+  name: 'durableTaskSchedulerDeployment'
+  scope: rg
+  params: {
+    schedulerName: durableTaskSchedulerName
+    taskHubName: durableTaskSchedulerTaskHubName
+    identityName: durableTaskSchedulerIdentityName
     location: location
   }
 }
@@ -78,6 +98,10 @@ module functionsApp 'modules/functions.bicep' = {
     location: location
     allowedOrigins: [frontendOrigin]
     priceAssertionSigningKey: priceAssertionSigningKey
+    durableTaskSchedulerEndpoint: durableTaskScheduler.outputs.schedulerEndpoint
+    durableTaskSchedulerTaskHubName: durableTaskScheduler.outputs.taskHubName
+    durableTaskSchedulerIdentityResourceId: durableTaskScheduler.outputs.identityResourceId
+    durableTaskSchedulerIdentityClientId: durableTaskScheduler.outputs.identityClientId
   }
 }
 

@@ -19,6 +19,9 @@ both backend and frontend lives in its own feature rather than inside either one
   (`kind: 'functionapp'`, `dotnet-isolated` worker), and the Storage account Durable Task and the
   Functions runtime both require (`AzureWebJobsStorage`) -- created by the template, not referenced as
   pre-existing, same rule as everything else here.
+- `modules/durable-task-scheduler.bicep` -- **resource-group-scoped**: the Durable Task Scheduler
+  (Consumption SKU), its task hub, a user-assigned managed identity, and the `Durable Task Data
+  Contributor` role assignment scoped to that task hub.
 - `modules/static-web-app.bicep` -- **resource-group-scoped**: the Static Web App (Free tier). No
   `repositoryUrl`/GitHub linkage -- deployed via `ci-cd.yml`'s own job, not Static Web Apps' built-in
   (and separate) GitHub integration.
@@ -76,6 +79,14 @@ so this is the supported way to keep a real secret out of source control while s
   `FlightAi.Api` builds a real Gemini-backed `IChatClient`; absent means it falls back to the
   deterministic offline client, same as local dev with no key set. Only `FlightAi.Api` ever calls a
   model, so this is threaded into `modules/app-service.bicep` alone, not `modules/functions.bicep`.
+
+The Durable Task Scheduler connection is different: it is not a secret and does not come from
+`infra/.env`. The deployment creates a user-assigned managed identity, assigns it the `Durable Task
+Data Contributor` role on the task hub, assigns that identity to the Function App, and writes an
+identity-based connection string to `DURABLE_TASK_SCHEDULER_CONNECTION_STRING`:
+`Endpoint=<scheduler-endpoint>;Authentication=ManagedIdentity;ClientID=<identity-client-id>`.
+The existing Storage account and `AzureWebJobsStorage` setting remain because the Functions host still
+requires them; they are separate from Durable Task orchestration state.
 
 Set whichever you need before `az bicep build-params` / `what-if` / `create`:
 
