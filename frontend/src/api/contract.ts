@@ -83,6 +83,7 @@ export interface Explanation {
 /** The `error` payload — a pipeline-level failure the server chose to report. */
 export interface SearchError {
   message: string
+  rawModelResponse?: string | null
 }
 
 /**

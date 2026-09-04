@@ -1,13 +1,16 @@
-# FlightAi
+# Online Travel Agency
 
 [![CI/CD](https://github.com/renanrgarcia/online-travel-agency/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/renanrgarcia/online-travel-agency/actions/workflows/ci-cd.yml)
 
 Read in [English](README.md).
 
-Um sistema de busca e reserva de voos assistido por IA, construído passo a passo como exercício de
-aprendizado — ao mesmo tempo uma implementação de referência de uma aposta arquitetural específica e um
-caminho prático pelo Azure (este repositório também serve de estudo para o AZ-104: Bicep, App Service,
-Functions, Static Web Apps e o CI/CD que amarra tudo isso).
+**FlightAi** — um sistema de busca e reserva de voos assistido por IA, e o primeiro módulo desta
+agência de viagens online. Construído passo a passo como exercício de aprendizado: ao mesmo tempo uma
+implementação de referência de uma aposta arquitetural específica, e um caminho prático pelo Azure
+(este repositório também serve de estudo para o AZ-104 — Bicep, App Service, Functions, Static Web
+Apps e o CI/CD que amarra tudo isso). Voos são o sistema inteiro hoje; o plano é crescer isso para o
+resto de uma OTA — hotéis, carros, pacotes — sobre a mesma fundação, à medida que o projeto se expande.
+Tudo abaixo descreve o FlightAi especificamente, o módulo que existe agora.
 
 **A aposta central de design:** manter busca, ranqueamento, precificação e emissão de bilhetes totalmente
 determinísticos, e usar IA apenas nas duas pontas — transformar uma consulta em linguagem natural em uma
@@ -17,29 +20,10 @@ determinístico.
 
 ## Como uma busca flui
 
-Os rótulos dos nós estão em português — o mercado-alvo para o qual este app foi construído. 🤖 marca os
-dois únicos pontos em que um modelo de linguagem está envolvido; todo o resto é código de backend
-determinístico, sem IA no meio.
+🤖 marca os dois únicos pontos em que um modelo de linguagem está envolvido; todo o resto é código de
+backend determinístico, sem IA no meio.
 
-```mermaid
-flowchart TD
-    A["Cliente envia a pergunta em linguagem natural\nGET /api/search/stream?q=..."]
-    B{{"🤖 IA — IntentAgent\nextrai a busca estruturada (origem, destino, data...)"}}
-    C["Backend — busca em paralelo\nnos fornecedores mock (GDS, NDC, LCC)"]
-    D["Backend — OfferScorer\nclassifica as ofertas de forma determinística"]
-    E["Backend — PriceAssertionService\nassina cada oferta (HMAC) para a reserva"]
-    F["Backend — PriceReferenceStore + ComparisonFacts\ngera tokens de preço/duração/paradas e calcula comparações"]
-    G{{"🤖 IA — ExplanationAgent\nescreve o texto usando apenas os tokens, nunca um valor real"}}
-    H["Backend — ExplanationPlaceholderRenderer\nrejeita qualquer dígito fora de um token, então resolve os tokens"]
-    I["Cliente recebe o resultado final\nvia Server-Sent Events"]
-
-    A --> B --> C --> D --> E --> F --> G --> H --> I
-
-    classDef ai fill:#fff3cd,stroke:#c77700,color:#3a2a00,stroke-width:2px;
-    classDef backend fill:#dbe9f6,stroke:#1565c0,color:#0a1e33;
-    class B,G ai;
-    class A,C,D,E,F,H,I backend;
-```
+![Diagrama: o pipeline de busca em três linhas -- Cliente, IntentAgent e busca nos fornecedores fluindo da esquerda para a direita; OfferScorer, PriceAssertionService e PriceReferenceStore fluindo da direita para a esquerda; ExplanationAgent, o renderizador de placeholders e o cliente fluindo novamente da esquerda para a direita -- com uma seta descendente ligando a última caixa de cada linha à primeira caixa da linha seguinte.](docs/assets/search-flow-pt-BR.svg)
 
 O modelo recebe apenas tokens opacos (`{{PRICE_LCC-002}}`, `{{SUPERLATIVE_CHEAPEST_LCC-001}}`, ...),
 nunca um preço ou comparação de verdade — veja
@@ -105,8 +89,9 @@ de IA rodam offline/determinísticas até que isso seja deliberadamente trocado)
 
 ## O que está construído
 
-O status reflete o que está implementado em código hoje, na `develop` — o branch que esta tabela deve
-acompanhar. Ela pode estar à frente do que está no ar em `main` entre um merge e outro; veja
+O status de construção do próprio FlightAi — o resto da agência de viagens online ainda não existe como
+código. Reflete o que está implementado hoje, na `develop` — o branch que esta tabela deve acompanhar.
+Ela pode estar à frente do que está no ar em `main` entre um merge e outro; veja
 [CI/CD e implantação](#cicd-e-implantação).
 
 **Backend** — [`docs/features/01-backend/`](docs/features/01-backend/README.md)

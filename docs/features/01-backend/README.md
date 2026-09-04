@@ -65,11 +65,14 @@ either."
 
 ## 7. Booking saga
 
-**Source:** `reference/07-booking-saga.md` · **Tasks:** 14, 15, 16
+**Source:** `reference/07-booking-saga.md` · **Tasks:** 14, 15, 16, 24
 
 The most infrastructure-heavy step — Azurite, Durable Functions, Azure Functions Core Tools — so it's
 worth saving for when the rest of the system is stable and you're not debugging two unfamiliar things at
-the same time.
+the same time. Task 24 revisits it later: real billing data showed the default Azure Storage backend's
+control-queue polling as a genuine flat daily cost, and Durable Task's own Scheduler backend (paired with
+infra task 03) is the fix, not the app-level rate limiting or manual stop/start dials that were the only
+options before that was found.
 
 ## 8. Safe to expose
 

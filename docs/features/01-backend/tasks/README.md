@@ -26,6 +26,7 @@ The eval discipline these cards follow is described once, in
 | [14](14-booking-functions-project-setup.md) | Booking Functions project setup | 7. Booking saga |
 | [15](15-booking-saga-orchestrator.md) | Booking saga orchestrator | 7. Booking saga |
 | [16](16-booking-saga-compensation-and-idempotency.md) | Compensation and idempotency | 7. Booking saga |
+| [24](24-switch-booking-saga-to-durable-task-scheduler.md) | Switch the booking saga to the Durable Task Scheduler | 7. Booking saga |
 | [19](19-cors-for-the-browser-client.md) | CORS for the browser client | 8. Safe to expose |
 | [20](20-rate-limiting-and-quota-protection.md) | Rate limiting and quota protection | 8. Safe to expose |
 | [21](21-server-authoritative-offer-prices.md) | Server-authoritative offer prices | 8. Safe to expose |
@@ -40,9 +41,10 @@ code, not specific to this feature. Depends on task 16 above.
 ## Numbering vs. build order
 
 The table is in **build order**; the numbers are in the order the tasks were *written*. Tasks 18–21 were
-specified after 01–17 already existed (task 22 also was, before it moved to `03-infra`), and 23 later
-still, and renumbering to close the gaps would have invalidated every task reference already embedded in
-code comments and test names — the same reasoning that left the 08 gap alone.
+specified after 01–17 already existed (task 22 also was, before it moved to `03-infra`), 23 later still,
+and 24 later again — a real cost finding after the fact, not a build-order gap — and renumbering to close
+the gaps would have invalidated every task reference already embedded in code comments and test names,
+the same reasoning that left the 08 gap alone.
 
 Two orderings matter and aren't implied by the numbers:
 

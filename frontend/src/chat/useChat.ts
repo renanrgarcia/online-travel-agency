@@ -95,6 +95,9 @@ export function useChat(options: UseChatOptions = {}): ChatController {
           case 'explanation':
             return { ...turn, stages: { ...turn.stages, explanation: event.data } }
           case 'error':
+            if (event.data.rawModelResponse) {
+              console.error('Intent model raw response:', event.data.rawModelResponse)
+            }
             return { ...turn, status: 'failed', failure: { message: event.data.message } }
           default:
             return assertNeverEvent(event)

@@ -1,0 +1,104 @@
+<svg viewBox="0 0 950 580" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#6b7280"/>
+    </marker>
+  </defs>
+
+  <g stroke="#6b7280" stroke-width="1.6" fill="none">
+    <line x1="310" y1="90" x2="336" y2="90" marker-end="url(#arrow)"/>
+    <line x1="610" y1="90" x2="636" y2="90" marker-end="url(#arrow)"/>
+    <line x1="640" y1="290" x2="614" y2="290" marker-end="url(#arrow)"/>
+    <line x1="340" y1="290" x2="314" y2="290" marker-end="url(#arrow)"/>
+    <line x1="310" y1="490" x2="336" y2="490" marker-end="url(#arrow)"/>
+    <line x1="610" y1="490" x2="636" y2="490" marker-end="url(#arrow)"/>
+    <line x1="775" y1="136" x2="775" y2="238" marker-end="url(#arrow)"/>
+    <line x1="175" y1="336" x2="175" y2="438" marker-end="url(#arrow)"/>
+  </g>
+
+  <!-- Row 1 -->
+  <g>
+    <rect x="40" y="44" width="270" height="92" rx="10" fill="#dbe9f6" stroke="#1565c0" stroke-width="1.6"/>
+    <text x="175" y="78" text-anchor="middle" font-size="12.5" fill="#0a1e33">
+      <tspan x="175" dy="0">Client sends the question</tspan>
+      <tspan x="175" dy="18">in natural language</tspan>
+      <tspan x="175" dy="18">GET /api/search/stream?q=...</tspan>
+    </text>
+  </g>
+
+  <g>
+    <polygon points="475,44 610,44 645,90 610,136 475,136 340,136 340,44"
+      fill="#fff3cd" stroke="#c77700" stroke-width="1.6"/>
+    <text x="475" y="78" text-anchor="middle" font-size="12.5" fill="#3a2a00">
+      <tspan x="475" dy="0">🤖 AI — IntentAgent</tspan>
+      <tspan x="475" dy="18">Extracts the structured search</tspan>
+      <tspan x="475" dy="18">(origin, destination, date...)</tspan>
+    </text>
+  </g>
+
+  <g>
+    <rect x="640" y="44" width="270" height="92" rx="10" fill="#dbe9f6" stroke="#1565c0" stroke-width="1.6"/>
+    <text x="775" y="78" text-anchor="middle" font-size="12.5" fill="#0a1e33">
+      <tspan x="775" dy="0">Backend — searches in parallel</tspan>
+      <tspan x="775" dy="18">across mock suppliers</tspan>
+      <tspan x="775" dy="18">(GDS, NDC, LCC)</tspan>
+    </text>
+  </g>
+
+  <!-- Row 2 -->
+  <g>
+    <rect x="640" y="244" width="270" height="92" rx="10" fill="#dbe9f6" stroke="#1565c0" stroke-width="1.6"/>
+    <text x="775" y="278" text-anchor="middle" font-size="12.5" fill="#0a1e33">
+      <tspan x="775" dy="0">Backend — OfferScorer</tspan>
+      <tspan x="775" dy="18">Ranks the offers</tspan>
+      <tspan x="775" dy="18">deterministically</tspan>
+    </text>
+  </g>
+
+  <g>
+    <rect x="340" y="244" width="270" height="92" rx="10" fill="#dbe9f6" stroke="#1565c0" stroke-width="1.6"/>
+    <text x="475" y="278" text-anchor="middle" font-size="12.5" fill="#0a1e33">
+      <tspan x="475" dy="0">Backend — PriceAssertionService</tspan>
+      <tspan x="475" dy="18">Signs each offer (HMAC)</tspan>
+      <tspan x="475" dy="18">for the booking</tspan>
+    </text>
+  </g>
+
+  <g>
+    <rect x="40" y="244" width="270" height="92" rx="10" fill="#dbe9f6" stroke="#1565c0" stroke-width="1.6"/>
+    <text x="175" y="278" text-anchor="middle" font-size="12.5" fill="#0a1e33">
+      <tspan x="175" dy="0">Backend — PriceReferenceStore</tspan>
+      <tspan x="175" dy="18">+ ComparisonFacts</tspan>
+      <tspan x="175" dy="18">Generates tokens &amp; comparisons</tspan>
+    </text>
+  </g>
+
+  <!-- Row 3 -->
+  <g>
+    <polygon points="175,444 310,444 345,490 310,536 175,536 40,536 40,444"
+      fill="#fff3cd" stroke="#c77700" stroke-width="1.6"/>
+    <text x="175" y="478" text-anchor="middle" font-size="12.5" fill="#3a2a00">
+      <tspan x="175" dy="0">🤖 AI — ExplanationAgent</tspan>
+      <tspan x="175" dy="18">Writes text using only tokens,</tspan>
+      <tspan x="175" dy="18">never a real value</tspan>
+    </text>
+  </g>
+
+  <g>
+    <rect x="340" y="444" width="270" height="92" rx="10" fill="#dbe9f6" stroke="#1565c0" stroke-width="1.6"/>
+    <text x="475" y="478" text-anchor="middle" font-size="12.5" fill="#0a1e33">
+      <tspan x="475" dy="0">Backend —</tspan>
+      <tspan x="475" dy="18">ExplanationPlaceholderRenderer</tspan>
+      <tspan x="475" dy="18">Rejects stray digits, resolves tokens</tspan>
+    </text>
+  </g>
+
+  <g>
+    <rect x="640" y="444" width="270" height="92" rx="10" fill="#dbe9f6" stroke="#1565c0" stroke-width="1.6"/>
+    <text x="775" y="478" text-anchor="middle" font-size="12.5" fill="#0a1e33">
+      <tspan x="775" dy="0">Client receives the</tspan>
+      <tspan x="775" dy="18">final result via</tspan>
+      <tspan x="775" dy="18">Server-Sent Events</tspan>
+    </text>
+  </g>
+</svg>

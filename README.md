@@ -1,13 +1,16 @@
-# FlightAi
+# Online Travel Agency
 
 [![CI/CD](https://github.com/renanrgarcia/online-travel-agency/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/renanrgarcia/online-travel-agency/actions/workflows/ci-cd.yml)
 
 Leia em [português](README.pt-BR.md).
 
-An AI-assisted flight search and booking system, built step by step as a learning exercise — both a
-reference implementation of a specific architectural bet, and a hands-on path through Azure (this repo
-doubles as AZ-104 study: Bicep, App Service, Functions, Static Web Apps, and the CI/CD that ties them
-together).
+**FlightAi** — an AI-assisted flight search and booking system, and the first module of this online
+travel agency. Built step by step as a learning exercise: both a reference implementation of a specific
+architectural bet, and a hands-on path through Azure (this repo doubles as AZ-104 study — Bicep, App
+Service, Functions, Static Web Apps, and the CI/CD that ties them together). Flights are the whole
+system today; the plan is to grow this into the rest of an OTA — hotels, cars, packages — on the same
+foundation as the project expands. Everything below describes FlightAi specifically, the module that
+exists right now.
 
 **The central design bet:** keep search, ranking, pricing, and ticketing fully deterministic, and use
 AI only at the two edges — turning a natural-language query into a structured search, and turning a
@@ -16,29 +19,10 @@ output ever reaches a user without passing back through deterministic code first
 
 ## How a search flows
 
-Node labels are in Portuguese — the target market this app is built for. 🤖 marks the only two points
-where a language model is involved; every other step is deterministic backend code with no AI in the
-loop.
+🤖 marks the only two points where a language model is involved; every other step is deterministic
+backend code with no AI in the loop.
 
-```mermaid
-flowchart TD
-    A["Cliente envia a pergunta em linguagem natural\nGET /api/search/stream?q=..."]
-    B{{"🤖 IA — IntentAgent\nextrai a busca estruturada (origem, destino, data...)"}}
-    C["Backend — busca em paralelo\nnos fornecedores mock (GDS, NDC, LCC)"]
-    D["Backend — OfferScorer\nclassifica as ofertas de forma determinística"]
-    E["Backend — PriceAssertionService\nassina cada oferta (HMAC) para a reserva"]
-    F["Backend — PriceReferenceStore + ComparisonFacts\ngera tokens de preço/duração/paradas e calcula comparações"]
-    G{{"🤖 IA — ExplanationAgent\nescreve o texto usando apenas os tokens, nunca um valor real"}}
-    H["Backend — ExplanationPlaceholderRenderer\nrejeita qualquer dígito fora de um token, então resolve os tokens"]
-    I["Cliente recebe o resultado final\nvia Server-Sent Events"]
-
-    A --> B --> C --> D --> E --> F --> G --> H --> I
-
-    classDef ai fill:#fff3cd,stroke:#c77700,color:#3a2a00,stroke-width:2px;
-    classDef backend fill:#dbe9f6,stroke:#1565c0,color:#0a1e33;
-    class B,G ai;
-    class A,C,D,E,F,H,I backend;
-```
+![Diagram: the search pipeline in three rows -- Client, IntentAgent, and supplier search flow left to right; OfferScorer, PriceAssertionService, and PriceReferenceStore flow right to left; ExplanationAgent, the placeholder renderer, and the client flow left to right again -- with a down arrow connecting the last box of each row to the first box of the next.](docs/assets/search-flow-en.svg)
 
 The model is handed opaque tokens (`{{PRICE_LCC-002}}`, `{{SUPERLATIVE_CHEAPEST_LCC-001}}`, ...), never a
 real price or comparison — see [`docs/reference/02-price-integrity.md`](docs/reference/02-price-integrity.md)
@@ -101,9 +85,9 @@ until that's deliberately swapped).
 
 ## What's built
 
-Status reflects what's implemented in code today, on `develop` — the branch this table is meant to stay
-current against. It can be ahead of what's live on `main` between merges; see
-[CI/CD and deployment](#cicd-and-deployment).
+FlightAi's own build status — the rest of the online travel agency doesn't exist as code yet. Reflects
+what's implemented today, on `develop` — the branch this table is meant to stay current against. It can
+be ahead of what's live on `main` between merges; see [CI/CD and deployment](#cicd-and-deployment).
 
 **Backend** — [`docs/features/01-backend/`](docs/features/01-backend/README.md)
 

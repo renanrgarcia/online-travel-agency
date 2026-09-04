@@ -8,9 +8,14 @@ namespace FlightAi.Agents.Models.Intent;
 /// semantically invalid one (missing destination, a past date) surface the same way, consistent with
 /// the "failures are returned, not thrown" convention already used for suppliers (task 04).
 /// </summary>
-public sealed record IntentResult(bool Success, SearchRequest? Request, string? FailureReason)
+public sealed record IntentResult(
+    bool Success,
+    SearchRequest? Request,
+    string? FailureReason,
+    string? RawModelResponse = null)
 {
     public static IntentResult Ok(SearchRequest request) => new(true, request, FailureReason: null);
 
-    public static IntentResult Failed(string reason) => new(false, Request: null, reason);
+    public static IntentResult Failed(string reason, string? rawModelResponse = null) =>
+        new(false, Request: null, reason, rawModelResponse);
 }
