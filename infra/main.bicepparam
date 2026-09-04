@@ -25,3 +25,8 @@ param priceAssertionSigningKey = readEnvironmentVariable('PRICE_ASSERTION_SIGNIN
 // deploying with no Gemini key set is a supported state (Program.cs falls back to the offline chat
 // client), so an unset GEMINI_API_KEY shouldn't fail the deployment the way an unset signing key does.
 param geminiApiKey = readEnvironmentVariable('GEMINI_API_KEY', '')
+
+// Same empty-default pattern as GEMINI_API_KEY -- deploying with no Duffel key set is a supported state
+// (Program.cs falls back to the mock connectors), so an unset DUFFEL_API_KEY shouldn't fail the
+// deployment. Use a Duffel *test-mode* token only -- see docs/reference/12-supplier-api-options.md.
+param duffelApiKey = readEnvironmentVariable('DUFFEL_API_KEY', '')

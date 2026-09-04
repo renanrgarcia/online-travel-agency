@@ -21,6 +21,10 @@ param priceAssertionSigningKey string
 @secure()
 param geminiApiKey string = ''
 
+@description('Duffel test-mode API token (backend task 25) -- read by Program.cs to decide whether to register a real DuffelConnector alongside the existing mock suppliers. Only FlightAi.Api ever calls a supplier connector, so this is not threaded into functions.bicep. Empty default, same reasoning as geminiApiKey: a missing key means "no DuffelConnector registered," not a startup failure.')
+@secure()
+param duffelApiKey string = ''
+
 // A for-expression can only be the direct value of a resource/module/variable/output -- not nested
 // inside a function call like concat(...) -- so the CORS entries are built here first, then combined
 // with the static signing-key setting below.
@@ -63,6 +67,10 @@ resource webApp 'Microsoft.Web/sites@2023-12-01' = {
           {
             name: 'Gemini__ApiKey'
             value: geminiApiKey
+          }
+          {
+            name: 'Duffel__ApiKey'
+            value: duffelApiKey
           }
         ],
         corsAppSettings

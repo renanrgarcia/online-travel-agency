@@ -79,6 +79,12 @@ so this is the supported way to keep a real secret out of source control while s
   `FlightAi.Api` builds a real Gemini-backed `IChatClient`; absent means it falls back to the
   deterministic offline client, same as local dev with no key set. Only `FlightAi.Api` ever calls a
   model, so this is threaded into `modules/app-service.bicep` alone, not `modules/functions.bicep`.
+- `DUFFEL_API_KEY` -- optional, defaults to an empty string, same shape as `GEMINI_API_KEY`. Backend
+  task 25: present means `FlightAi.Api` registers a real `DuffelConnector` alongside the existing mock
+  suppliers; absent means only the mocks run, same as today. Use a Duffel **test-mode** token only (see
+  `docs/reference/12-supplier-api-options.md`) -- test mode is free and unlimited, so there's no reason
+  this project's key should ever be a live one. Only `FlightAi.Api` calls a supplier connector, so this
+  is threaded into `modules/app-service.bicep` alone, not `modules/functions.bicep`.
 
 The Durable Task Scheduler connection is different: it is not a secret and does not come from
 `infra/.env`. The deployment creates a user-assigned managed identity, assigns it the `Durable Task
@@ -93,6 +99,7 @@ Set whichever you need before `az bicep build-params` / `what-if` / `create`:
 ```bash
 export PRICE_ASSERTION_SIGNING_KEY="$(openssl rand -base64 32)"   # must match what's already live -- see below
 export GEMINI_API_KEY="<your key>"                                 # omit entirely to deploy without a real model
+export DUFFEL_API_KEY="<your Duffel test-mode token>"              # omit entirely to deploy with mocks only
 ```
 
 `PRICE_ASSERTION_SIGNING_KEY` in particular must stay **stable** across redeploys -- regenerating it

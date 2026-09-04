@@ -44,6 +44,10 @@ param priceAssertionSigningKey string
 @secure()
 param geminiApiKey string = ''
 
+@description('Duffel test-mode API token (backend task 25) -- only FlightAi.Api ever calls a supplier connector, so this is threaded into the appService module alone, not functionsApp. Empty default: deploying with no key set is a supported state -- Program.cs falls back to the mock connectors rather than failing.')
+@secure()
+param duffelApiKey string = ''
+
 resource rg 'Microsoft.Resources/resourceGroups@2024-11-01' = {
   name: resourceGroupName
   location: location
@@ -85,6 +89,7 @@ module appService 'modules/app-service.bicep' = {
     allowedOrigins: [frontendOrigin]
     priceAssertionSigningKey: priceAssertionSigningKey
     geminiApiKey: geminiApiKey
+    duffelApiKey: duffelApiKey
   }
 }
 
