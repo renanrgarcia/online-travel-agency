@@ -14,6 +14,7 @@ it before writing a test against either.
 | [01](01-functions-infrastructure-and-cicd.md) | Functions infrastructure and CI/CD | Backend task 22 |
 | [02](02-static-web-apps-deployment.md) | Static Web Apps deployment | Frontend task F08 |
 | [03](03-durable-task-scheduler.md) | Durable Task Scheduler | — (written directly here; pairs with backend task 24, not a moved task) |
+| [04](04-duffel-api-key.md) | Duffel API key | — (written directly here; pairs with backend task 25, not a moved task) |
 
 ## Testing these
 

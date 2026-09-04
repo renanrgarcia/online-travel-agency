@@ -13,11 +13,13 @@ feature's roadmap. The eval discipline these cards follow is described once, in
 | [05](05-the-booking-turn.md) | The booking turn | 3. The booking turn |
 | [06](06-degraded-states.md) | Degraded states | 4. Honesty and reach |
 | [07](07-bilingual-ui.md) | Bilingual UI | 4. Honesty and reach |
+| [09](09-verify-against-a-real-supplier.md) | Verify against a real supplier | 6. Real supplier verification |
 
 Static Web Apps deployment was originally task 08 here; it's now
 [`../../03-infra/tasks/02-static-web-apps-deployment.md`](../../03-infra/tasks/02-static-web-apps-deployment.md)
 — moved once it became clear provisioning Azure resources is a different kind of work from application
-code, not specific to this feature. Depends on task 03 above (at minimum) and backend task 19.
+code, not specific to this feature. Depends on task 03 above (at minimum) and backend task 19. The
+number `08` is left retired rather than reused, same reasoning as the backend tasks' own `08` gap.
 
 ## Testing these
 

@@ -102,8 +102,9 @@ be ahead of what's live on `main` between merges; see [CI/CD and deployment](#ci
 | 7. Booking saga | Durable Functions saga, happy path + compensation + idempotency | ✅ Done |
 | 8. Safe to expose | CORS, rate limiting, server-authoritative prices, structured error handling | ✅ Done |
 | 9. Real model | Swap the offline stand-in for a real `IChatClient` | ✅ Done |
+| 10. Real supplier integration | A Duffel (test mode) connector alongside the mocks — planned, not yet implemented | ⬜ Not started |
 
-The backend roadmap above is complete — all nine steps done. See
+The first nine backend roadmap steps are complete. See
 [`docs/features/01-backend/README.md`](docs/features/01-backend/README.md) for the full build order and
 [`docs/reference/09-lessons-learned.md`](docs/reference/09-lessons-learned.md) for what broke along the
 way, including three real bugs a real model surfaced that the deterministic offline stand-in never could.
@@ -119,6 +120,7 @@ way, including three real bugs a real model surfaced that the deterministic offl
 | F05 | The booking turn — saga from the chat UI, including compensation | ✅ Done |
 | F06 | Degraded states | ✅ Done |
 | F07 | Bilingual UI (beyond F02's toggle) | ✅ Done |
+| F09 | Verify against a real supplier — blocked on backend task 25 above | ⬜ Not started |
 
 **Infrastructure** — [`docs/features/03-infra/`](docs/features/03-infra/README.md)
 
@@ -126,6 +128,7 @@ way, including three real bugs a real model surfaced that the deterministic offl
 |---|---|---|
 | 01 | Functions infra (Consumption plan, Storage) + CI/CD | ✅ Done, live |
 | 02 | Static Web App + CORS wiring for both backends | ✅ Done, live |
+| 04 | Duffel API key — planned, pairs with backend task 25 above | ⬜ Not started |
 
 ## Repository layout
 
