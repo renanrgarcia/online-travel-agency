@@ -80,8 +80,8 @@ public class ErrorHandlingTests(WebApplicationFactory<Program> factory) : IClass
         return events;
     }
 
-    [Fact] // E1 -- the actual incident: an unmatched prompt throws before any event is written
-    public async Task E1_ExceptionBeforeFirstEvent_ReturnsStructuredProblemDetailsNotABareEmpty500()
+    [Fact] // E1 -- a model failure before the first event is reported as a structured SSE error
+    public async Task E1_ModelFailureBeforeFirstEvent_ReturnsAiUnavailableSseError()
     {
         // No "São Paulo" rule registered -- OfflineChatClient throws exactly like the live incident did.
         var (configured, _) = WithChatClient(new OfflineChatClient());
@@ -89,21 +89,24 @@ public class ErrorHandlingTests(WebApplicationFactory<Program> factory) : IClass
 
         var response = await http.GetAsync($"/api/search/stream?q={Uri.EscapeDataString(Query)}");
 
-        Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
-        Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
-        var body = await response.Content.ReadAsStringAsync();
-        Assert.Contains("\"status\"", body);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("text/event-stream", response.Content.Headers.ContentType?.MediaType);
+        var events = await ReadEventsAsync(response);
+        var error = Assert.Single(events);
+        Assert.Equal("error", error.EventType);
+        Assert.Contains("ai-unavailable", error.Data, StringComparison.Ordinal);
     }
 
-    [Fact] // E2 -- the exception must reach whatever the deployed logging destination is, via ILogger
-    public async Task E2_UnhandledException_IsLoggedAtErrorLevel()
+    [Fact] // E2 -- provider failures are handled at the SSE boundary, not logged as unhandled exceptions
+    public async Task E2_ModelFailure_IsNotAnUnhandledHttpException()
     {
         var (configured, logs) = WithChatClient(new OfflineChatClient());
         using var http = configured.CreateClient();
 
-        await http.GetAsync($"/api/search/stream?q={Uri.EscapeDataString(Query)}");
+        var response = await http.GetAsync($"/api/search/stream?q={Uri.EscapeDataString(Query)}");
 
-        Assert.Contains(logs.Entries, e => e.Level == LogLevel.Error && e.Exception is InvalidOperationException);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.DoesNotContain(logs.Entries, e => e.Level == LogLevel.Error && e.Exception is InvalidOperationException);
     }
 
     [Fact] // E3 -- exception-handling middleware must not touch the happy path
