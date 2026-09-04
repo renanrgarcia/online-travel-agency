@@ -13,10 +13,16 @@ namespace FlightAi.Agents.Services.Intent;
 /// </summary>
 public static class IntentAgentFactory
 {
+    // Found live against a real model (task 17): without an exact format specified, the model returned
+    // "pt" for a Portuguese query instead of "pt-BR" -- PriceReferenceStore's localization is a strict
+    // "pt-BR" equality check (task 18), so every resolved token silently fell back to English inside
+    // otherwise-Portuguese prose. OfflineChatClient never exercised this since its canned responses
+    // hardcode the exact string.
     private const string Instructions =
         "Extract flight search parameters from the traveller's query as JSON matching the requested " +
         "schema. Infer the Language field from the language the query itself was written in — never " +
-        "ask for it separately.";
+        "ask for it separately. Language must be exactly \"en\" for English or \"pt-BR\" for Portuguese " +
+        "— never a bare language code like \"pt\" or a different regional variant.";
 
     public static IntentAgent Create(IChatClient chatClient) => new(chatClient.AsAIAgent(instructions: Instructions));
 }

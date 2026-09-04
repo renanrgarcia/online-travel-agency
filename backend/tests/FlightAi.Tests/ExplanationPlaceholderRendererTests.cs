@@ -167,4 +167,29 @@ public class ExplanationPlaceholderRendererTests
 
         Assert.True(result.Success);
     }
+
+    [Fact] // Found live against a real model (task 17): an offer ID is plain text the model was given
+    // verbatim, never a token -- writing "Offer LCC-002" is expected prose, not an invented number.
+    public void OfferIdMentionedInProse_DoesNotTriggerTheGuard()
+    {
+        var (store, renderer) = NewRenderer();
+        store.RegisterPrice("LCC-002", 500m, "USD");
+
+        var result = renderer.Render("**Offer LCC-002**\n* Price: {{PRICE_LCC-002}}");
+
+        Assert.True(result.Success);
+        Assert.Empty(result.Violations);
+    }
+
+    [Fact] // The offer-ID allowance above must not become a loophole for a genuinely invented number
+    public void RealDigitOutsideToken_StillCaught_EvenAlongsideAKnownOfferId()
+    {
+        var (store, renderer) = NewRenderer();
+        store.RegisterPrice("LCC-002", 500m, "USD");
+
+        var result = renderer.Render("Offer LCC-002 costs $999 today.");
+
+        Assert.False(result.Success);
+        Assert.Contains(result.Violations, v => v.Contains("999"));
+    }
 }

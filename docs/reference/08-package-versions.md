@@ -59,11 +59,31 @@ var options = new OpenAIClientOptions {
     Endpoint = new Uri("https://generativelanguage.googleapis.com/v1beta/openai/") // Gemini's OpenAI-compatible endpoint
 };
 var client = new OpenAIClient(new ApiKeyCredential(apiKey), options);
-IChatClient chatClient = client.GetChatClient("gemini-2.5-flash").AsIChatClient();
+IChatClient chatClient = client.GetChatClient("gemini-3.5-flash-lite").AsIChatClient();
 ```
 
-This compiles cleanly against the real package surface. Gemini's free tier (2.5 Flash, roughly 15
-requests/minute, 1,500/day at time of writing) is enough for a personal demo at zero cost.
+This compiles cleanly against the real package surface. Confirmed live, not just compiled, and the
+model string took three tries to land on -- worth recording exactly what happened, since it's the
+clearest evidence in this whole project that "verify against current docs" isn't boilerplate caution:
+
+1. `gemini-2.5-flash` (this doc's original string) failed with a 404: "This model
+   models/gemini-2.5-flash is no longer available to new users. Please update your code to use
+   models/gemini-3.6-flash."
+2. `gemini-3.6-flash` worked, but its free tier turned out to cap at **20 requests/day per project**
+   (confirmed via the quota-exceeded error body: `quotaId: GenerateRequestsPerDayPerProjectPerModel-FreeTier`,
+   `quotaValue: 20`) -- far short of the ~1,500/day this doc originally assumed, and too tight for an
+   app that spends 2 model calls per search (intent + explanation).
+3. `gemini-2.5-flash-lite` also 404'd as retired, redirecting to `gemini-3.5-flash-lite`.
+4. `gemini-3.5-flash-lite` is the one actually used end to end for task 17 -- no daily-quota wall hit
+   in that testing.
+
+Google's own rate-limits page (`ai.google.dev/gemini-api/docs/rate-limits`, checked the same day) no
+longer publishes per-model free-tier numbers at all; it now points to each project's own AI Studio
+dashboard instead. There is no way to know a given model's actual free-tier ceiling from public docs
+alone anymore -- the only reliable way left is to call it and read the error. Re-verify the model
+string itself against current docs before reusing this, the same way the model *choice* needs
+re-checking (see `docs/deployment.md`'s free-tier limits caveat) -- both have already moved once since
+this doc was first written.
 
 ## Connecting to Microsoft Foundry
 

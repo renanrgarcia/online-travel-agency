@@ -23,7 +23,7 @@ public sealed partial class ExplanationPlaceholderRenderer(PriceReferenceStore s
 
     public RenderResult Render(string rawText)
     {
-        var masked = MaskTokens(rawText);
+        var masked = MaskOfferIds(MaskTokens(rawText), store.KnownOfferIds);
         var violations = new List<string>();
 
         CollectMatches(DigitPattern, rawText, masked, "raw digit outside a token", violations);
@@ -48,6 +48,18 @@ public sealed partial class ExplanationPlaceholderRenderer(PriceReferenceStore s
     /// token contents (which may legitimately contain digits, e.g. an offer ID like OFF8812) as
     /// invisible while preserving character offsets for diagnostic snippets.</summary>
     private static string MaskTokens(string text) => TokenPattern.Replace(text, m => new string(' ', m.Length));
+
+    /// <summary>Masks every occurrence of a known offer ID the same way <see cref="MaskTokens"/> masks
+    /// a <c>{{TOKEN}}</c> span -- an offer ID is plain text the model was given verbatim (never a
+    /// token), so "Offer LCC-002" in the model's own prose is expected, not an invented number. A
+    /// straight <see cref="string.Replace(string, string)"/> rather than a regex: offer IDs are runtime
+    /// data (supplier-assigned), not a fixed pattern rule 01 could source-generate.</summary>
+    private static string MaskOfferIds(string text, IEnumerable<string> offerIds)
+    {
+        foreach (var offerId in offerIds)
+            text = text.Replace(offerId, new string(' ', offerId.Length), StringComparison.Ordinal);
+        return text;
+    }
 
     private static void CollectMatches(Regex pattern, string rawText, string masked, string label, List<string> violations)
     {

@@ -32,9 +32,11 @@ public enum Superlative
 public sealed class PriceReferenceStore(string language = "en")
 {
     private readonly Dictionary<string, string> _resolved = new(StringComparer.Ordinal);
+    private readonly HashSet<string> _offerIds = new(StringComparer.Ordinal);
 
     public string RegisterPrice(string offerId, decimal amount, string currency)
     {
+        _offerIds.Add(offerId);
         var token = Token("PRICE", offerId);
         _resolved[token] = FormatCurrency(amount, currency);
         return token;
@@ -42,6 +44,7 @@ public sealed class PriceReferenceStore(string language = "en")
 
     public string RegisterDuration(string offerId, TimeSpan duration)
     {
+        _offerIds.Add(offerId);
         var token = Token("DURATION", offerId);
         _resolved[token] = FormatDuration(duration);
         return token;
@@ -49,6 +52,7 @@ public sealed class PriceReferenceStore(string language = "en")
 
     public string RegisterStops(string offerId, int stops)
     {
+        _offerIds.Add(offerId);
         var token = Token("STOPS", offerId);
         _resolved[token] = stops switch
         {
@@ -61,6 +65,7 @@ public sealed class PriceReferenceStore(string language = "en")
 
     public string RegisterRefundable(string offerId, bool refundable)
     {
+        _offerIds.Add(offerId);
         var token = Token("REFUNDABLE", offerId);
         _resolved[token] = refundable
             ? Localize("refundable", "reembolsável")
@@ -120,6 +125,15 @@ public sealed class PriceReferenceStore(string language = "en")
     /// docs/reference/02-price-integrity.md for why.
     /// </summary>
     public bool TryResolve(string token, out string value) => _resolved.TryGetValue(token, out value!);
+
+    /// <summary>
+    /// Every offer ID this store has issued a token for -- given to the explanation agent as plain
+    /// text (never itself a token, see <c>ExplanationAgentFactory.BuildOfferLine</c>) so it can write
+    /// "Offer LCC-002" in prose. <see cref="ExplanationPlaceholderRenderer"/> (task 02) needs this list
+    /// so its digit guard can tell an offer ID's own digits apart from a price, duration, or stop count
+    /// the model invented -- the guard exists to catch the latter, not to reject the former.
+    /// </summary>
+    public IReadOnlyCollection<string> KnownOfferIds => _offerIds;
 
     private string Localize(string english, string portuguese) => language == "pt-BR" ? portuguese : english;
 
