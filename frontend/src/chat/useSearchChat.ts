@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 
 import { openSearchStream, type EventSourceFactory, type SearchStreamHandle } from '../api/searchStream'
 import { getApiBaseUrl } from '../config'
@@ -21,6 +21,7 @@ export function useSearchChat(options: UseSearchChatOptions = {}): ChatControlle
   const activeStream = useRef<SearchStreamHandle | null>(null)
 
   const chat = useChat({
+    aiUnavailableMessage: strings.aiUnavailable,
     onStart: (query, turnId) => {
       // One in-flight search at a time (the composer enforces this), but guard anyway: a leftover
       // handle here would mean two streams silently racing to update the same or a stale turn.
@@ -49,5 +50,11 @@ export function useSearchChat(options: UseSearchChatOptions = {}): ChatControlle
   // component goes away, not just when a turn finishes normally.
   useEffect(() => () => activeStream.current?.close(), [])
 
-  return chat
+  const resetConversation = useCallback(() => {
+    activeStream.current?.close()
+    activeStream.current = null
+    chat.resetConversation()
+  }, [chat.resetConversation])
+
+  return { ...chat, resetConversation }
 }

@@ -68,9 +68,10 @@ export interface AssistantTurnViewProps {
   /** Omitted when there's nowhere for a booking to go (e.g. component-level tests). Receives the
    * language this turn was answered in, so the booking turn it starts can freeze the same one (F07 E3). */
   onBookOffer?: (offer: RankedOffer, language: Language) => void
+  onResetConversation?: () => void
 }
 
-export function AssistantTurnView({ turn, onBookOffer }: AssistantTurnViewProps) {
+export function AssistantTurnView({ turn, onBookOffer, onResetConversation }: AssistantTurnViewProps) {
   const { language: ambientLanguage } = useLanguage()
   const { stages, status } = turn
   // Frozen once this turn's own parsed-intent resolves -- a later, differently-languaged search
@@ -174,9 +175,16 @@ export function AssistantTurnView({ turn, onBookOffer }: AssistantTurnViewProps)
       )}
 
       {status === 'failed' && turn.failure && (
-        <p className="turn__failure" role="alert">
-          {turn.failure.message}
-        </p>
+        <div className="turn__failure-group">
+          <p className="turn__failure" role="alert">
+            {turn.failure.message}
+          </p>
+          {onResetConversation && (
+            <button className="turn__reset" type="button" onClick={onResetConversation}>
+              {strings.newSearch}
+            </button>
+          )}
+        </div>
       )}
     </article>
   )

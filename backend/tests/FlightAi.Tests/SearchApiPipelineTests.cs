@@ -1,3 +1,4 @@
+using System.Net;
 using System.Text.Json;
 using FlightAi.Agents.Services;
 using FlightAi.Agents.Services.Intent;
@@ -83,6 +84,21 @@ public class SearchApiPipelineTests(WebApplicationFactory<Program> factory) : IC
 
         var order = events.Select(e => e.EventType).Distinct().ToList();
         Assert.Equal(["parsed-intent", "supplier-result", "ranked-offers", "explanation"], order);
+    }
+
+    [Fact]
+    public async Task ModelProviderFailure_IsReportedAsAiUnavailableSseError()
+    {
+        using var http = WithServices(new OfflineChatClient()).CreateClient();
+
+        var response = await http.GetAsync($"/api/search/stream?q={Uri.EscapeDataString(Query)}");
+        var events = await ReadAllEventsAsync(response);
+        var error = Assert.Single(events);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("error", error.EventType);
+        using var payload = JsonDocument.Parse(error.Data);
+        Assert.Equal("ai-unavailable", payload.RootElement.GetProperty("code").GetString());
     }
 
     [Fact] // E2 — per-stage streaming is real, the reason for SSE at all

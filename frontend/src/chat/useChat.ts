@@ -30,15 +30,19 @@ export interface ChatController {
    * (Cancel): nothing was submitted yet, so there's no server-side state to reconcile, just a local
    * dismissal. Not exposed for any other turn type. */
   removeTurn: (turnId: string) => void
+  /** Clears the conversation and returns the chat to its initial empty state. */
+  resetConversation: () => void
 }
 
 export interface UseChatOptions {
   /** Called after the turns are created, so F03 can open the stream for this query. */
   onStart?: (query: string, turnId: string) => void
+  aiUnavailableMessage?: string
 }
 
 export function useChat(options: UseChatOptions = {}): ChatController {
   const { onStart } = options
+  const aiUnavailableMessage = options.aiUnavailableMessage ?? 'The AI service is temporarily unavailable. Try again later.'
   const [turns, setTurns] = useState<Turn[]>([])
   const [isStreaming, setIsStreaming] = useState(false)
   const nextId = useRef(0)
@@ -98,7 +102,13 @@ export function useChat(options: UseChatOptions = {}): ChatController {
             if (event.data.rawModelResponse) {
               console.error('Intent model raw response:', event.data.rawModelResponse)
             }
-            return { ...turn, status: 'failed', failure: { message: event.data.message } }
+            return {
+              ...turn,
+              status: 'failed',
+              failure: {
+                message: event.data.code === 'ai-unavailable' ? aiUnavailableMessage : event.data.message,
+              },
+            }
           default:
             return assertNeverEvent(event)
         }
@@ -154,6 +164,11 @@ export function useChat(options: UseChatOptions = {}): ChatController {
     setTurns((current) => current.filter((turn) => turn.id !== turnId))
   }, [])
 
+  const resetConversation = useCallback(() => {
+    setTurns([])
+    setIsStreaming(false)
+  }, [])
+
   return {
     turns,
     isStreaming,
@@ -164,5 +179,6 @@ export function useChat(options: UseChatOptions = {}): ChatController {
     startBooking,
     updateBooking,
     removeTurn,
+    resetConversation,
   }
 }
