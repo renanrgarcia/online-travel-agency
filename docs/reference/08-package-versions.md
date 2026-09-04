@@ -74,19 +74,24 @@ clearest evidence in this whole project that "verify against current docs" isn't
 1. `gemini-2.5-flash` (this doc's original string) failed with a 404: "This model
    models/gemini-2.5-flash is no longer available to new users. Please update your code to use
    models/gemini-3.6-flash."
-2. `gemini-3.6-flash` worked, but its free tier turned out to cap at **20 requests/day per project**
-   (confirmed via the quota-exceeded error body: `quotaId: GenerateRequestsPerDayPerProjectPerModel-FreeTier`,
-   `quotaValue: 20`) -- far short of the ~1,500/day this doc originally assumed, and too tight for an
-   app that spends 2 model calls per search (intent + explanation).
+2. `gemini-3.6-flash` worked, but its free tier turned out to cap at **5 RPM / 20 requests per day per
+   project** (confirmed both via the quota-exceeded error body -- `quotaId:
+   GenerateRequestsPerDayPerProjectPerModel-FreeTier`, `quotaValue: 20` -- and later via the project's
+   own AI Studio rate-limit dashboard) -- far short of the ~1,500/day this doc originally assumed, and
+   too tight for an app that spends 2 model calls per search (intent + explanation).
 3. `gemini-2.5-flash-lite` also 404'd as retired, redirecting to `gemini-3.5-flash-lite`.
-4. `gemini-3.5-flash-lite` is the one actually used end to end for task 17 -- no daily-quota wall hit
-   in that testing.
+4. `gemini-3.5-flash-lite` is the one actually used end to end for task 17. Its free tier is **15 RPM /
+   500 requests per day per project** -- confirmed via the same AI Studio dashboard, a 25x larger daily
+   allowance than `gemini-3.6-flash` for the same account. This is the one to reach for by default on
+   this project's free tier, not `gemini-3.6-flash`, despite the latter having the newer version number.
 
 Google's own rate-limits page (`ai.google.dev/gemini-api/docs/rate-limits`, checked the same day) no
 longer publishes per-model free-tier numbers at all; it now points to each project's own AI Studio
-dashboard instead. There is no way to know a given model's actual free-tier ceiling from public docs
-alone anymore -- the only reliable way left is to call it and read the error. Re-verify the model
-string itself against current docs before reusing this, the same way the model *choice* needs
+dashboard instead (`aistudio.google.com/rate-limit`). There is no way to know a given model's actual
+free-tier ceiling from public docs alone anymore -- the only reliable ways left are to call it and read
+the error, or check that dashboard directly (it requires the project owner's own Google login, so a
+rebuilder has to check it themselves rather than trust a number recorded here indefinitely). Re-verify
+the model string itself against current docs before reusing this, the same way the model *choice* needs
 re-checking (see `docs/deployment.md`'s free-tier limits caveat) -- both have already moved once since
 this doc was first written.
 
