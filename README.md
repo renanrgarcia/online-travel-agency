@@ -2,6 +2,8 @@
 
 [![CI/CD](https://github.com/renanrgarcia/online-travel-agency/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/renanrgarcia/online-travel-agency/actions/workflows/ci-cd.yml)
 
+Leia em [português](README.pt-BR.md).
+
 An AI-assisted flight search and booking system, built step by step as a learning exercise — both a
 reference implementation of a specific architectural bet, and a hands-on path through Azure (this repo
 doubles as AZ-104 study: Bicep, App Service, Functions, Static Web Apps, and the CI/CD that ties them
@@ -129,10 +131,10 @@ way, including three real bugs a real model surfaced that the deterministic offl
 | F01 | Vite scaffold + typed SSE client | ✅ Done |
 | F02 | Chat shell, EN/PT-BR toggle | ✅ Done |
 | F03 | The search turn — real SSE stream driving the chat | ✅ Done |
-| F04 | Offer cards and comparison | 🚧 In progress |
-| F05 | The booking turn — saga from the chat UI, including compensation | ⬜ Not started |
-| F06 | Degraded states | ⬜ Not started |
-| F07 | Bilingual UI (beyond F02's toggle) | ⬜ Not started |
+| F04 | Offer cards and comparison | ✅ Done |
+| F05 | The booking turn — saga from the chat UI, including compensation | ✅ Done |
+| F06 | Degraded states | ✅ Done |
+| F07 | Bilingual UI (beyond F02's toggle) | ✅ Done |
 
 **Infrastructure** — [`docs/features/03-infra/`](docs/features/03-infra/README.md)
 

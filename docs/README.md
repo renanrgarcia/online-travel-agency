@@ -14,7 +14,7 @@ It's split three ways, by the question each part answers:
 
 ## reference/ — the system as designed
 
-Nine documents, in reading order, each naming the source files it describes. This is the layer that
+Eleven documents, in reading order, each naming the source files it describes. This is the layer that
 explains *why* — why ranking isn't a model call, why a token vocabulary exists, why the booking flow
 is a saga. Start at [`reference/01-architecture-overview.md`](reference/01-architecture-overview.md).
 
@@ -38,3 +38,8 @@ depends on the backend's API contract, but the two can be built in parallel once
 
 Target topology, free-tier constraints, and the deployment order. Individual tasks carry
 **Deployment gate** sections with the acceptance criteria for the step they unlock.
+
+## archive/ — superseded material
+
+Pre-restructuring content kept for reference, not part of the current spec — see
+[`archive/README.md`](archive/README.md). If it disagrees with anything above, this structure wins.

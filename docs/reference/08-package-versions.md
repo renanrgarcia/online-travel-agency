@@ -43,10 +43,15 @@ Confirmed API surface:
 
 ## Frontend
 
-- Vite 8, React 19, TypeScript 6.
+- Vite 8.2, React 19.2, TypeScript 6.0.
+- Vitest 4.0 + Testing Library (`@testing-library/react` 16.3, `@testing-library/user-event` 14.6,
+  `@testing-library/jest-dom` 6.9) on `jsdom` 28 — no separate test runner or browser harness. Node's
+  native `fetch`/`Response` globals work inside this environment without any polyfill, which matters
+  for `useBookingFlow.test.ts` (task 05): it constructs real `Response` objects for a fake `fetch`.
+- `oxlint` 1.79 for linting — a Rust-based linter, not ESLint; no config beyond the default ruleset.
 - Scaffolded with `npm create vite@latest -- --template react-ts` and kept dependency-free otherwise —
-  no state library, no UI kit, no CSS framework. `npm run build` type-checks with `tsc -b` before
-  bundling.
+  no state library, no UI kit, no CSS framework, no i18n library (see `11-bilingual-ui.md` for why the
+  last one specifically wasn't needed). `npm run build` type-checks with `tsc -b` before bundling.
 
 ## Swapping in a free-tier model provider
 
