@@ -22,31 +22,7 @@ output ever reaches a user without passing back through deterministic code first
 🤖 marks the only two points where a language model is involved; every other step is deterministic
 backend code with no AI in the loop.
 
-```mermaid
-flowchart TD
-    subgraph Row1[" "]
-        direction LR
-        A["Client sends the question in natural language\nGET /api/search/stream?q=..."] --> B{{"🤖 AI — IntentAgent\nextracts the structured search (origin, destination, date...)"}} --> C["Backend — searches in parallel\nacross mock suppliers (GDS, NDC, LCC)"]
-    end
-    subgraph Row2[" "]
-        direction RL
-        D["Backend — OfferScorer\nranks the offers deterministically"] --> E["Backend — PriceAssertionService\nsigns each offer (HMAC) for the booking"] --> F["Backend — PriceReferenceStore + ComparisonFacts\ngenerates price/duration/stops tokens and computes comparisons"]
-    end
-    subgraph Row3[" "]
-        direction LR
-        G{{"🤖 AI — ExplanationAgent\nwrites the text using only the tokens, never a real value"}} --> H["Backend — ExplanationPlaceholderRenderer\nrejects any digit outside a token, then resolves the tokens"] --> I["Client receives the final result\nvia Server-Sent Events"]
-    end
-
-    Row1 --> Row2 --> Row3
-
-    classDef ai fill:#fff3cd,stroke:#c77700,color:#3a2a00,stroke-width:2px;
-    classDef backend fill:#dbe9f6,stroke:#1565c0,color:#0a1e33;
-    class B,G ai;
-    class A,C,D,E,F,H,I backend;
-    style Row1 fill:none,stroke:none
-    style Row2 fill:none,stroke:none
-    style Row3 fill:none,stroke:none
-```
+![Diagram: the search pipeline in three rows -- Client, IntentAgent, and supplier search flow left to right; OfferScorer, PriceAssertionService, and PriceReferenceStore flow right to left; ExplanationAgent, the placeholder renderer, and the client flow left to right again -- with a down arrow connecting the last box of each row to the first box of the next.](docs/assets/search-flow-en.svg)
 
 The model is handed opaque tokens (`{{PRICE_LCC-002}}`, `{{SUPERLATIVE_CHEAPEST_LCC-001}}`, ...), never a
 real price or comparison — see [`docs/reference/02-price-integrity.md`](docs/reference/02-price-integrity.md)
@@ -109,9 +85,9 @@ until that's deliberately swapped).
 
 ## What's built
 
-Status reflects what's implemented in code today, on `develop` — the branch this table is meant to stay
-current against. It can be ahead of what's live on `main` between merges; see
-[CI/CD and deployment](#cicd-and-deployment).
+FlightAi's own build status — the rest of the online travel agency doesn't exist as code yet. Reflects
+what's implemented today, on `develop` — the branch this table is meant to stay current against. It can
+be ahead of what's live on `main` between merges; see [CI/CD and deployment](#cicd-and-deployment).
 
 **Backend** — [`docs/features/01-backend/`](docs/features/01-backend/README.md)
 

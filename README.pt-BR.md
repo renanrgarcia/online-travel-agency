@@ -23,31 +23,7 @@ determinístico.
 🤖 marca os dois únicos pontos em que um modelo de linguagem está envolvido; todo o resto é código de
 backend determinístico, sem IA no meio.
 
-```mermaid
-flowchart TD
-    subgraph Row1[" "]
-        direction LR
-        A["Cliente envia a pergunta em linguagem natural\nGET /api/search/stream?q=..."] --> B{{"🤖 IA — IntentAgent\nextrai a busca estruturada (origem, destino, data...)"}} --> C["Backend — busca em paralelo\nnos fornecedores mock (GDS, NDC, LCC)"]
-    end
-    subgraph Row2[" "]
-        direction RL
-        D["Backend — OfferScorer\nclassifica as ofertas de forma determinística"] --> E["Backend — PriceAssertionService\nassina cada oferta (HMAC) para a reserva"] --> F["Backend — PriceReferenceStore + ComparisonFacts\ngera tokens de preço/duração/paradas e calcula comparações"]
-    end
-    subgraph Row3[" "]
-        direction LR
-        G{{"🤖 IA — ExplanationAgent\nescreve o texto usando apenas os tokens, nunca um valor real"}} --> H["Backend — ExplanationPlaceholderRenderer\nrejeita qualquer dígito fora de um token, então resolve os tokens"] --> I["Cliente recebe o resultado final\nvia Server-Sent Events"]
-    end
-
-    Row1 --> Row2 --> Row3
-
-    classDef ai fill:#fff3cd,stroke:#c77700,color:#3a2a00,stroke-width:2px;
-    classDef backend fill:#dbe9f6,stroke:#1565c0,color:#0a1e33;
-    class B,G ai;
-    class A,C,D,E,F,H,I backend;
-    style Row1 fill:none,stroke:none
-    style Row2 fill:none,stroke:none
-    style Row3 fill:none,stroke:none
-```
+![Diagrama: o pipeline de busca em três linhas -- Cliente, IntentAgent e busca nos fornecedores fluindo da esquerda para a direita; OfferScorer, PriceAssertionService e PriceReferenceStore fluindo da direita para a esquerda; ExplanationAgent, o renderizador de placeholders e o cliente fluindo novamente da esquerda para a direita -- com uma seta descendente ligando a última caixa de cada linha à primeira caixa da linha seguinte.](docs/assets/search-flow-pt-BR.svg)
 
 O modelo recebe apenas tokens opacos (`{{PRICE_LCC-002}}`, `{{SUPERLATIVE_CHEAPEST_LCC-001}}`, ...),
 nunca um preço ou comparação de verdade — veja
@@ -113,8 +89,9 @@ de IA rodam offline/determinísticas até que isso seja deliberadamente trocado)
 
 ## O que está construído
 
-O status reflete o que está implementado em código hoje, na `develop` — o branch que esta tabela deve
-acompanhar. Ela pode estar à frente do que está no ar em `main` entre um merge e outro; veja
+O status de construção do próprio FlightAi — o resto da agência de viagens online ainda não existe como
+código. Reflete o que está implementado hoje, na `develop` — o branch que esta tabela deve acompanhar.
+Ela pode estar à frente do que está no ar em `main` entre um merge e outro; veja
 [CI/CD e implantação](#cicd-e-implantação).
 
 **Backend** — [`docs/features/01-backend/`](docs/features/01-backend/README.md)
