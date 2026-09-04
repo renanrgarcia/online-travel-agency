@@ -2,6 +2,8 @@
 
 [![CI/CD](https://github.com/renanrgarcia/online-travel-agency/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/renanrgarcia/online-travel-agency/actions/workflows/ci-cd.yml)
 
+Leia em [português](README.pt-BR.md).
+
 An AI-assisted flight search and booking system, built step by step as a learning exercise — both a
 reference implementation of a specific architectural bet, and a hands-on path through Azure (this repo
 doubles as AZ-104 study: Bicep, App Service, Functions, Static Web Apps, and the CI/CD that ties them
@@ -11,6 +13,36 @@ together).
 AI only at the two edges — turning a natural-language query into a structured search, and turning a
 ranked, already-priced result set into readable prose. Nothing in between calls a model, and no model
 output ever reaches a user without passing back through deterministic code first.
+
+## How a search flows
+
+Node labels are in Portuguese — the target market this app is built for. 🤖 marks the only two points
+where a language model is involved; every other step is deterministic backend code with no AI in the
+loop.
+
+```mermaid
+flowchart TD
+    A["Cliente envia a pergunta em linguagem natural\nGET /api/search/stream?q=..."]
+    B{{"🤖 IA — IntentAgent\nextrai a busca estruturada (origem, destino, data...)"}}
+    C["Backend — busca em paralelo\nnos fornecedores mock (GDS, NDC, LCC)"]
+    D["Backend — OfferScorer\nclassifica as ofertas de forma determinística"]
+    E["Backend — PriceAssertionService\nassina cada oferta (HMAC) para a reserva"]
+    F["Backend — PriceReferenceStore + ComparisonFacts\ngera tokens de preço/duração/paradas e calcula comparações"]
+    G{{"🤖 IA — ExplanationAgent\nescreve o texto usando apenas os tokens, nunca um valor real"}}
+    H["Backend — ExplanationPlaceholderRenderer\nrejeita qualquer dígito fora de um token, então resolve os tokens"]
+    I["Cliente recebe o resultado final\nvia Server-Sent Events"]
+
+    A --> B --> C --> D --> E --> F --> G --> H --> I
+
+    classDef ai fill:#fff3cd,stroke:#c77700,color:#3a2a00,stroke-width:2px;
+    classDef backend fill:#dbe9f6,stroke:#1565c0,color:#0a1e33;
+    class B,G ai;
+    class A,C,D,E,F,H,I backend;
+```
+
+The model is handed opaque tokens (`{{PRICE_LCC-002}}`, `{{SUPERLATIVE_CHEAPEST_LCC-001}}`, ...), never a
+real price or comparison — see [`docs/reference/02-price-integrity.md`](docs/reference/02-price-integrity.md)
+for why that boundary is structural rather than a prompt instruction.
 
 ## Try it live
 
@@ -54,7 +86,7 @@ and [`docs/reference/07-booking-saga.md`](docs/reference/07-booking-saga.md).
 | Layer | Choice |
 |---|---|
 | Backend | .NET 10, ASP.NET Core Minimal APIs, Server-Sent Events |
-| AI layer | `Microsoft.Agents.AI` + `Microsoft.Extensions.AI` — offline/deterministic stand-in today, real model swap-in is a planned task |
+| AI layer | `Microsoft.Agents.AI` + `Microsoft.Extensions.AI` — real model (Gemini, free tier) behind `IChatClient`, config-driven; falls back to a deterministic offline stand-in with no key configured |
 | Booking workflow | Azure Durable Functions (the saga pattern: checkpointed steps, each with a compensating action) |
 | Frontend | React 19 + TypeScript + Vite, Vitest + Testing Library |
 | Infrastructure as Code | Bicep, subscription-scoped (creates its own resource group) |
@@ -82,10 +114,15 @@ current against. It can be ahead of what's live on `main` between merges; see
 | 3. Suppliers | Mock GDS/NDC/LCC connectors, fan-out, budget + circuit breaker | ✅ Done |
 | 4. AI layer, offline | Intent parsing and explanation, against a deterministic stand-in model | ✅ Done |
 | 5. API + SSE | `GET /api/search/stream`, the full four-event pipeline | ✅ Done |
-| 6. Decision support | Comparison facts (deltas, superlatives) for the explanation to state | ⬜ Not started |
+| 6. Decision support | Comparison facts (deltas, superlatives) for the explanation to state | ✅ Done |
 | 7. Booking saga | Durable Functions saga, happy path + compensation + idempotency | ✅ Done |
 | 8. Safe to expose | CORS, rate limiting, server-authoritative prices, structured error handling | ✅ Done |
-| 9. Real model | Swap the offline stand-in for a real `IChatClient` | ⬜ Not started |
+| 9. Real model | Swap the offline stand-in for a real `IChatClient` | ✅ Done |
+
+The backend roadmap above is complete — all nine steps done. See
+[`docs/features/01-backend/README.md`](docs/features/01-backend/README.md) for the full build order and
+[`docs/reference/09-lessons-learned.md`](docs/reference/09-lessons-learned.md) for what broke along the
+way, including three real bugs a real model surfaced that the deterministic offline stand-in never could.
 
 **Frontend** — [`docs/features/02-frontend/`](docs/features/02-frontend/README.md)
 
@@ -94,10 +131,10 @@ current against. It can be ahead of what's live on `main` between merges; see
 | F01 | Vite scaffold + typed SSE client | ✅ Done |
 | F02 | Chat shell, EN/PT-BR toggle | ✅ Done |
 | F03 | The search turn — real SSE stream driving the chat | ✅ Done |
-| F04 | Offer cards and comparison | 🚧 In progress |
-| F05 | The booking turn — saga from the chat UI, including compensation | ⬜ Not started |
-| F06 | Degraded states | ⬜ Not started |
-| F07 | Bilingual UI (beyond F02's toggle) | ⬜ Not started |
+| F04 | Offer cards and comparison | ✅ Done |
+| F05 | The booking turn — saga from the chat UI, including compensation | ✅ Done |
+| F06 | Degraded states | ✅ Done |
+| F07 | Bilingual UI (beyond F02's toggle) | ✅ Done |
 
 **Infrastructure** — [`docs/features/03-infra/`](docs/features/03-infra/README.md)
 

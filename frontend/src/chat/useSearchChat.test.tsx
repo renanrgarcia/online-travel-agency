@@ -5,6 +5,7 @@ import { useSearchChat } from './useSearchChat'
 import type { AssistantTurn } from './types'
 import { fakeEventSourceFactory } from '../test/fakeEventSource'
 import {
+  ERROR_JSON,
   EXPLANATION_JSON,
   PARSED_INTENT_JSON,
   RANKED_OFFERS_JSON,
@@ -167,15 +168,38 @@ describe('useSearchChat', () => {
     )
   })
 
-  it('reports a connection-lost failure as a failed turn with a user-facing message', () => {
+  it('F06 E7 — a dropped connection fails the turn but keeps every stage already received', () => {
     const { result, source } = setup()
     act(() => result.current.submit('lisbon'))
+
+    act(() => {
+      source().emit('parsed-intent', PARSED_INTENT_JSON)
+      source().emit('supplier-result', SUPPLIER_RESULT_GDS_JSON)
+    })
 
     act(() => source().emitTransportFailure())
 
     const turn = assistantTurnOf(result.current.turns)
     expect(turn.status).toBe('failed')
     expect(turn.failure?.message).toBe('Connection lost. Try your search again.')
+    // The interruption is stated, not silently swallowed -- but what already arrived isn't thrown away.
+    expect(turn.stages.parsedIntent?.origin).toBe('GRU')
+    expect(turn.stages.supplierResults).toHaveLength(1)
+    expect(result.current.isStreaming).toBe(false)
+  })
+
+  it('F06 E6 — a server-sent error event fails the turn with the server\'s own reason and re-enables the composer', () => {
+    const { result, source } = setup()
+    act(() => result.current.submit('lisbon'))
+    expect(result.current.isStreaming).toBe(true)
+
+    act(() => source().emit('error', ERROR_JSON))
+
+    const turn = assistantTurnOf(result.current.turns)
+    expect(turn.status).toBe('failed')
+    expect(turn.failure?.message).toBe('missing origin')
+    // Nothing to retry automatically toward (F06's locked decision) -- the composer just unlocks.
+    expect(result.current.isStreaming).toBe(false)
   })
 
   it('does not fail the turn over a single malformed frame — the stream is still alive', () => {

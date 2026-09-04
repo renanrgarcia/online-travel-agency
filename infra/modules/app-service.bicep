@@ -13,6 +13,24 @@ param netFrameworkVersion string = 'v10.0'
 @description('Origins allowed to call this API cross-origin -- the frontend, once deployed (infra task 02). Empty means no browser origin is allowed; same-origin and curl are unaffected either way. Sets Cors__AllowedOrigins__N app settings, which Program.cs reads via ASP.NET Core CORS middleware -- not the Azure platform CORS feature (see functions.bicep for that variant).')
 param allowedOrigins array = []
 
+@description('Shared HMAC key backend task 21 uses to sign (this API) and verify (Booking Functions) price assertions -- both sides must receive the exact same value, which is why main.bicep threads one parameter into both modules rather than each generating its own. No default: Program.cs throws at startup if this is missing, by design, rather than silently accepting an unsigned or forged price.')
+@secure()
+param priceAssertionSigningKey string
+
+@description('Gemini API key (task 17) -- read by Program.cs to decide whether to build a real Gemini IChatClient or fall back to the deterministic offline one. Only FlightAi.Api ever calls a model, so this is not threaded into functions.bicep. Empty is a safe default, unlike priceAssertionSigningKey: Program.cs already treats a missing key as "use the offline client," not a startup failure.')
+@secure()
+param geminiApiKey string = ''
+
+// A for-expression can only be the direct value of a resource/module/variable/output -- not nested
+// inside a function call like concat(...) -- so the CORS entries are built here first, then combined
+// with the static signing-key setting below.
+var corsAppSettings = [
+  for (origin, i) in allowedOrigins: {
+    name: 'Cors__AllowedOrigins__${i}'
+    value: origin
+  }
+]
+
 // F1 (Free) and D1 (Shared) tiers only exist on Windows App Service plans -- there is no free tier on
 // Linux. `reserved: false` is what selects Windows (Linux plans set this true).
 resource appServicePlan 'Microsoft.Web/serverfarms@2023-12-01' = {
@@ -36,10 +54,19 @@ resource webApp 'Microsoft.Web/sites@2023-12-01' = {
       netFrameworkVersion: netFrameworkVersion
       // F1 does not support Always On -- deployment fails if this is true on this SKU.
       alwaysOn: false
-      appSettings: [for (origin, i) in allowedOrigins: {
-        name: 'Cors__AllowedOrigins__${i}'
-        value: origin
-      }]
+      appSettings: concat(
+        [
+          {
+            name: 'PriceAssertion__SigningKey'
+            value: priceAssertionSigningKey
+          }
+          {
+            name: 'Gemini__ApiKey'
+            value: geminiApiKey
+          }
+        ],
+        corsAppSettings
+      )
     }
   }
 }

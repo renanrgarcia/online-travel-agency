@@ -39,7 +39,12 @@ task 19 (CORS) — not on task 01 above.
 
 Every resource here targets a free or near-free tier — see [`docs/deployment.md`](../../deployment.md)'s
 topology table and each task's own notes. Static Web Apps Free and Functions Consumption's monthly grant
-are both $0 at demo volume; the one unavoidable line item is the Storage account Durable Task needs,
-which `docs/deployment.md` already prices at cents per month, not dollars. Nothing here should ever
-produce a surprise bill — if a `what-if` ever shows a SKU or tier you don't recognize, stop and check it
-against this before applying.
+are both genuinely $0 at demo volume, confirmed against the live Retail Prices API, not assumed. The
+Storage account Durable Task needs is the one real line item, and it's a **flat daily cost from the
+Durable Task extension's own background polling** (roughly R$0.15–0.20/day, observed via real billing
+data, present even with zero usage) rather than the "cents per month, scales with usage" estimate this
+section originally carried — see `docs/deployment.md`'s topology section for the full explanation and
+the open trade-off around reducing it. Nothing here should ever produce a *surprise* bill regardless —
+a budget with four notification thresholds is configured on the subscription specifically so a drift
+from this baseline shows up as an email, not a bill you find later. If a `what-if` ever shows a SKU or
+tier you don't recognize, stop and check it against this before applying.

@@ -7,6 +7,7 @@
   --text-muted: #9aa3b2;
   --accent: #6aa6ff;
   --danger: #ff8f8f;
+  --warn: #e8b34d;
 
   color-scheme: dark;
   font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
@@ -143,18 +144,13 @@ body {
   color: var(--text-muted);
 }
 
-.supplier-list,
-.offer-list {
+.supplier-list {
   margin: 0;
-  padding-left: 1.1rem;
+  padding: 0;
+  list-style: none;
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
-}
-
-.supplier-list {
-  list-style: none;
-  padding-left: 0;
 }
 
 .supplier-list__item {
@@ -171,6 +167,181 @@ body {
 .supplier-list__status,
 .supplier-list__count {
   color: var(--text-muted);
+}
+
+.supplier-list__item--warn .supplier-list__status {
+  color: var(--warn);
+}
+
+.supplier-list__item--skip .supplier-list__status {
+  font-style: italic;
+}
+
+/* Offer cards */
+.offer-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.offer-card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 0.6rem;
+  background: var(--surface-raised);
+}
+
+.offer-card__rank {
+  flex: none;
+  width: 1.75rem;
+  height: 1.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--bg);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.offer-card__body {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.25rem;
+}
+
+.offer-card__id {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  min-width: 4.5rem;
+}
+
+.offer-card__price {
+  font-weight: 600;
+  min-width: 5rem;
+}
+
+.offer-card__details {
+  margin: 0;
+  display: flex;
+  gap: 1.25rem;
+}
+
+.offer-card__detail {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.8rem;
+}
+
+.offer-card__detail dt {
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.offer-card__detail dd {
+  margin: 0;
+}
+
+.offer-card__refundable {
+  margin-left: auto;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.offer-card__refundable--yes {
+  color: var(--accent);
+}
+
+/* Comparison table */
+.offer-comparison {
+  margin-top: 0.75rem;
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.offer-comparison__caption {
+  text-align: left;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  margin-bottom: 0.35rem;
+}
+
+.offer-comparison th,
+.offer-comparison td {
+  padding: 0.4rem 0.6rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+.offer-comparison thead th {
+  color: var(--text-muted);
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+
+.offer-comparison tbody th {
+  color: var(--text-muted);
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+.offer-comparison__row-label {
+  min-width: 6rem;
+}
+
+.offer-list__empty {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* Explanation */
+.explanation__unavailable {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.explanation__debug {
+  margin-top: 0.6rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.explanation__debug summary {
+  cursor: pointer;
+  user-select: none;
+}
+
+.explanation__raw-label {
+  margin: 0.5rem 0 0.25rem;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.explanation__raw {
+  margin: 0;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 0.8rem;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 /* Empty state */
@@ -265,4 +436,113 @@ body {
 
 .composer__error {
   color: var(--danger);
+}
+
+.offer-card__book {
+  margin-left: auto;
+  padding: 0.35rem 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--accent);
+  background: transparent;
+  color: var(--accent);
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.offer-card__refundable--yes + .offer-card__book,
+.offer-card__book {
+  margin-left: 0.75rem;
+}
+
+/* Booking turn */
+.turn--booking {
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.booking__offer {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
+}
+
+.booking-form__label {
+  display: block;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  margin-bottom: 0.35rem;
+}
+
+.booking-form__row {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.booking-form__input {
+  flex: 1;
+  min-width: 12rem;
+  padding: 0.55rem 0.75rem;
+  border-radius: 0.6rem;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+}
+
+.booking-form__submit {
+  padding: 0.55rem 1rem;
+  border-radius: 0.6rem;
+  border: none;
+  background: var(--accent);
+  color: #0b1220;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.booking-form__cancel {
+  padding: 0.55rem 0.9rem;
+  border-radius: 0.6rem;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  cursor: pointer;
+}
+
+.booking-outcome {
+  border-radius: 0.6rem;
+  padding: 0.65rem 0.85rem;
+  margin-top: 0.25rem;
+}
+
+.booking-outcome p {
+  margin: 0.2rem 0 0;
+}
+
+.booking-outcome__title {
+  margin: 0 !important;
+  font-weight: 600;
+}
+
+.booking-outcome--success {
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+.booking-outcome--failed {
+  background: color-mix(in srgb, var(--danger) 10%, transparent);
+}
+
+.booking-outcome--failed .booking-outcome__title {
+  color: var(--danger);
+}
+
+.booking-outcome__compensation {
+  font-size: 0.85rem;
+  color: var(--text-muted);
 }

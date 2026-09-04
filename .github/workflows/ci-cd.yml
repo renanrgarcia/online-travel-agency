@@ -122,10 +122,15 @@ jobs:
 
       # The Azure/static-web-apps-deploy action builds internally (Oryx), given app_location and
       # output_location -- no separate npm ci/build step needed here, unlike the backend jobs' explicit
-      # dotnet publish. VITE_API_BASE_URL and VITE_FUNCTIONS_BASE_URL are Vite's build-time env var
-      # convention: frontend code reads them via `import.meta.env.VITE_*` (task F03's integration point
-      # for the API, F05's for Functions -- the browser calls the Function App directly for the booking
-      # saga, per docs/reference/07-booking-saga.md, not through the API).
+      # dotnet publish. VITE_API_BASE_URL and VITE_BOOKING_API_BASE_URL are Vite's build-time env var
+      # convention: frontend code reads them via `import.meta.env.VITE_*` (frontend/src/config.ts --
+      # task F03's integration point for the API, F05's for booking). The booking one must be named
+      # exactly VITE_BOOKING_API_BASE_URL, matching config.ts's own getBookingApiBaseUrl() -- a prior
+      # mismatch here (VITE_FUNCTIONS_BASE_URL) silently made every deployed booking call fall back to
+      # the SWA's own same-origin default instead of the Function App, found via a live infra-lane
+      # validation pass, not caught by any test since the name itself was never exercised. The browser
+      # calls the Function App directly for the booking saga, per docs/reference/07-booking-saga.md, not
+      # through the API.
       #
       # Values come from repo variables (Settings -> Secrets and variables -> Actions -> Variables), not
       # hardcoded here -- infra/main.bicep already outputs both URLs (webAppUrl, functionAppUrl), so
@@ -149,4 +154,4 @@ jobs:
           output_location: "dist"
         env:
           VITE_API_BASE_URL: ${{ vars.API_BASE_URL }}
-          VITE_FUNCTIONS_BASE_URL: ${{ vars.FUNCTIONS_BASE_URL }}
+          VITE_BOOKING_API_BASE_URL: ${{ vars.FUNCTIONS_BASE_URL }}

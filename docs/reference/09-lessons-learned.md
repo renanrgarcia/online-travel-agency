@@ -36,6 +36,38 @@ with any application code. The fix is a flag Azurite's own error message names d
 `azurite --skipApiVersionCheck`. Worth knowing before spending time suspecting your own code for what's
 actually a tooling-version mismatch between the local emulator and a newer client library.
 
+## A retired model, an undocumented daily quota, and a false-positive guard -- all found only against a real model
+
+Task 17 (swap the offline chat client for a real Gemini-backed one) surfaced three real gaps the
+deterministic offline stand-in had never been able to exercise, all in one live test session:
+
+- **The documented model string was retired.** `gemini-2.5-flash` -- the model
+  `08-package-versions.md` had originally verified against -- failed with a 404 whose body named its
+  own replacement (`gemini-3.6-flash`). That replacement then turned out to cap the free tier at 20
+  requests/day/project, too tight for this app's 2-calls-per-search shape; `gemini-2.5-flash-lite` was
+  *also* retired before `gemini-3.5-flash-lite` finally worked without hitting a wall. See
+  `08-package-versions.md` for the full blow-by-blow. The general lesson: a model string is not a fact
+  that stays true, and free-tier quotas are no longer even published anywhere you could check them
+  without an account.
+- **An offer ID's own digits tripped the price-integrity guard.** `ExplanationPlaceholderRenderer`'s
+  raw-digit scan doesn't distinguish "a digit that's part of an identifier the model was explicitly
+  given" from "a digit the model invented" -- so a model naturally writing "Offer LCC-002" in prose (the
+  offer ID is plain text, never a token) got rejected as a violation, every single time, against a real
+  model. The offline fixture's canned responses never mention an offer ID in prose, so this was
+  structurally impossible to catch without a real model actually choosing its own wording. See
+  `02-price-integrity.md`'s "One deliberate exception to the raw-digit scan" for the fix.
+- **A real model returned "pt" instead of "pt-BR."** `PriceReferenceStore`'s localization is a strict
+  `language == "pt-BR"` check (task 18), and `IntentAgentFactory`'s instructions only said to infer the
+  language, not the exact code format expected downstream. The offline fixture's canned intent result
+  hardcodes the exact string, so this mismatch was invisible until a real model made its own judgment
+  call about how to format the value. Fixed by spelling out the exact expected codes in the agent's
+  instructions.
+
+All three share the same shape as the general lesson below: nothing here was catchable by reading the
+code, or even by running the test suite against the offline stand-in. Only calling the real, actual
+external model exposed them -- which is the entire point of keeping the offline path around forever
+while still eventually swapping in the real thing.
+
 ## The general lesson
 
 The first two bugs above are the classic "silent, no error in the logs" failure shape — nothing

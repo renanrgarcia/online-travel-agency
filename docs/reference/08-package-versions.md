@@ -43,10 +43,15 @@ Confirmed API surface:
 
 ## Frontend
 
-- Vite 8, React 19, TypeScript 6.
+- Vite 8.2, React 19.2, TypeScript 6.0.
+- Vitest 4.0 + Testing Library (`@testing-library/react` 16.3, `@testing-library/user-event` 14.6,
+  `@testing-library/jest-dom` 6.9) on `jsdom` 28 — no separate test runner or browser harness. Node's
+  native `fetch`/`Response` globals work inside this environment without any polyfill, which matters
+  for `useBookingFlow.test.ts` (task 05): it constructs real `Response` objects for a fake `fetch`.
+- `oxlint` 1.79 for linting — a Rust-based linter, not ESLint; no config beyond the default ruleset.
 - Scaffolded with `npm create vite@latest -- --template react-ts` and kept dependency-free otherwise —
-  no state library, no UI kit, no CSS framework. `npm run build` type-checks with `tsc -b` before
-  bundling.
+  no state library, no UI kit, no CSS framework, no i18n library (see `11-bilingual-ui.md` for why the
+  last one specifically wasn't needed). `npm run build` type-checks with `tsc -b` before bundling.
 
 ## Swapping in a free-tier model provider
 
@@ -59,11 +64,36 @@ var options = new OpenAIClientOptions {
     Endpoint = new Uri("https://generativelanguage.googleapis.com/v1beta/openai/") // Gemini's OpenAI-compatible endpoint
 };
 var client = new OpenAIClient(new ApiKeyCredential(apiKey), options);
-IChatClient chatClient = client.GetChatClient("gemini-2.5-flash").AsIChatClient();
+IChatClient chatClient = client.GetChatClient("gemini-3.5-flash-lite").AsIChatClient();
 ```
 
-This compiles cleanly against the real package surface. Gemini's free tier (2.5 Flash, roughly 15
-requests/minute, 1,500/day at time of writing) is enough for a personal demo at zero cost.
+This compiles cleanly against the real package surface. Confirmed live, not just compiled, and the
+model string took three tries to land on -- worth recording exactly what happened, since it's the
+clearest evidence in this whole project that "verify against current docs" isn't boilerplate caution:
+
+1. `gemini-2.5-flash` (this doc's original string) failed with a 404: "This model
+   models/gemini-2.5-flash is no longer available to new users. Please update your code to use
+   models/gemini-3.6-flash."
+2. `gemini-3.6-flash` worked, but its free tier turned out to cap at **5 RPM / 20 requests per day per
+   project** (confirmed both via the quota-exceeded error body -- `quotaId:
+   GenerateRequestsPerDayPerProjectPerModel-FreeTier`, `quotaValue: 20` -- and later via the project's
+   own AI Studio rate-limit dashboard) -- far short of the ~1,500/day this doc originally assumed, and
+   too tight for an app that spends 2 model calls per search (intent + explanation).
+3. `gemini-2.5-flash-lite` also 404'd as retired, redirecting to `gemini-3.5-flash-lite`.
+4. `gemini-3.5-flash-lite` is the one actually used end to end for task 17. Its free tier is **15 RPM /
+   500 requests per day per project** -- confirmed via the same AI Studio dashboard, a 25x larger daily
+   allowance than `gemini-3.6-flash` for the same account. This is the one to reach for by default on
+   this project's free tier, not `gemini-3.6-flash`, despite the latter having the newer version number.
+
+Google's own rate-limits page (`ai.google.dev/gemini-api/docs/rate-limits`, checked the same day) no
+longer publishes per-model free-tier numbers at all; it now points to each project's own AI Studio
+dashboard instead (`aistudio.google.com/rate-limit`). There is no way to know a given model's actual
+free-tier ceiling from public docs alone anymore -- the only reliable ways left are to call it and read
+the error, or check that dashboard directly (it requires the project owner's own Google login, so a
+rebuilder has to check it themselves rather than trust a number recorded here indefinitely). Re-verify
+the model string itself against current docs before reusing this, the same way the model *choice* needs
+re-checking (see `docs/deployment.md`'s free-tier limits caveat) -- both have already moved once since
+this doc was first written.
 
 ## Connecting to Microsoft Foundry
 

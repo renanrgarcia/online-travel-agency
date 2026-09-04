@@ -100,10 +100,11 @@ public static class SearchPipeline
             yield break;
         }
 
-        var store = new PriceReferenceStore();
-        var tokenizedOffers = ranked
-            .Take(ExplainedOfferCount)
-            .Select(scored => Tokenize(store, offersById[scored.OfferId]))
+        var store = new PriceReferenceStore(request.Language);
+        var explainedOffers = ranked.Take(ExplainedOfferCount).Select(scored => offersById[scored.OfferId]).ToList();
+        var comparisons = ComparisonFacts.Compute(store, explainedOffers);
+        var tokenizedOffers = explainedOffers
+            .Select(offer => Tokenize(store, offer, comparisons[offer.OfferId]))
             .ToList();
 
         var explanationAgent = ExplanationAgentFactory.Create(chatClient, request.Language);
@@ -114,12 +115,15 @@ public static class SearchPipeline
         yield return Event("explanation", new ExplanationPayload(Text: isClean ? rendered.Text : "", Raw: raw, IsClean: isClean));
     }
 
-    private static TokenizedOffer Tokenize(PriceReferenceStore store, Offer offer) => new(
+    private static TokenizedOffer Tokenize(PriceReferenceStore store, Offer offer, OfferComparison comparison) => new(
         offer.OfferId,
         store.RegisterPrice(offer.OfferId, offer.Price, offer.Currency),
         store.RegisterDuration(offer.OfferId, offer.Duration),
         store.RegisterStops(offer.OfferId, offer.Stops),
-        store.RegisterRefundable(offer.OfferId, offer.Refundable));
+        store.RegisterRefundable(offer.OfferId, offer.Refundable),
+        comparison.PriceDeltaToken,
+        comparison.DurationDeltaToken,
+        comparison.SuperlativeTokens);
 
     private static SseItem<string> Event<T>(string eventType, T payload) =>
         new(JsonSerializer.Serialize(payload, JsonOptions), eventType);

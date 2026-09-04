@@ -26,6 +26,11 @@ file-by-file against a doc rather than trying to hold the whole system in your h
    so you don't have to rediscover them by trial and error.
 9. **[`09-lessons-learned.md`](09-lessons-learned.md)** — real bugs found while building this, and the
    general pattern behind them.
+10. **[`10-frontend-architecture.md`](10-frontend-architecture.md)** — the chat UI: the turn state
+    model, the two transports (SSE for search, polling for booking), and the degraded-state rendering
+    policy.
+11. **[`11-bilingual-ui.md`](11-bilingual-ui.md)** — how the UI's own chrome follows the query's
+    detected language without an i18n library, and without ever retranslating a completed turn.
 
 ## A note on drift
 

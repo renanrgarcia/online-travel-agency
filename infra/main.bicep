@@ -27,6 +27,14 @@ param storageAccountName string = 'flightaifuncs${environmentName}'
 @description('Static Web App name -- must be globally unique across all of Azure, becomes <name>.azurestaticapps.net. Override in main.bicepparam if the default collides.')
 param staticWebAppName string = 'flightai-web-${environmentName}'
 
+@description('Shared HMAC key backend task 21 uses to sign (API) and verify (Booking Functions) price assertions. No default on purpose -- a real secret has no business living in main.bicepparam, which is committed to git. Supply it at deploy time only: --parameters priceAssertionSigningKey=<value>.')
+@secure()
+param priceAssertionSigningKey string
+
+@description('Gemini API key (task 17) -- only FlightAi.Api reads it, so it is threaded into the appService module alone, not functionsApp. Empty default: unlike priceAssertionSigningKey, deploying with no key set is a supported state -- Program.cs falls back to the offline chat client rather than failing.')
+@secure()
+param geminiApiKey string = ''
+
 resource rg 'Microsoft.Resources/resourceGroups@2024-11-01' = {
   name: resourceGroupName
   location: location
@@ -55,6 +63,8 @@ module appService 'modules/app-service.bicep' = {
     webAppName: webAppName
     location: location
     allowedOrigins: [frontendOrigin]
+    priceAssertionSigningKey: priceAssertionSigningKey
+    geminiApiKey: geminiApiKey
   }
 }
 
@@ -67,6 +77,7 @@ module functionsApp 'modules/functions.bicep' = {
     functionAppName: functionAppName
     location: location
     allowedOrigins: [frontendOrigin]
+    priceAssertionSigningKey: priceAssertionSigningKey
   }
 }
 

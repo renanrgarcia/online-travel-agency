@@ -31,9 +31,55 @@ export interface Strings {
   searching: string
   waitingForOffers: string
   waitingForExplanation: string
+  supplierStatusSucceeded: string
+  supplierStatusPartialSuccess: string
+  supplierStatusFailed: string
+  supplierStatusTimedOut: string
+  supplierStatusCancelled: string
+  supplierStatusSkippedCircuitOpen: string
+  supplierStatusSkippedBudgetExhausted: string
+  noOffersFound: string
+  explanationUnavailable: string
+  explanationShowRaw: string
+  explanationRawLabel: string
+  offerCountOne: string
+  offerCountMany: string
   traveller: string
   travellers: string
   connectionLost: string
+  offerRank: string
+  offerDuration: string
+  offerRefundable: string
+  offerNonRefundable: string
+  stopsNonstop: string
+  stopsOne: string
+  stopsMany: string
+  comparisonTitle: string
+  comparisonPrice: string
+  comparisonDuration: string
+  comparisonStops: string
+  comparisonRefundable: string
+  bookOffer: string
+  bookingTravellerEmailLabel: string
+  bookingTravellerEmailPlaceholder: string
+  bookingConfirm: string
+  bookingCancel: string
+  bookingEmailRequired: string
+  bookingSubmitting: string
+  bookingStepAuthorizingPayment: string
+  bookingStepCreatingOrder: string
+  bookingStepIssuingTicket: string
+  bookingStepSendingConfirmation: string
+  bookingStepCompensating: string
+  bookingBookedTitle: string
+  bookingTicketNumber: string
+  bookingFailedTitle: string
+  bookingCompensated: string
+  bookingCompensationFailed: string
+  bookingNotCompensated: string
+  bookingErrorTitle: string
+  bookingErrorNotFound: string
+  bookingErrorNetwork: string
 }
 
 const en: Strings = {
@@ -58,9 +104,55 @@ const en: Strings = {
   searching: 'Understanding your search…',
   waitingForOffers: 'Checking suppliers…',
   waitingForExplanation: 'Writing an explanation…',
+  supplierStatusSucceeded: 'Succeeded',
+  supplierStatusPartialSuccess: 'Partial results',
+  supplierStatusFailed: 'Failed',
+  supplierStatusTimedOut: 'Timed out',
+  supplierStatusCancelled: 'Cancelled',
+  supplierStatusSkippedCircuitOpen: 'Skipped (temporarily paused)',
+  supplierStatusSkippedBudgetExhausted: 'Skipped (budget reached)',
+  noOffersFound: 'No offers found for this search.',
+  explanationUnavailable: "An explanation isn't available for this search.",
+  explanationShowRaw: 'Show raw model output (debug)',
+  explanationRawLabel: 'Raw, unrendered model output:',
+  offerCountOne: '1 offer',
+  offerCountMany: '{n} offers',
   traveller: 'traveller',
   travellers: 'travellers',
   connectionLost: 'Connection lost. Try your search again.',
+  offerRank: 'Rank',
+  offerDuration: 'Duration',
+  offerRefundable: 'Refundable',
+  offerNonRefundable: 'Non-refundable',
+  stopsNonstop: 'nonstop',
+  stopsOne: '1 stop',
+  stopsMany: '{n} stops',
+  comparisonTitle: 'Compare',
+  comparisonPrice: 'Price',
+  comparisonDuration: 'Duration',
+  comparisonStops: 'Stops',
+  comparisonRefundable: 'Refundable',
+  bookOffer: 'Book this offer',
+  bookingTravellerEmailLabel: 'Traveller email',
+  bookingTravellerEmailPlaceholder: 'you@example.com',
+  bookingConfirm: 'Confirm booking',
+  bookingCancel: 'Cancel',
+  bookingEmailRequired: 'Enter an email first',
+  bookingSubmitting: 'Starting your booking…',
+  bookingStepAuthorizingPayment: 'Authorizing payment…',
+  bookingStepCreatingOrder: 'Creating your order…',
+  bookingStepIssuingTicket: 'Issuing your ticket…',
+  bookingStepSendingConfirmation: 'Sending confirmation…',
+  bookingStepCompensating: 'Rolling back this booking…',
+  bookingBookedTitle: 'Booked',
+  bookingTicketNumber: 'Ticket number',
+  bookingFailedTitle: 'Booking failed',
+  bookingCompensated: 'Nothing was charged — any payment authorization and order were undone.',
+  bookingCompensationFailed: 'The rollback itself failed. This needs manual follow-up — do not retry.',
+  bookingNotCompensated: 'The booking stopped before anything needed to be undone.',
+  bookingErrorTitle: 'Something went wrong',
+  bookingErrorNotFound: 'This booking could not be found.',
+  bookingErrorNetwork: 'Could not reach the booking service. Check your connection and try again.',
 }
 
 const ptBR: Strings = {
@@ -85,11 +177,66 @@ const ptBR: Strings = {
   searching: 'Entendendo sua busca…',
   waitingForOffers: 'Consultando fornecedores…',
   waitingForExplanation: 'Escrevendo uma explicação…',
+  supplierStatusSucceeded: 'Concluído',
+  supplierStatusPartialSuccess: 'Resultados parciais',
+  supplierStatusFailed: 'Falhou',
+  supplierStatusTimedOut: 'Tempo esgotado',
+  supplierStatusCancelled: 'Cancelado',
+  supplierStatusSkippedCircuitOpen: 'Ignorado (pausado temporariamente)',
+  supplierStatusSkippedBudgetExhausted: 'Ignorado (orçamento esgotado)',
+  noOffersFound: 'Nenhuma oferta encontrada para esta busca.',
+  explanationUnavailable: 'Uma explicação não está disponível para esta busca.',
+  explanationShowRaw: 'Mostrar saída bruta do modelo (depuração)',
+  explanationRawLabel: 'Saída bruta do modelo, sem processamento:',
+  offerCountOne: '1 oferta',
+  offerCountMany: '{n} ofertas',
   traveller: 'passageiro',
   travellers: 'passageiros',
   connectionLost: 'Conexão perdida. Tente sua busca novamente.',
+  offerRank: 'Posição',
+  offerDuration: 'Duração',
+  offerRefundable: 'Reembolsável',
+  offerNonRefundable: 'Não reembolsável',
+  stopsNonstop: 'sem escalas',
+  stopsOne: '1 escala',
+  stopsMany: '{n} escalas',
+  comparisonTitle: 'Comparar',
+  comparisonPrice: 'Preço',
+  comparisonDuration: 'Duração',
+  comparisonStops: 'Escalas',
+  comparisonRefundable: 'Reembolsável',
+  bookOffer: 'Reservar esta oferta',
+  bookingTravellerEmailLabel: 'E-mail do passageiro',
+  bookingTravellerEmailPlaceholder: 'voce@exemplo.com',
+  bookingConfirm: 'Confirmar reserva',
+  bookingCancel: 'Cancelar',
+  bookingEmailRequired: 'Digite um e-mail primeiro',
+  bookingSubmitting: 'Iniciando sua reserva…',
+  bookingStepAuthorizingPayment: 'Autorizando pagamento…',
+  bookingStepCreatingOrder: 'Criando seu pedido…',
+  bookingStepIssuingTicket: 'Emitindo sua passagem…',
+  bookingStepSendingConfirmation: 'Enviando confirmação…',
+  bookingStepCompensating: 'Revertendo esta reserva…',
+  bookingBookedTitle: 'Reservado',
+  bookingTicketNumber: 'Número da passagem',
+  bookingFailedTitle: 'Falha na reserva',
+  bookingCompensated: 'Nada foi cobrado — qualquer autorização de pagamento e pedido foram desfeitos.',
+  bookingCompensationFailed: 'A reversão em si falhou. Isso precisa de acompanhamento manual — não tente novamente.',
+  bookingNotCompensated: 'A reserva parou antes que algo precisasse ser desfeito.',
+  bookingErrorTitle: 'Algo deu errado',
+  bookingErrorNotFound: 'Esta reserva não foi encontrada.',
+  bookingErrorNetwork: 'Não foi possível acessar o serviço de reservas. Verifique sua conexão e tente novamente.',
 }
 
 export const STRINGS: Record<Language, Strings> = { en, 'pt-BR': ptBR }
 
 export const LANGUAGE_LABELS: Record<Language, string> = { en: 'EN', 'pt-BR': 'PT-BR' }
+
+/**
+ * Maps `parsed-intent.language` (a BCP-47-ish tag the intent agent inferred, e.g. `en`, `pt-BR`) onto
+ * this UI's own two-value {@link Language}. Only pt-BR and en are in scope (F07's own out-of-scope
+ * list) — anything else falls back to `en` rather than rendering chrome in a language with no strings.
+ */
+export function toUiLanguage(raw: string): Language {
+  return raw.toLowerCase().startsWith('pt') ? 'pt-BR' : 'en'
+}

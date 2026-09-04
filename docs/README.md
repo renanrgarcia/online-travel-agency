@@ -14,7 +14,7 @@ It's split three ways, by the question each part answers:
 
 ## reference/ — the system as designed
 
-Nine documents, in reading order, each naming the source files it describes. This is the layer that
+Eleven documents, in reading order, each naming the source files it describes. This is the layer that
 explains *why* — why ranking isn't a model call, why a token vocabulary exists, why the booking flow
 is a saga. Start at [`reference/01-architecture-overview.md`](reference/01-architecture-overview.md).
 
@@ -28,6 +28,8 @@ an **Evals** table written before the implementation exists.
   streaming API, booking saga.
 - [`features/02-frontend/`](features/02-frontend/README.md) — React + TypeScript: the chat interface
   that makes the backend's streamed pipeline something a traveller can actually use.
+- [`features/03-infra/`](features/03-infra/README.md) — Bicep + GitHub Actions for the Booking
+  Functions app and the frontend's Static Web App.
 
 Features are numbered in the order they were specified, not a strict dependency order — the frontend
 depends on the backend's API contract, but the two can be built in parallel once that contract exists.
@@ -36,3 +38,8 @@ depends on the backend's API contract, but the two can be built in parallel once
 
 Target topology, free-tier constraints, and the deployment order. Individual tasks carry
 **Deployment gate** sections with the acceptance criteria for the step they unlock.
+
+## archive/ — superseded material
+
+Pre-restructuring content kept for reference, not part of the current spec — see
+[`archive/README.md`](archive/README.md). If it disagrees with anything above, this structure wins.

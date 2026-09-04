@@ -1,3 +1,4 @@
+using System.ClientModel;
 using System.Threading.RateLimiting;
 using FlightAi.Agents.Services.Intent;
 using FlightAi.Api;
@@ -9,6 +10,7 @@ using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.AI;
+using OpenAI;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -50,7 +52,14 @@ builder.Services.AddRateLimiter(options =>
         }));
 });
 
-builder.Services.AddSingleton<IChatClient>(_ => DemoOfflineChatClient.Create());
+// A real model is used only when an API key is configured (task 17); the offline client stays the
+// default so local dev and the test suite keep running free, fast, and deterministic, with no key at
+// all -- a locked decision, not an oversight. Gemini's free tier via its OpenAI-compatible endpoint is
+// the one dependency in this system that isn't Azure-native (see docs/deployment.md for why).
+var geminiApiKey = builder.Configuration["Gemini:ApiKey"];
+builder.Services.AddSingleton<IChatClient>(_ => string.IsNullOrEmpty(geminiApiKey)
+    ? DemoOfflineChatClient.Create()
+    : BuildGeminiChatClient(geminiApiKey));
 builder.Services.AddSingleton(sp => IntentAgentFactory.Create(sp.GetRequiredService<IChatClient>()));
 builder.Services.AddSingleton(BuildSupplierOrchestrator());
 
@@ -109,6 +118,19 @@ static string ClientKey(HttpContext context)
     return string.IsNullOrEmpty(forwardedFor)
         ? context.Connection.RemoteIpAddress?.ToString() ?? "unknown"
         : forwardedFor.Split(',')[0].Trim();
+}
+
+static IChatClient BuildGeminiChatClient(string apiKey)
+{
+    var options = new OpenAIClientOptions { Endpoint = new Uri("https://generativelanguage.googleapis.com/v1beta/openai/") };
+    var client = new OpenAIClient(new ApiKeyCredential(apiKey), options);
+    // gemini-2.5-flash (the model docs/reference/08-package-versions.md was written against) has since
+    // been retired for new users -- confirmed live, not guessed: Gemini's own 404 body names the
+    // replacement directly. That replacement, gemini-3.6-flash, turned out to cap the free tier at 20
+    // requests/DAY per project (also confirmed live, via the quota-exceeded error body) -- too tight for
+    // this app's 2-calls-per-search shape. gemini-3.5-flash-lite has no such wall in the same testing
+    // and is the one actually exercised end to end for this task.
+    return client.GetChatClient("gemini-3.5-flash-lite").AsIChatClient();
 }
 
 static SupplierFanOutOrchestrator BuildSupplierOrchestrator()

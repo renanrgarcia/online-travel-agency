@@ -13,3 +13,15 @@ param location = 'westeurope'
 // Uncomment and change if the default 'flightai-api-dev' is already taken -- Web App names must be
 // globally unique across all of Azure, not just this subscription:
 // param webAppName = 'flightai-api-<something-more-unique>'
+
+// A real secret has no business in a file committed to git -- .bicepparam files can't be layered with
+// an inline CLI --parameters override the way classic parameters.json can (confirmed empirically: BCP258
+// on every non-defaulted param not assigned inside this file), so readEnvironmentVariable is the
+// supported way to keep the value itself out of source control while still using this file. Set
+// PRICE_ASSERTION_SIGNING_KEY in the shell before deploying; see infra/README.md.
+param priceAssertionSigningKey = readEnvironmentVariable('PRICE_ASSERTION_SIGNING_KEY')
+
+// Unlike PRICE_ASSERTION_SIGNING_KEY above, this one has a fallback ('') as its second argument --
+// deploying with no Gemini key set is a supported state (Program.cs falls back to the offline chat
+// client), so an unset GEMINI_API_KEY shouldn't fail the deployment the way an unset signing key does.
+param geminiApiKey = readEnvironmentVariable('GEMINI_API_KEY', '')

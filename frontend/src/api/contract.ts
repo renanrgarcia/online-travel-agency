@@ -40,6 +40,21 @@ export interface SupplierResult {
   reason: string | null
 }
 
+/**
+ * A signed, time-boxed proof that `offerId`'s authoritative price is `amount`/`currency` as of
+ * `expiresAt`. Opaque to this client — never inspected, only round-tripped verbatim into the booking
+ * request (F05). Safe to hold: it carries nothing beyond what the same search response already showed,
+ * and no signing key. See backend task 21.
+ */
+export interface PriceAssertion {
+  offerId: string
+  amount: number
+  currency: string
+  /** ISO 8601 instant. */
+  expiresAt: string
+  signature: string
+}
+
 /** One entry in the `ranked-offers` array. Already in ranked order, best first. */
 export interface RankedOffer {
   rank: number
@@ -51,6 +66,8 @@ export interface RankedOffer {
   refundable: boolean
   /** Lower is better. Deliberately not shown to a traveller — see frontend task F04. */
   score: number
+  /** Attached to every offer, not just the explained top few — any ranked offer can be booked. */
+  priceAssertion: PriceAssertion
 }
 
 /**

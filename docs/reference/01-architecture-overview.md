@@ -28,7 +28,15 @@ src/
   FlightAi.Booking.Functions/   Azure Durable Functions saga for the booking flow.
 tests/
   FlightAi.Tests/                xUnit. Determinism, price-integrity, budget, circuit-breaker, timeout.
-web/                            React + TypeScript + Vite front end for FlightAi.Api and the booking saga.
+frontend/                       React + TypeScript + Vite chat UI. See 10-frontend-architecture.md.
+  src/
+    api/                         Typed clients for both backends: the search SSE stream and the
+                                   booking HTTP contract, plus the shared payload types.
+    chat/                        The turn model and every component that renders a turn -- search,
+                                   booking, offer cards -- plus the two network-wiring hooks
+                                   (useSearchChat, useBookingFlow) that drive it.
+    i18n/                        Strings for both languages and the language-context machinery. See
+                                   11-bilingual-ui.md.
 ```
 
 `FlightAi.Core` has zero AI dependency by design — it's the part that has to be boring, testable, and
@@ -37,18 +45,22 @@ produces two things: a typed object (intent parsing) or prose built from opaque 
 Neither agent ever sees a raw price, and neither agent's output can reach a user without passing back
 through deterministic code first.
 
-## The two ways to run it
+## The two backends, one frontend
 
-1. **API + React frontend** (`FlightAi.Api` + `web/`) — the whole pipeline exposed as a live HTTP
-   endpoint that streams results as Server-Sent Events, consumed by a real browser UI. See
-   `06-api-sse-contract.md`. A console demo project existed briefly during development to verify the
-   deterministic core end to end by hand before the AI layer and the API existed; it was removed once
-   the API took over that role — see `docs/features/01-backend/tasks/README.md`.
+1. **API + React frontend** (`FlightAi.Api` + `frontend/`) — the whole search pipeline exposed as a
+   live HTTP endpoint that streams results as Server-Sent Events, consumed by a real browser UI. See
+   `06-api-sse-contract.md` for the wire contract and `10-frontend-architecture.md` for how the UI
+   consumes it. A console demo project existed briefly during development to verify the deterministic
+   core end to end by hand before the AI layer and the API existed; it was removed once the API took
+   over that role — see `docs/features/01-backend/tasks/README.md`.
 2. **Booking saga** (`FlightAi.Booking.Functions`) — a separate Azure Durable Functions app handling
    the booking flow (payment, order, ticket, confirmation) as a checkpointed, compensable state
-   machine. See `07-booking-saga.md`.
+   machine. See `07-booking-saga.md`. `frontend/` talks to this directly too, cross-origin, rather than
+   proxying it through the API — a genuinely separate Azure resource, not a second hosting model for
+   the same thing.
 
-Both share `FlightAi.Core`. Only the API touches `FlightAi.Agents`.
+Both backends share `FlightAi.Core`. Only the API touches `FlightAi.Agents`. `frontend/` is the one
+piece of the system that talks to both.
 
 ## What's deliberately not here
 
