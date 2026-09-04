@@ -61,21 +61,21 @@ public sealed class IntentAgent(AIAgent agent, CapturingChatClient capturingClie
         // Validation happens here, after the typed parse, in deterministic code -- never delegated to
         // the model's own judgement. RunAsync<T> only guarantees the *shape* is right (valid JSON
         // matching SearchRequest's properties); it says nothing about whether the values make sense.
-        return Validate(parsed);
+        return Validate(parsed, capturingClient.LastResponseText);
     }
 
-    private static IntentResult Validate(SearchRequest request)
+    private static IntentResult Validate(SearchRequest request, string? rawModelResponse)
     {
         if (string.IsNullOrWhiteSpace(request.Origin))
-            return IntentResult.Failed("missing origin");
+            return IntentResult.Failed("missing origin", rawModelResponse);
         if (string.IsNullOrWhiteSpace(request.Destination))
-            return IntentResult.Failed("missing destination");
+            return IntentResult.Failed("missing destination", rawModelResponse);
         if (request.PassengerCount < 1)
-            return IntentResult.Failed("passenger count must be at least 1");
+            return IntentResult.Failed("passenger count must be at least 1", rawModelResponse);
         if (string.IsNullOrWhiteSpace(request.Language))
-            return IntentResult.Failed("missing language");
+            return IntentResult.Failed("missing language", rawModelResponse);
         if (request.DepartureDate < DateOnly.FromDateTime(DateTime.UtcNow))
-            return IntentResult.Failed("departure date is in the past");
+            return IntentResult.Failed("departure date is in the past", rawModelResponse);
 
         return IntentResult.Ok(request);
     }

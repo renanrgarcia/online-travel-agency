@@ -86,6 +86,9 @@ public class IntentAgentFactoryTests
 
         Assert.False(result.Success);
         Assert.Contains("past", result.FailureReason, StringComparison.OrdinalIgnoreCase);
+        Assert.Equal(
+            "{\"Origin\":\"GRU\",\"Destination\":\"LIS\",\"DepartureDate\":\"2020-01-01\",\"PassengerCount\":2,\"Language\":\"en\"}",
+            result.RawModelResponse);
     }
 
     [Fact] // E6 — the boundary claim from docs/reference/01-architecture-overview.md, made testable
