@@ -29,12 +29,13 @@ task 14) — Storage has no free tier at all, unlike everything else in this tab
 here was "cents per month," reasoning from per-GB/per-transaction pricing as if cost scaled with usage.
 Real billing data (Azure Cost Management, queried directly) proved that wrong: cost is a **flat daily
 floor** of roughly R$0.15–0.20 (~R$5–6/month), present identically on days with zero real traffic. The
-cause isn't stored data or search/booking volume — it's the Durable Task extension polling its own
-control queues continuously in the background, by design, as long as the Function App exists and is
-running. Reducing it means either stopping the Function App between uses, or tuning
-`host.json`'s `extensions.durableTask.maxQueuePollingInterval` (currently left at its default) to back
-off further while idle. Neither is done as of this writing — a real, open trade-off between "always
-instantly live for a demo" and "as close to $0 as possible," not a bug to fix.
+cause isn't stored data or search/booking volume — it's the Azure Storage backend's own control-queue
+polling running continuously in the background, by design, as long as the Function App exists and is
+running. Two operational dials exist regardless (stop the Function App between uses; tune `host.json`'s
+`extensions.durableTask.maxQueuePollingInterval` to back off further while idle) — but the actual fix is
+architectural, not a dial: Durable Task's Scheduler backend has no polling loop and, per the Retail Prices
+API, no base fee at all. Backend task 24 and infra task 03 carry the real switch; neither operational dial
+is implemented, since the Scheduler removes the trade-off entirely rather than choosing a side of it.
 
 A budget with four notification thresholds (25/50/75/100% of a R$20/month cap) is configured on the
 subscription as the actual safety net — see `az consumption budget list`. There is no automatic spending
@@ -138,7 +139,7 @@ actually still open:
   on how recently `develop` was merged into `main` and redeployed — check `git log --oneline
   origin/main..origin/develop` before assuming the live site reflects the latest work. Merging that gap
   is a deliberate release decision, not something infra changes should trigger as a side effect.
-- **The Storage cost floor** described above — open, not a blocker, a real trade-off to decide on.
+- **The Storage cost floor** described above — task-carded (backend 24, infra 03), not yet implemented.
 - **Booking-side base URL wiring is fragile by construction**: the frontend's `VITE_BOOKING_API_BASE_URL`
   build-time variable has to name-match `frontend/src/config.ts`'s own read exactly, and nothing enforces
   that at build time — a naming drift here silently breaks every deployed booking call while search keeps
