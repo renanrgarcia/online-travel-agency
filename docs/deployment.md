@@ -5,13 +5,17 @@ as the one place where "free" and "Azure-native" genuinely conflict.
 
 ## The target topology
 
+All five pieces below are now actually deployed and live, not aspirational — see
+[`infra/README.md`](../infra/README.md) for how, and [`../README.md`](../README.md#try-it-live) for the
+current URLs.
+
 | Piece | Service | Tier | Cost |
 |---|---|---|---|
-| `frontend/` (React SPA) | Azure Static Web Apps | Free | $0 |
-| `backend/src/FlightAi.Api` | Azure App Service | Free (F1) | $0 |
+| `frontend/` (React SPA) | Azure Static Web Apps | Free | $0 -- no billing meter exists for this SKU at all |
+| `backend/src/FlightAi.Api` | Azure App Service | Free (F1) | $0 -- same, confirmed against the live Retail Prices API |
 | `backend/src/FlightAi.Booking.Functions` | Azure Functions | Consumption | $0 within monthly grant |
-| Durable Functions state | Azure Storage | Pay-as-you-go | Cents/month at demo volume |
-| Language model | See below | — | $0 (Gemini free tier) |
+| Durable Functions state | Azure Storage | Pay-as-you-go | **~R$0.15–0.20/day observed, not "cents/month"** -- see below |
+| Language model | Gemini (task 17, live) | — | $0 (Gemini free tier), external to Azure billing entirely |
 
 Azure Functions' Consumption plan includes a monthly free grant (1M executions and 400,000 GB-seconds)
 that a demo will not come close to exhausting. App Service F1 is genuinely free but comes with cold
@@ -19,9 +23,23 @@ starts, no custom domain, and a daily CPU quota — all fine for a portfolio dem
 production. That's the honest trade: these tiers are for learning and demonstrating, not for serving
 real travellers.
 
-Durable Functions requires a real Azure Storage account for its state (this is what Azurite emulates
-locally, see task 14). Storage is not free, but at demo volume it costs cents per month rather than
-dollars. It is the one unavoidable line item.
+**The Storage line item is bigger, and different in kind, than this document originally claimed.**
+Durable Functions requires a real Azure Storage account for its state (Azurite emulates this locally,
+task 14) — Storage has no free tier at all, unlike everything else in this table. The original estimate
+here was "cents per month," reasoning from per-GB/per-transaction pricing as if cost scaled with usage.
+Real billing data (Azure Cost Management, queried directly) proved that wrong: cost is a **flat daily
+floor** of roughly R$0.15–0.20 (~R$5–6/month), present identically on days with zero real traffic. The
+cause isn't stored data or search/booking volume — it's the Durable Task extension polling its own
+control queues continuously in the background, by design, as long as the Function App exists and is
+running. Reducing it means either stopping the Function App between uses, or tuning
+`host.json`'s `extensions.durableTask.maxQueuePollingInterval` (currently left at its default) to back
+off further while idle. Neither is done as of this writing — a real, open trade-off between "always
+instantly live for a demo" and "as close to $0 as possible," not a bug to fix.
+
+A budget with four notification thresholds (25/50/75/100% of a R$20/month cap) is configured on the
+subscription as the actual safety net — see `az consumption budget list`. There is no automatic spending
+limit on this subscription type (Pay-As-You-Go-style Microsoft Customer Agreement), so this budget is
+the only thing standing between an unexpected cost and silence.
 
 ## The model layer — where Azure-native and free diverge
 
@@ -43,11 +61,19 @@ your account it may still work for you; if not, this door is shut.
 
 ### The recommendation
 
-Use **Gemini's free tier** (2.5 Flash) for development and the demo, via the OpenAI-compatible endpoint
-pattern in `08-package-versions.md`. Free-tier limits as of 2026 are roughly 10 requests/minute and
-250–1,500 requests/day depending on model and current policy — verify against Google's own docs before
-relying on a specific number, since these have moved more than once this year. That's ample for a demo
-and nowhere near enough for production, which is the correct shape for this project.
+Use **Gemini's free tier** for development and the demo, via the OpenAI-compatible endpoint pattern in
+`08-package-versions.md`. The specific model matters more than this section originally implied:
+`gemini-2.5-flash` (this project's original choice) has since been retired for new users, and its
+direct successor `gemini-3.6-flash` caps the free tier at a hard **20 requests/day per project** —
+confirmed live, not assumed, and far short of what earlier revisions of this doc guessed. `gemini-3.5-flash-lite`
+is what task 17 actually verified end to end: **15 requests/minute, 500 requests/day**, confirmed via
+the project's own AI Studio rate-limit dashboard (`aistudio.google.com/rate-limit`) — 25x the daily
+allowance of the newer-numbered model, for the same account. A higher version number is not a proxy for
+a better free-tier quota. See `08-package-versions.md` and `09-lessons-learned.md` for the full story;
+re-verify both the model string and its quota against that dashboard before relying on either, since
+both have already moved at least once since this project started and Google's public docs page no
+longer publishes per-model numbers at all. Even 500/day is ample for a demo and nowhere near enough for
+production, which is the correct shape for this project.
 
 Keep the Foundry path (`Azure.AI.Projects`) documented and compile-verified as the production swap. The
 whole point of the `IChatClient` boundary in task 09 is that this choice stays a configuration change.
@@ -64,50 +90,56 @@ the table is the acceptance bar for "done," not instructions for how to get ther
 
 ## Deployment order
 
-Deploy in the same order you build. Don't try to deploy anything before task 13 — there's nothing
-user-facing to deploy until the API streams real results.
+This was written as a forward-looking plan; every step below is now actually complete and live, kept
+here as the record of the order it happened in rather than a to-do list:
 
-1. **After task 13** — deploy `FlightAi.Api` to App Service F1, confirm the SSE stream survives a real
-   network path (proxies and buffering layers break streaming in ways localhost never will; this is
-   the deployment step most likely to surprise you).
-2. **After backend task 19 and infra task 02** — deploy `frontend/` to Static Web Apps, pointed at
-   the App Service API. CORS (backend 19) is a hard prerequisite: without it the browser cannot read a
-   single response, whatever else is correct.
-3. **After backend task 16, with infra task 01** — deploy `FlightAi.Booking.Functions` to a Consumption
+1. **Task 13** — `FlightAi.Api` deployed to App Service F1; the SSE stream confirmed surviving the real
+   network path (proxies and buffering layers break streaming in ways localhost never will — this was
+   in fact the deployment step that surprised us, per `09-lessons-learned.md`).
+2. **Backend task 19 + infra task 02** — `frontend/` deployed to Static Web Apps, pointed at the App
+   Service API. CORS (backend 19) was the hard prerequisite here, confirmed via a real cross-origin
+   request from the deployed frontend, not just a local test.
+3. **Backend task 16, with infra task 01** — `FlightAi.Booking.Functions` deployed to a Consumption
    plan Function App with a real Storage account, provisioned by Bicep rather than by hand.
-4. **After task 17** — move the model API key into App Service configuration / Key Vault. Never commit
-   it; never ship it to the browser. The model is called from the backend only.
-5. **Before sharing the URL with anyone** — tasks 20 and 21. A public endpoint with a metered model
-   behind it and a client-supplied price in front of it is fine on localhost and not fine on the open
-   internet.
+4. **Task 17** — the Gemini API key moved into App Service configuration via Bicep (`@secure()`
+   parameter, sourced from an environment variable at deploy time, never committed) — see
+   [`infra/README.md`](../infra/README.md)'s Secrets section.
+5. **Tasks 20 and 21** — rate limiting and server-authoritative prices, both live before the URL was
+   shared anywhere.
 
 ## Infrastructure as code and CI/CD
 
-This section originally said the opposite — that IaC and a pipeline were deliberately out of scope for
-a first pass. That call was revisited once the App Service deploy became real, and both now exist:
+Both now fully cover all three deployable pieces, not just the App Service this section originally
+described:
 
-- **[`infra/`](../infra/README.md)** — Bicep, subscription-scoped, currently covering the App Service.
-  Chosen over Terraform for a single-cloud project with one operator: no state file to provision and
-  protect, first-class `az` tooling, and it's what AZ-104 expects you to author today.
+- **[`infra/`](../infra/README.md)** — Bicep, subscription-scoped, covering the App Service, the
+  Booking Functions app (Consumption plan + its Storage account), and the Static Web App. Chosen over
+  Terraform for a single-cloud project with one operator: no state file to provision and protect,
+  first-class `az` tooling, and it's what AZ-104 expects you to author today.
 - **[`.github/workflows/ci-cd.yml`](../.github/workflows/ci-cd.yml)** — build and test on every push to
-  `main` or `develop` and on PRs into `main`; deploy only on a push to `main`.
+  `main` or `develop` and on PRs into `main`; on a push to `main`, three deploy jobs run in parallel
+  (API, Functions, frontend), the frontend's build-time URLs sourced from repo variables rather than
+  hardcoded.
 
-Both are incomplete by design rather than by omission: the Functions app and Static Web Apps are covered
-by [feature 03 — infra](features/03-infra/README.md), tasks 01 and 02. Until those land, those two
-pieces deploy by hand and exist nowhere in the repository — which is the gap those tasks close.
+Provisioning itself (`az deployment sub create`) is **not** part of the CI/CD pipeline — it's a
+deliberately manual step, run against the subscription directly when infra changes, documented in
+`infra/README.md`. What *is* automated is deploying application code to whatever infra already exists.
 
 Still deliberately absent: staging environments, deployment slots (App Service F1 doesn't support them),
-custom domains, and CDN tuning.
+custom domains, CDN tuning, and Application Insights (a real cost trade-off explicitly declined — see
+`infra/README.md`'s notes on `app-service.bicep`'s filesystem logging choice).
 
-## What's still missing for the topology above
+## Open gaps, as of the last infra-lane pass
 
-The table at the top of this document describes a complete system. These are the tasks that close the
-distance between it and what's actually built:
+Everything the original version of this section listed (backend 19/20/21, infra 01/02) is done. What's
+actually still open:
 
-| Gap | Task |
-|---|---|
-| A browser on another origin can't call the API at all | Backend [19](features/01-backend/tasks/19-cors-for-the-browser-client.md) |
-| A public endpoint can exhaust the model quota and F1's CPU allowance | Backend [20](features/01-backend/tasks/20-rate-limiting-and-quota-protection.md) |
-| The booking saga trusts a client-supplied price | Backend [21](features/01-backend/tasks/21-server-authoritative-offer-prices.md) |
-| The Functions app has no Bicep module and no deploy job | Infra [01](features/03-infra/tasks/01-functions-infrastructure-and-cicd.md) |
-| There is no frontend to deploy to Static Web Apps | Feature [02](features/02-frontend/README.md), all tasks, plus Infra [02](features/03-infra/tasks/02-static-web-apps-deployment.md) |
+- **`main` lags `develop`.** Everything above is proven on `develop`'s tip; whether it's *live* depends
+  on how recently `develop` was merged into `main` and redeployed — check `git log --oneline
+  origin/main..origin/develop` before assuming the live site reflects the latest work. Merging that gap
+  is a deliberate release decision, not something infra changes should trigger as a side effect.
+- **The Storage cost floor** described above — open, not a blocker, a real trade-off to decide on.
+- **Booking-side base URL wiring is fragile by construction**: the frontend's `VITE_BOOKING_API_BASE_URL`
+  build-time variable has to name-match `frontend/src/config.ts`'s own read exactly, and nothing enforces
+  that at build time — a naming drift here silently breaks every deployed booking call while search keeps
+  working, which is exactly the failure mode a live infra-lane validation pass caught once already.

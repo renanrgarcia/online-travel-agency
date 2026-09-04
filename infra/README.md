@@ -131,9 +131,15 @@ deployment somewhere different from where the resources actually are.
 The deployment outputs `webAppUrl` and `functionAppUrl` -- where the zip-deployed API and the
 Functions app will actually be reachable.
 
-One thing worth knowing before your first `what-if` after this module was added: it may show a small
-`Modify` on the *already-deployed* `flightai-api-dev` resource (`netFrameworkVersion`,
-`localMySqlEnabled`) even though `modules/app-service.bicep` itself hasn't changed. `what-if`'s own
+One thing worth knowing before your first `what-if`: it will very likely show a `Modify` on
+`flightai-api-dev` (`netFrameworkVersion`, `localMySqlEnabled`), a `+` on `flightai-booking-dev`'s
+`siteConfig.cors.allowedOrigins`, and a set of `-` deletions on `flightai-web-dev`'s `branch`,
+`provider`, `repositoryUrl`, and `deploymentAuthPolicy` -- **on every single run, even when nothing
+about those resources actually changed.** This isn't a one-time fluke: it's been confirmed as noise
+repeatedly across this project's history, by checking the *live* resource directly after applying
+(`az functionapp cors show`, `az staticwebapp show`) rather than trusting the diff. `what-if`'s own
 output warns it "may contain false positive predictions" for exactly this kind of nested `siteConfig`
-diff -- a real `deployment sub create` is the actual test of idempotence (task 01's E3 in
-`docs/features/03-infra/`), not `what-if` alone.
+property -- a real `deployment sub create`, followed by a direct check of the resource itself, is the
+actual test of idempotence (task 01's E3 in `docs/features/03-infra/`), not `what-if` alone. Don't
+diagnose a "CORS is missing" or "the Static Web App lost its metadata" bug from a `what-if` diff without
+that direct check first -- it has produced exactly that false alarm before.

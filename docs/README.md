@@ -28,6 +28,8 @@ an **Evals** table written before the implementation exists.
   streaming API, booking saga.
 - [`features/02-frontend/`](features/02-frontend/README.md) — React + TypeScript: the chat interface
   that makes the backend's streamed pipeline something a traveller can actually use.
+- [`features/03-infra/`](features/03-infra/README.md) — Bicep + GitHub Actions for the Booking
+  Functions app and the frontend's Static Web App.
 
 Features are numbered in the order they were specified, not a strict dependency order — the frontend
 depends on the backend's API contract, but the two can be built in parallel once that contract exists.
