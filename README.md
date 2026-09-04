@@ -1,13 +1,16 @@
-# FlightAi
+# Online Travel Agency
 
 [![CI/CD](https://github.com/renanrgarcia/online-travel-agency/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/renanrgarcia/online-travel-agency/actions/workflows/ci-cd.yml)
 
 Leia em [português](README.pt-BR.md).
 
-An AI-assisted flight search and booking system, built step by step as a learning exercise — both a
-reference implementation of a specific architectural bet, and a hands-on path through Azure (this repo
-doubles as AZ-104 study: Bicep, App Service, Functions, Static Web Apps, and the CI/CD that ties them
-together).
+**FlightAi** — an AI-assisted flight search and booking system, and the first module of this online
+travel agency. Built step by step as a learning exercise: both a reference implementation of a specific
+architectural bet, and a hands-on path through Azure (this repo doubles as AZ-104 study — Bicep, App
+Service, Functions, Static Web Apps, and the CI/CD that ties them together). Flights are the whole
+system today; the plan is to grow this into the rest of an OTA — hotels, cars, packages — on the same
+foundation as the project expands. Everything below describes FlightAi specifically, the module that
+exists right now.
 
 **The central design bet:** keep search, ranking, pricing, and ticketing fully deterministic, and use
 AI only at the two edges — turning a natural-language query into a structured search, and turning a
@@ -16,28 +19,33 @@ output ever reaches a user without passing back through deterministic code first
 
 ## How a search flows
 
-Node labels are in Portuguese — the target market this app is built for. 🤖 marks the only two points
-where a language model is involved; every other step is deterministic backend code with no AI in the
-loop.
+🤖 marks the only two points where a language model is involved; every other step is deterministic
+backend code with no AI in the loop.
 
 ```mermaid
 flowchart TD
-    A["Cliente envia a pergunta em linguagem natural\nGET /api/search/stream?q=..."]
-    B{{"🤖 IA — IntentAgent\nextrai a busca estruturada (origem, destino, data...)"}}
-    C["Backend — busca em paralelo\nnos fornecedores mock (GDS, NDC, LCC)"]
-    D["Backend — OfferScorer\nclassifica as ofertas de forma determinística"]
-    E["Backend — PriceAssertionService\nassina cada oferta (HMAC) para a reserva"]
-    F["Backend — PriceReferenceStore + ComparisonFacts\ngera tokens de preço/duração/paradas e calcula comparações"]
-    G{{"🤖 IA — ExplanationAgent\nescreve o texto usando apenas os tokens, nunca um valor real"}}
-    H["Backend — ExplanationPlaceholderRenderer\nrejeita qualquer dígito fora de um token, então resolve os tokens"]
-    I["Cliente recebe o resultado final\nvia Server-Sent Events"]
+    subgraph Row1[" "]
+        direction LR
+        A["Client sends the question in natural language\nGET /api/search/stream?q=..."] --> B{{"🤖 AI — IntentAgent\nextracts the structured search (origin, destination, date...)"}} --> C["Backend — searches in parallel\nacross mock suppliers (GDS, NDC, LCC)"]
+    end
+    subgraph Row2[" "]
+        direction RL
+        D["Backend — OfferScorer\nranks the offers deterministically"] --> E["Backend — PriceAssertionService\nsigns each offer (HMAC) for the booking"] --> F["Backend — PriceReferenceStore + ComparisonFacts\ngenerates price/duration/stops tokens and computes comparisons"]
+    end
+    subgraph Row3[" "]
+        direction LR
+        G{{"🤖 AI — ExplanationAgent\nwrites the text using only the tokens, never a real value"}} --> H["Backend — ExplanationPlaceholderRenderer\nrejects any digit outside a token, then resolves the tokens"] --> I["Client receives the final result\nvia Server-Sent Events"]
+    end
 
-    A --> B --> C --> D --> E --> F --> G --> H --> I
+    Row1 --> Row2 --> Row3
 
     classDef ai fill:#fff3cd,stroke:#c77700,color:#3a2a00,stroke-width:2px;
     classDef backend fill:#dbe9f6,stroke:#1565c0,color:#0a1e33;
     class B,G ai;
     class A,C,D,E,F,H,I backend;
+    style Row1 fill:none,stroke:none
+    style Row2 fill:none,stroke:none
+    style Row3 fill:none,stroke:none
 ```
 
 The model is handed opaque tokens (`{{PRICE_LCC-002}}`, `{{SUPERLATIVE_CHEAPEST_LCC-001}}`, ...), never a
