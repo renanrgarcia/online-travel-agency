@@ -17,6 +17,7 @@ public class IntentAgentFactoryTests
     private const string EnglishQuery = "cheapest flight from São Paulo to Lisbon on 12 March for 2 people";
     private const string PortugueseQuery = "voo mais barato de São Paulo para Lisboa em 12 de março para 2 pessoas";
     private const string MissingDestinationQuery = "cheapest flight from GRU somewhere, not sure where";
+    private const string MissingDepartureDateQuery = "cheapest flight from GRU to LIS";
     private const string MalformedQuery = "this will make the model reply with garbage";
     private const string PastDateQuery = "cheapest flight from GRU to LIS back in January 2020";
 
@@ -29,6 +30,8 @@ public class IntentAgentFactoryTests
                 """{"Origin":"GRU","Destination":"LIS","DepartureDate":"2027-03-12","PassengerCount":2,"Language":"pt-BR"}""")
             .RegisterResponse(MissingDestinationQuery,
                 """{"Origin":"GRU","DepartureDate":"2027-03-12","PassengerCount":2,"Language":"en"}""")
+            .RegisterResponse(MissingDepartureDateQuery,
+                """{"Origin":"GRU","Destination":"LIS","DepartureDate":null,"PassengerCount":1,"Language":"en"}""")
             .RegisterResponse(MalformedQuery, "sorry, I cannot help with that")
             .RegisterResponse(PastDateQuery,
                 """{"Origin":"GRU","Destination":"LIS","DepartureDate":"2020-01-01","PassengerCount":2,"Language":"en"}""");
@@ -67,6 +70,17 @@ public class IntentAgentFactoryTests
         Assert.False(result.Success);
         Assert.Null(result.Request);
         Assert.Contains("destination", result.FailureReason, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task E3b_MissingDepartureDate_IsRejectedRatherThanInvented()
+    {
+        var result = await NewAgent().ParseAsync(MissingDepartureDateQuery);
+
+        Assert.False(result.Success);
+        Assert.Null(result.Request);
+        Assert.Contains("departure date", result.FailureReason, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("\"DepartureDate\":null", result.RawModelResponse);
     }
 
     [Fact] // E4 — real models return junk sometimes; this is expected, not exceptional

@@ -23,7 +23,8 @@ public static class IntentAgentFactory
         "schema. Infer the Language field from the language the query itself was written in — never " +
         "ask for it separately. Language must be exactly \"en\" for English or \"pt-BR\" for Portuguese " +
         "— never a bare language code like \"pt\" or a different regional variant. " +
-        "DepartureDate must be an ISO 8601 date string in exactly yyyy-MM-dd format.";
+        "DepartureDate must be an ISO 8601 date string in exactly yyyy-MM-dd format. " +
+        "If the traveller does not provide a departure date, return null; never invent or infer a date.";
 
     public static IntentAgent Create(IChatClient chatClient)
     {
@@ -74,6 +75,8 @@ public sealed class IntentAgent(AIAgent agent, CapturingChatClient capturingClie
             return IntentResult.Failed("passenger count must be at least 1", rawModelResponse);
         if (string.IsNullOrWhiteSpace(request.Language))
             return IntentResult.Failed("missing language", rawModelResponse);
+        if (request.DepartureDate is null)
+            return IntentResult.Failed("missing departure date", rawModelResponse);
         if (request.DepartureDate < DateOnly.FromDateTime(DateTime.UtcNow))
             return IntentResult.Failed("departure date is in the past", rawModelResponse);
 

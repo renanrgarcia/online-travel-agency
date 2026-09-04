@@ -9,6 +9,6 @@ namespace FlightAi.Core.Models.Offers;
 public sealed record SearchRequest(
     string Origin,
     string Destination,
-    DateOnly DepartureDate,
+    DateOnly? DepartureDate,
     int PassengerCount,
     string Language);
