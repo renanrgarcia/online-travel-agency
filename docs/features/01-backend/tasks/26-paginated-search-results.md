@@ -14,9 +14,9 @@ since a real supplier's live inventory can shift between calls.
 
 ## Scope
 
-- An in-memory cache (`IMemoryCache` — no new package, no new Azure resource; a single App Service
-  instance needs nothing more elaborate at this project's scale) storing the *full* ranked offer list a
-  search produced, keyed by a freshly generated `searchId`, with a TTL slightly longer than
+- An in-memory cache (no new package, no new Azure resource; a single App Service instance needs
+  nothing more elaborate at this project's scale) storing the *full* ranked offer list a search
+  produced, keyed by a freshly generated `searchId`, with a TTL slightly longer than
   `PriceAssertion:ValidityMinutes` (task 25 follow-up widened this to 15) — 20 minutes, so a "show
   more" click near the end of that window can still get a page back with a bookable assertion.
 - A new SSE event, `search-id`, carrying `{"searchId": "<guid>"}` — fired once, early (right after
@@ -54,9 +54,14 @@ since a real supplier's live inventory can shift between calls.
   API.** Duffel's own `List Offers` endpoint does support paging an existing `offer_request_id` —
   considered and rejected here specifically because it only covers Duffel; the mocks have no equivalent,
   and this task wants one uniform mechanism regardless of which connector an offer came from.
-- **`IMemoryCache`, not a distributed cache.** A single App Service F1 instance has nothing to
-  distribute to; adding Redis or similar here would be exactly the kind of infrastructure this project's
-  own free-tier discipline avoids until there's a real reason for it.
+- **A hand-rolled `ConcurrentDictionary` + `TimeProvider` cache, not `IMemoryCache` and not a
+  distributed cache.** `IMemoryCache` was the original plan, but .NET 10's actual implementation only
+  supports the obsolete `ISystemClock`, not `TimeProvider` — confirmed by inspecting the installed
+  assembly rather than assumed. Rolling a small cache by hand keeps this project's established
+  `TimeProvider`-based, deterministically-testable pattern (`PriceAssertionService`,
+  `LookToBookBudget`, `SupplierCircuitBreaker`) rather than reaching for an abstraction that would need
+  its own separate, less-clean testing story. A distributed cache (Redis or similar) is still rejected
+  for the same reason as before: a single App Service F1 instance has nothing to distribute to.
 - **A new SSE event (`search-id`), not a field bolted onto `ranked-offers`.** `ranked-offers`'s payload
   is a bare array today, already consumed as such by the frontend; wrapping it in an object to carry a
   `searchId` alongside would be a breaking change to an existing, working contract for no necessary

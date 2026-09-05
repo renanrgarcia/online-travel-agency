@@ -1,6 +1,6 @@
 # FlightAi.Api — the search SSE contract
 
-`GET /api/search/stream?q=<natural language query>` — one `EventSource` connection, up to five
+`GET /api/search/stream?q=<natural language query>` — one `EventSource` connection, up to six
 Server-Sent Events streamed in true completion order, not declaration order. Ranked results reach the
 client before the explanation prompt has even been sent to a model — that ordering is the whole point:
 users see useful results the moment they're ready, and the slower, less critical explanation fills in
@@ -28,6 +28,19 @@ Fired once, as soon as `IntentAgentFactory` finishes. Payload is the parsed `Sea
 `language` is a BCP-47-ish tag the intent agent inferred from the query's own wording (`en`, `pt-BR`),
 not from any header or setting — it's the one field the frontend's chrome ultimately keys off, see
 `11-bilingual-ui.md`.
+
+### `search-id`
+
+Fired once, immediately after `parsed-intent` — before supplier fan-out or ranking has even started
+(backend task 26). Reserves the ID a client needs for a later "show more" page well before there's
+anything to page yet:
+
+```json
+{ "searchId": "401ed81f127443849d95985e853b5576" }
+```
+
+`searchId` is opaque (a bare GUID, no dashes) and is the same value used in
+`GET /api/search/{searchId}/offers` below.
 
 ### `supplier-result`
 
@@ -106,12 +119,38 @@ rule never to fall back to rendering `raw` as prose in that case.
 ### `error`
 
 The only other event the stream can send, and — along with `explanation` — one of the two ways the
-stream ends. Fires with `{ "message": "..." }` if anything in the pipeline throws (a query the intent
-agent can't parse, for instance), so the client always gets a defined, actionable terminal event rather
-than a stream that just hangs. There is no `done` event: a completed search is told apart from a
-dropped connection purely by whether the last event received was `explanation` or `error` — the
-frontend tracks this itself (`TERMINAL_EVENT_TYPES` in `contract.ts`) rather than the server saying so
-explicitly.
+stream ends. Fires if anything in the pipeline throws or an intent fails validation (a query the intent
+agent can't parse, or a valid query missing a required field like the departure date), so the client
+always gets a defined, actionable terminal event rather than a stream that just hangs:
+
+```json
+{ "code": "missing-departure-date", "message": "I couldn't find a departure date in your request...", "rawModelResponse": "..." }
+```
+
+`code` is a stable, machine-readable identifier a client can key a localized, friendly message off of
+(e.g. `missing-departure-date`, `ai-unavailable`) — distinct from `message`, a human-readable diagnostic
+that's a debugging aid, not necessarily what a user should see verbatim. `code` is `null` for a failure
+that doesn't have one of these specific identifiers yet. `rawModelResponse` is `null` when the failure
+never reached the model at all (e.g. `ai-unavailable`).
+
+There is no `done` event: a completed search is told apart from a dropped connection purely by whether
+the last event received was `explanation` or `error` — the frontend tracks this itself
+(`TERMINAL_EVENT_TYPES` in `contract.ts`) rather than the server saying so explicitly.
+
+## `GET /api/search/{searchId}/offers?offset={n}&limit={n}`
+
+"Show more" (backend task 26) — pages through the *same* full ranked list `ranked-offers` was already
+capped from, using the `searchId` the `search-id` event handed the client. Never re-queries a supplier:
+everything this endpoint can ever return was already found and ranked by the original search.
+
+Returns the same `RankedOfferView[]` shape `ranked-offers` uses, sliced from the cached full list.
+`rank` continues the original numbering (`offset=10` starts at `rank` 11, never restarting at 1), and
+every offer gets a **freshly issued** `priceAssertion` at request time — never one carried over from the
+original search's own timestamp.
+
+- Unknown or expired `searchId` (past its 20-minute cache window) → `404 Not Found`.
+- `offset` at or beyond the total offers found → `200 OK` with an empty array — running out of offers is
+  a normal outcome, not an error.
 
 ## Why this shape
 

@@ -41,8 +41,8 @@ F1 tier cold-starts after idling, so the first request can take a few seconds. A
 automatically on every merge to `main` (see [CI/CD and deployment](#cicd-and-deployment) below), so what's
 live always matches `main` specifically — `develop` can be ahead of it between merges.
 
-**Search** (streams four Server-Sent Events — parsed intent, one `supplier-result` per connector, ranked
-offers, then an explanation):
+**Search** (streams up to six Server-Sent Events — parsed intent, a search ID for later pagination, one
+`supplier-result` per connector, ranked offers, then an explanation):
 
 ```bash
 curl -N --get "https://flightai-api-dev.azurewebsites.net/api/search/stream" \
@@ -103,9 +103,9 @@ be ahead of what's live on `main` between merges; see [CI/CD and deployment](#ci
 | 8. Safe to expose | CORS, rate limiting, server-authoritative prices, structured error handling | ✅ Done |
 | 9. Real model | Swap the offline stand-in for a real `IChatClient` | ✅ Done |
 | 10. Real supplier integration | A Duffel (test mode) connector alongside the mocks | ✅ Done |
-| 11. Paginated search results | A "show more" cache + endpoint past the first 10 offers — planned, not yet implemented | ⬜ Not started |
+| 11. Paginated search results | A "show more" cache + endpoint past the first 10 offers | ✅ Done |
 
-The first ten backend roadmap steps are complete. See
+All eleven backend roadmap steps are complete. See
 [`docs/features/01-backend/README.md`](docs/features/01-backend/README.md) for the full build order and
 [`docs/reference/09-lessons-learned.md`](docs/reference/09-lessons-learned.md) for what broke along the
 way, including three real bugs a real model surfaced that the deterministic offline stand-in never could.

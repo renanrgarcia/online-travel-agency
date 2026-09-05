@@ -97,6 +97,12 @@ var signingKey = builder.Configuration["PriceAssertion:SigningKey"]
 var assertionValidity = TimeSpan.FromMinutes(builder.Configuration.GetValue("PriceAssertion:ValidityMinutes", defaultValue: 15));
 builder.Services.AddSingleton(new PriceAssertionService(signingKey, assertionValidity));
 
+// Backs the "show more" pagination endpoint (task 26): a search's full ranked list, cached in-process
+// under the searchId the stream already handed the client. TTL (20 minutes) stays slightly longer than
+// PriceAssertion:ValidityMinutes above so a "show more" click near the end of that window still lands
+// inside the cache's own window too.
+builder.Services.AddSingleton(new SearchResultCache(TimeSpan.FromMinutes(20)));
+
 builder.Services.AddProblemDetails();
 
 var app = builder.Build();
@@ -127,9 +133,43 @@ app.UseRateLimiter();
 // (an Endpoints/<Feature>/ folder per area) the moment a second one shows up here.
 app.MapGet("/api/search/stream", (
         [FromQuery(Name = "q")] string searchQuery, HttpContext context, IntentAgent intentAgent,
-        SupplierFanOutOrchestrator orchestrator, IChatClient chatClient, PriceAssertionService priceAssertionService) =>
+        SupplierFanOutOrchestrator orchestrator, IChatClient chatClient, PriceAssertionService priceAssertionService,
+        SearchResultCache searchResultCache) =>
     Results.ServerSentEvents(SearchPipeline.RunAsync(
-        searchQuery, intentAgent, orchestrator, chatClient, priceAssertionService, context.RequestAborted)))
+        searchQuery, intentAgent, orchestrator, chatClient, priceAssertionService, searchResultCache, context.RequestAborted)))
+    .RequireCors(FrontendCorsPolicy)
+    .RequireRateLimiting(SearchRateLimitPolicy);
+
+// "Show more" (task 26): slices a previous search's already-ranked, already-found offer list -- never
+// re-queries a supplier. 404 for an unknown/expired searchId (E3) is what tells a client "this session
+// is gone, search again" apart from "you've simply reached the end" (E4's empty-but-200).
+app.MapGet("/api/search/{searchId}/offers", (
+        string searchId, [FromQuery] int offset, [FromQuery] int limit,
+        SearchResultCache searchResultCache, PriceAssertionService priceAssertionService) =>
+{
+    var cached = searchResultCache.TryGet(searchId);
+    if (cached is null)
+        return Results.NotFound();
+
+    var page = cached
+        .Skip(offset)
+        .Take(limit)
+        .Select(entry => new RankedOfferView(
+            Rank: entry.Rank,
+            OfferId: entry.Offer.OfferId,
+            Price: entry.Offer.Price,
+            Currency: entry.Offer.Currency,
+            DurationMinutes: (int)entry.Offer.Duration.TotalMinutes,
+            Stops: entry.Offer.Stops,
+            Refundable: entry.Offer.Refundable,
+            Score: entry.Score,
+            PriceAssertion: priceAssertionService.Issue(entry.Offer.OfferId, entry.Offer.Price, entry.Offer.Currency),
+            OriginAirport: entry.Offer.OriginAirport,
+            DestinationAirport: entry.Offer.DestinationAirport))
+        .ToArray();
+
+    return Results.Ok(page);
+})
     .RequireCors(FrontendCorsPolicy)
     .RequireRateLimiting(SearchRateLimitPolicy);
 
