@@ -46,7 +46,7 @@ dependency.
 | E2 | A search with an origin/destination Duffel can't resolve to an IATA code | A failed `SupplierSearchResult` with a reason, same shape as task 04 E3 — never an unhandled exception | The "failures are returned, not thrown" convention has to hold against a real provider's real error shape, not only the mocks' synthetic one |
 | E3 | Duffel's test API is slow (a short configured timeout forces this) | `SupplierFanOutOrchestrator`'s existing per-connector timeout (tasks 06–07) catches it exactly like a slow mock | The orchestrator's timeout/budget/circuit-breaker machinery was built generically — this is the first real proof it actually is |
 | E4 | `Duffel:ApiKey` not configured | `DuffelConnector` is not registered; a search still returns the three mocks' offers exactly as before | The locked "mocks are the permanent, always-available fallback" decision, made testable |
-| E5 | Booking against a Duffel test-mode offer near its own staleness window | Duffel's own API rejects it; the saga surfaces this as a failure, never a silent retry or a silent book-at-wrong-price | Real fare quotes expire. Task 21's price-assertion window assumed mock offers effectively never do — this is the first supplier where that assumption is false |
+| E5 | A real Duffel test-mode offer's mapped `Offer.ExpiresAt` | Reflects Duffel's own real `expires_at` (typically ~30 minutes out), not a synthetic far-future placeholder like the mocks' | Real fare quotes expire meaningfully sooner than the mocks ever do. Actually *acting* on that (rejecting a stale offer at booking time) needs the saga wired to a real supplier at all, which this task's Out-of-scope section explicitly excludes — that's a separate, later task if ever pursued; this eval only proves the real number is captured correctly, not yet consumed |
 | E6 | The repository, grepped | No Duffel token — test or otherwise — committed anywhere | The rule task 17 established for the model API key, applied to a second real credential |
 
 ### Locked decisions
@@ -71,4 +71,4 @@ See [`../../../deployment.md`](../../../deployment.md).
 |---|---|
 | D1 | The Duffel token lives in App Service Configuration (or Key Vault) — never in source control, never shipped to the browser |
 | D2 | The deployed API returns a mixed mock+Duffel result set for a real search, confirmed end to end against the deployed environment, not only locally |
-| D3 | The configured token is confirmed to be Duffel's **test**-mode type, not live, via Duffel's own dashboard/token metadata — checked directly, not assumed from which token happened to be pasted in |
+| D3 | The configured token is confirmed to be Duffel's **test**-mode type, not live — checked directly against the token's own `duffel_test_` prefix (confirmed live in Duffel's dashboard; a live token is presumably `duffel_live_`, not separately confirmed here since this project should never hold one), not assumed from which token happened to be pasted in |

@@ -59,6 +59,7 @@ public class DuffelConnectorTests
         Assert.Equal(1, offer.Stops); // two segments -> one stop
         Assert.True(offer.Refundable);
         Assert.Equal(0m, offer.Margin);
+        Assert.Equal(new DateTimeOffset(2027, 3, 12, 10, 42, 14, 545, TimeSpan.Zero), offer.ExpiresAt);
     }
 
     [Fact] // E2 (against a hand-built error shape rather than a live unresolvable-IATA-code call)
