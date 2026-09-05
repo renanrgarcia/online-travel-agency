@@ -94,7 +94,15 @@ identity-based connection string to `DURABLE_TASK_SCHEDULER_CONNECTION_STRING`:
 The existing Storage account and `AzureWebJobsStorage` setting remain because the Functions host still
 requires them; they are separate from Durable Task orchestration state.
 
-Set whichever you need before `az bicep build-params` / `what-if` / `create`:
+Copy `infra/.env.example` to `infra/.env` (already gitignored) and fill in whichever of these you need,
+then `source` it before `az bicep build-params` / `what-if` / `create`:
+
+```bash
+cp .env.example .env   # then edit .env with real values
+set -a && source .env && set +a
+```
+
+Or set them ad hoc in the shell instead:
 
 ```bash
 export PRICE_ASSERTION_SIGNING_KEY="$(openssl rand -base64 32)"   # must match what's already live -- see below
@@ -103,9 +111,8 @@ export DUFFEL_API_KEY="<your Duffel test-mode token>"              # omit entire
 ```
 
 `PRICE_ASSERTION_SIGNING_KEY` in particular must stay **stable** across redeploys -- regenerating it
-invalidates any price assertion currently in flight between a search response and a booking request.
-Keep it in a local, gitignored `infra/.env` (already in `.gitignore`) and `source` that file rather than
-generating a fresh value each time.
+invalidates any price assertion currently in flight between a search response and a booking request. Keep
+it in `infra/.env` and `source` that file rather than generating a fresh value each time.
 
 ## Deploy
 
