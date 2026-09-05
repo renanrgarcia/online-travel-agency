@@ -12,14 +12,17 @@ or seeing the list reorder underneath them.
 
 ## Scope
 
-- Capture the `search-id` SSE event's `searchId` per assistant turn, alongside the existing stages.
+- Capture the `search-id` and `offers-total` SSE events' payloads per assistant turn, alongside the
+  existing stages.
 - A "Show more" affordance at the end of the offer list, calling backend task 26's new endpoint with
   the next `offset`/`limit`, appending the results to what's already shown — never replacing or
   reordering the existing list.
-- Disabled/hidden once a page comes back with fewer than `limit` offers (nothing more to fetch), or once
-  a 404 (`searchId` expired — see backend task 26 E3) makes clear there's nothing left to page into;
-  the button's own state is the only affordance for this — no separate error banner needed for "the
-  list just ends here."
+- Shown only while the offer count already displayed is under `offers-total`'s own count — not inferred
+  from whether the *first* page happened to come back full, which can't tell "there's more" apart from
+  "that's everything" when the two numbers coincide (see E5). Also hidden once a page comes back with
+  fewer than `limit` offers (nothing more to fetch), or once a 404 (`searchId` expired — see backend
+  task 26 E3) makes clear there's nothing left to page into; the button's own state is the only
+  affordance for this — no separate error banner needed for "the list just ends here."
 
 ## Out of scope
 
@@ -36,12 +39,17 @@ or seeing the list reorder underneath them.
 | E2 | A page whose response has fewer offers than requested | "Show more" becomes unavailable | Reaching the real end of the result set is a normal outcome, not an error state (same spirit as F06 E5's "nothing found") |
 | E3 | A `searchId` that's since expired (backend task 26 E3) | A clear, calm message that this search has aged out and a new one is needed — not a raw error dump | Matches F06's existing standard for every other degraded state |
 | E4 | Two rapid clicks on "Show more" before the first response lands | Only one request in flight; the second click is a no-op until the first resolves | Same "one thing in flight at a time" discipline F02's composer already enforces for search itself |
+| E5 | A search whose true offer count (`offers-total`) equals what's already shown (including the very first page) | "Show more" never appears at all, with no click and no wasted round trip | Found live: a full-looking first page and a search that's genuinely out of offers are indistinguishable by page length alone — `offers-total` is the fix, added after the initial ship |
 
 ### Locked decisions
 
 - **Appends, never replaces.** A traveller who's already started comparing offers should never see
   their reference point shift underneath them.
+- **Visibility is driven by `offers-total`, never by the shown page's own length.** A page's length
+  (including the first, uncapped `ranked-offers` one) can't distinguish "there's more" from "that's
+  everything" when the true count happens to land exactly on the page size — only comparing against the
+  independently-reported total can.
 
 ## Done when
 
-All four evals pass.
+All five evals pass.
