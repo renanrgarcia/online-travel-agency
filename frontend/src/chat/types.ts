@@ -11,10 +11,15 @@ import type { Language } from '../i18n/strings'
  *
  * `supplierResults` is a list because the server sends one per connector; the rest are single events.
  */
-/** Where a "show more" page (F10) stands for this turn. Absent/`'idle'` means either nothing's been
- * requested yet or the last page came back full — there may be more. `'exhausted'` means the last page
- * came back short (backend task 26 E4): a normal end, not an error. `'expired'` means the `searchId`
- * aged out of the server's cache (backend task 26 E3) — a new search is needed, not a retry. */
+/** Matches backend task 25's own cap on `ranked-offers` and task 26's page size — a page (including
+ * the very first one) either comes back at this size (there may be more) or short (there is not). */
+export const OFFERS_PAGE_SIZE = 10
+
+/** Where a "show more" page (F10) stands for this turn. Absent/`'idle'` means the most recent page —
+ * including the very first, uncapped `ranked-offers` one — came back full; there may be more.
+ * `'exhausted'` means a page (the first one included) came back short of {@link OFFERS_PAGE_SIZE}
+ * (backend task 26 E4): a normal end, not an error. `'expired'` means the `searchId` aged out of the
+ * server's cache (backend task 26 E3) — a new search is needed, not a retry. */
 export type MoreOffersStatus = 'idle' | 'loading' | 'exhausted' | 'expired' | 'error'
 
 export interface AssistantStages {

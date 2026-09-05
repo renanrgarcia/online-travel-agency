@@ -4,11 +4,7 @@ import { getMoreOffers, type GetMoreOffersResult } from '../api/offersApi'
 import type { FetchLike } from '../api/bookingApi'
 import { getApiBaseUrl } from '../config'
 import type { ChatController } from './useChat'
-import type { AssistantTurn } from './types'
-
-/** Matches backend task 25's own cap on the first page, so a page either comes back full (there may
- * be more) or short (E2/E4 in docs/features/02-frontend/tasks/10-show-more-offers.md — the real end). */
-const OFFERS_PAGE_SIZE = 10
+import { OFFERS_PAGE_SIZE, type AssistantTurn } from './types'
 
 export interface ShowMoreOffers {
   showMore: (turnId: string) => void
