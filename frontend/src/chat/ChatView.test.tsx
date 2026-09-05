@@ -96,7 +96,7 @@ describe('ChatView', () => {
     // The two stages that arrived.
     expect(screen.getByRole('heading', { name: strings.stageUnderstood })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: strings.stageSuppliers })).toBeInTheDocument()
-    expect(screen.getByText('GRU → LIS · 2027-03-12 · 2 travellers')).toBeInTheDocument()
+    expect(screen.getByText('São Paulo–Guarulhos → Lisbon · 2027-03-12 · 2 travellers')).toBeInTheDocument()
 
     // The two that have not: absent entirely, not empty frames.
     expect(screen.queryByRole('heading', { name: strings.stageOffers })).not.toBeInTheDocument()

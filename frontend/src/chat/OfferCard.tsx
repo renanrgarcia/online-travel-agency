@@ -1,5 +1,6 @@
 import type { RankedOffer } from '../api/contract'
 import { useLanguage } from '../i18n/LanguageProvider'
+import { airportDisplayName } from './airportNames'
 import { formatDuration, formatPrice, formatStops } from './offerFormatting'
 
 export interface OfferCardProps {
@@ -22,7 +23,7 @@ export interface OfferCardProps {
  * for a debug view but not for a traveller (F04's locked decision).
  */
 export function OfferCard({ offer, onBook, searchOrigin, searchDestination }: OfferCardProps) {
-  const { strings } = useLanguage()
+  const { strings, language } = useLanguage()
 
   const originDiffers = offer.originAirport && offer.originAirport !== searchOrigin
   const destinationDiffers = offer.destinationAirport && offer.destinationAirport !== searchDestination
@@ -39,8 +40,8 @@ export function OfferCard({ offer, onBook, searchOrigin, searchDestination }: Of
           {showAirportRoute && (
             <span className="offer-card__airport-route">
               {strings.offerAirportRoute
-                .replace('{origin}', offer.originAirport ?? searchOrigin ?? '')
-                .replace('{destination}', offer.destinationAirport ?? searchDestination ?? '')}
+                .replace('{origin}', airportDisplayName(offer.originAirport ?? searchOrigin, language))
+                .replace('{destination}', airportDisplayName(offer.destinationAirport ?? searchDestination, language))}
             </span>
           )}
         </div>

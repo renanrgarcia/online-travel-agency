@@ -4,6 +4,7 @@ import { STRINGS, type Language, type Strings } from '../i18n/strings'
 import type { RankedOffer, SupplierStatus } from '../api/contract'
 import { OfferCard } from './OfferCard'
 import { OfferComparison } from './OfferComparison'
+import { airportDisplayName } from './airportNames'
 import { assistantTurnLanguage } from './turnLanguage'
 import type { AssistantStages, AssistantTurn } from './types'
 
@@ -91,7 +92,8 @@ export function AssistantTurnView({ turn, onBookOffer, onResetConversation, onSh
           <section className="stage stage--intent">
             <h3 className="stage__title">{strings.stageUnderstood}</h3>
             <p>
-              {stages.parsedIntent.origin} → {stages.parsedIntent.destination} ·{' '}
+              {airportDisplayName(stages.parsedIntent.origin, turnLanguage)} →{' '}
+              {airportDisplayName(stages.parsedIntent.destination, turnLanguage)} ·{' '}
               {stages.parsedIntent.departureDate} ·{' '}
               {stages.parsedIntent.passengerCount === 1
                 ? `1 ${strings.traveller}`
