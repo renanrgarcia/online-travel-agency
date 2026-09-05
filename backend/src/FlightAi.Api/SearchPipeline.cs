@@ -40,6 +40,15 @@ public static class SearchPipeline
     /// explanation agent to write about offers nobody will read past.</summary>
     private const int ExplainedOfferCount = 3;
 
+    /// <summary>Caps how many offers the <c>ranked-offers</c> event actually carries (task 25 follow-up)
+    /// — with only mock connectors this never mattered (a handful of offers total), but a real supplier
+    /// can return dozens to hundreds. `Rank` still reflects each offer's true position among every offer
+    /// found, not a position within just this capped slice, so a future "show more" affordance can page
+    /// in rank order without renumbering anything already shown. Every supplier's own true offer count
+    /// still reaches the client via each `supplier-result` event, uncapped — this only bounds the
+    /// ranked list's own payload size.</summary>
+    private const int DisplayedOfferCount = 10;
+
     public static async IAsyncEnumerable<SseItem<string>> RunAsync(
         string query,
         IntentAgent intentAgent,
@@ -105,19 +114,23 @@ public static class SearchPipeline
         var offersById = allOffers.ToDictionary(offer => offer.OfferId);
 
         var rankedViews = ranked
-            .Select((scored, index) =>
+            .Select((scored, index) => (Scored: scored, Rank: index + 1))
+            .Take(DisplayedOfferCount)
+            .Select(entry =>
             {
-                var offer = offersById[scored.OfferId];
+                var offer = offersById[entry.Scored.OfferId];
                 return new RankedOfferView(
-                    Rank: index + 1,
+                    Rank: entry.Rank,
                     OfferId: offer.OfferId,
                     Price: offer.Price,
                     Currency: offer.Currency,
                     DurationMinutes: (int)offer.Duration.TotalMinutes,
                     Stops: offer.Stops,
                     Refundable: offer.Refundable,
-                    Score: OfferScorer.Score(scored, ScoringWeights.Default),
-                    PriceAssertion: priceAssertionService.Issue(offer.OfferId, offer.Price, offer.Currency));
+                    Score: OfferScorer.Score(entry.Scored, ScoringWeights.Default),
+                    PriceAssertion: priceAssertionService.Issue(offer.OfferId, offer.Price, offer.Currency),
+                    OriginAirport: offer.OriginAirport,
+                    DestinationAirport: offer.DestinationAirport);
             })
             .ToList();
         yield return Event("ranked-offers", rankedViews);

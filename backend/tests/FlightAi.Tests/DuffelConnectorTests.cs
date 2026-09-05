@@ -37,8 +37,8 @@ public class DuffelConnectorTests
                       {
                         "duration": "PT7H30M",
                         "segments": [
-                          { "id": "seg_1" },
-                          { "id": "seg_2" }
+                          { "id": "seg_1", "origin": { "iata_code": "GRU" }, "destination": { "iata_code": "GIG" } },
+                          { "id": "seg_2", "origin": { "iata_code": "GIG" }, "destination": { "iata_code": "LIS" } }
                         ]
                       }
                     ]
@@ -59,6 +59,10 @@ public class DuffelConnectorTests
         Assert.Equal(1, offer.Stops); // two segments -> one stop
         Assert.True(offer.Refundable);
         Assert.Equal(0m, offer.Margin);
+        // First segment's origin, last segment's destination -- a connection's mid-journey airport
+        // (GIG here) is never mistaken for the offer's real departure/arrival.
+        Assert.Equal("GRU", offer.OriginAirport);
+        Assert.Equal("LIS", offer.DestinationAirport);
         Assert.Equal(new DateTimeOffset(2027, 3, 12, 10, 42, 14, 545, TimeSpan.Zero), offer.ExpiresAt);
     }
 

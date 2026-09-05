@@ -89,7 +89,12 @@ builder.Services.AddSingleton(sp => BuildSupplierOrchestrator(sp, duffelConfigur
 // should fail to start rather than silently sign with something predictable.
 var signingKey = builder.Configuration["PriceAssertion:SigningKey"]
     ?? throw new InvalidOperationException("PriceAssertion:SigningKey must be configured.");
-var assertionValidity = TimeSpan.FromMinutes(builder.Configuration.GetValue("PriceAssertion:ValidityMinutes", defaultValue: 5));
+// Widened from 5 to 15 (task 25 follow-up): 5 minutes was picked when only mock offers existed, which
+// never go stale at all, so nothing had ever tested it against a real person actually using the UI --
+// comparing offers, switching languages, taking a moment to decide -- before clicking book. 15 stays
+// well inside Duffel's own real offer window (confirmed live at ~30 minutes), so this is still strictly
+// tighter than the underlying quote's own freshness, just no longer tighter than a real user needs.
+var assertionValidity = TimeSpan.FromMinutes(builder.Configuration.GetValue("PriceAssertion:ValidityMinutes", defaultValue: 15));
 builder.Services.AddSingleton(new PriceAssertionService(signingKey, assertionValidity));
 
 builder.Services.AddProblemDetails();

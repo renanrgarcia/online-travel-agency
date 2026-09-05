@@ -4,6 +4,7 @@ using FlightAi.Agents.Services;
 using FlightAi.Agents.Services.Intent;
 using FlightAi.Api;
 using FlightAi.Core.Interfaces.Suppliers;
+using FlightAi.Core.Models.Offers;
 using FlightAi.Core.Models.Suppliers;
 using FlightAi.Core.Services.Pricing;
 using FlightAi.Core.Services.Suppliers;
@@ -125,6 +126,48 @@ public class SearchApiPipelineTests(WebApplicationFactory<Program> factory) : IC
         Assert.Equal("error", error.EventType);
         using var payload = JsonDocument.Parse(error.Data);
         Assert.Equal("missing-departure-date", payload.RootElement.GetProperty("code").GetString());
+    }
+
+    [Fact] // task 25 follow-up -- a real supplier can return far more offers than the mocks ever did
+    public async Task RankedOffers_CappedAtTen_EvenWhenASupplierReturnsMore()
+    {
+        var client = new OfflineChatClient()
+            .RegisterResponse("São Paulo", NormalIntentJson)
+            .RegisterResponse("Offer Many-14", "Best pick: {{PRICE_Many-14}}.");
+        var orchestrator = DefaultOrchestrator(new ManyOffersConnector(count: 15));
+        using var http = WithServices(client, orchestrator).CreateClient();
+
+        var response = await http.GetAsync($"/api/search/stream?q={Uri.EscapeDataString(Query)}");
+        var events = await ReadAllEventsAsync(response);
+        var rankedEvent = events.Single(e => e.EventType == "ranked-offers");
+
+        using var payload = JsonDocument.Parse(rankedEvent.Data);
+        var rankedOffers = payload.RootElement.EnumerateArray().ToList();
+
+        Assert.Equal(10, rankedOffers.Count);
+        Assert.Equal(1, rankedOffers[0].GetProperty("rank").GetInt32());
+        Assert.Equal(10, rankedOffers[^1].GetProperty("rank").GetInt32());
+        // The cheapest of the 15 (ManyOffersConnector prices descend as offerN's index grows) is
+        // genuinely still the one ranked first -- capping the list doesn't mean capping before ranking.
+        Assert.Equal("Many-14", rankedOffers[0].GetProperty("offerId").GetString());
+    }
+
+    /// <summary>Test-only connector returning more offers than task 25's <c>DisplayedOfferCount</c> cap
+    /// -- proves the cap without needing a real Duffel call, and with descending prices so the
+    /// cheapest-first assertion above is meaningful, not incidental.</summary>
+    private sealed class ManyOffersConnector(int count) : ISupplierConnector
+    {
+        public string Name => "Many";
+
+        public Task<SupplierSearchResult> SearchAsync(SearchRequest request, CancellationToken cancellationToken)
+        {
+            var offers = Enumerable.Range(0, count)
+                .Select(i => new Offer(
+                    $"Many-{i}", Price: 1000m - i, Currency: "USD", Duration: TimeSpan.FromHours(5),
+                    Stops: 0, Refundable: false, Margin: 0m, ExpiresAt: DateTimeOffset.UtcNow.AddHours(1)))
+                .ToList();
+            return Task.FromResult(SupplierSearchResult.Success(offers));
+        }
     }
 
     [Fact] // E2 — per-stage streaming is real, the reason for SSE at all

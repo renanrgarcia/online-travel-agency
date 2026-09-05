@@ -48,7 +48,12 @@ at all, per `03-suppliers-and-budget.md`'s budget/breaker. `reason` is populated
 ### `ranked-offers`
 
 Fired once, after the fan-out completes and `OfferScorer` finishes. An array, already in ranked order,
-best first:
+best first, **capped at 10 entries** (task 25 follow-up) even when the fan-out found far more — a real
+supplier can return dozens to hundreds of offers, where every mock connector together never exceeded a
+handful. `rank` still reflects each offer's true position among *every* offer found, not a position
+within just this capped slice, so a future "show more" affordance can page in rank order without
+renumbering anything already shown. Each supplier's own true, uncapped offer count is still visible via
+its own `supplier-result` event above — this cap only bounds the ranked list's own payload:
 
 ```json
 [
@@ -59,7 +64,8 @@ best first:
       "offerId": "LCC-002", "amount": 590, "currency": "USD",
       "expiresAt": "2026-09-02T17:14:39.097363+00:00",
       "signature": "Y9o7Kq6aCgzTTtA7cIPVFqLyIth+DSOBu2+N+lrOqkA="
-    }
+    },
+    "originAirport": "GRU", "destinationAirport": "LIS"
   }
 ]
 ```
@@ -68,6 +74,14 @@ best first:
 to every ranked offer, not just the ones the explanation discusses (backend task 21): a signed,
 time-boxed proof of that offer's price, opaque to the client, round-tripped verbatim into a booking
 request rather than inspected. See `07-booking-saga.md` for how the Booking Functions app verifies it.
+
+`originAirport`/`destinationAirport` (task 25 follow-up, nullable) are the *specific* airport this offer
+actually uses — distinct from what the traveller searched (`parsed-intent`'s own `origin`/`destination`),
+which may be a metro/city code covering several airports (e.g. `"SAO"` for São Paulo covers GRU, CGH,
+and VCP). A real supplier can legitimately return offers from different physical airports within one
+metro search; these two fields are how a client tells them apart. Null for the mock connectors' offers
+before task 25, and populated with the searched code itself for every mock offer since — the mocks have
+no real per-offer airport data to report.
 
 ### `explanation`
 

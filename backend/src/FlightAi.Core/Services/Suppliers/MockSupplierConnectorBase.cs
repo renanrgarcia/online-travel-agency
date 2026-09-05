@@ -34,6 +34,12 @@ public abstract class MockSupplierConnectorBase(TimeSpan simulatedDelay) : ISupp
         if (request.Destination.Contains($"FAIL-SEARCH-{Name}", StringComparison.Ordinal))
             return SupplierSearchResult.Failure($"{Name} search failed for destination \"{request.Destination}\"");
 
-        return SupplierSearchResult.Success(BuildOffers());
+        // Overlaid here, not in each subclass's BuildOffers() -- the mocks have no real per-offer
+        // airport data (task 25 follow-up), so every mock offer just echoes back whatever the traveller
+        // searched, same as it always implicitly did before this field existed.
+        var offers = BuildOffers()
+            .Select(offer => offer with { OriginAirport = request.Origin, DestinationAirport = request.Destination })
+            .ToList();
+        return SupplierSearchResult.Success(offers);
     }
 }

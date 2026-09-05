@@ -84,7 +84,7 @@ public sealed class DuffelConnector(HttpClient httpClient) : ISupplierConnector
     /// offer shouldn't fail every other offer in the same response.</summary>
     private static Offer? TryMapOffer(DuffelOffer offer)
     {
-        if (offer.Slices.Count == 0 || offer.Slices[0].Duration is not { } durationText)
+        if (offer.Slices.Count == 0 || offer.Slices[0].Duration is not { } durationText || offer.Slices[0].Segments.Count == 0)
             return null;
 
         try
@@ -103,7 +103,13 @@ public sealed class DuffelConnector(HttpClient httpClient) : ISupplierConnector
                 // No margin concept on Duffel's side -- Margin defaults to zero for every connector
                 // until deliberately turned on (docs/reference/04-ranking.md), real or mock alike.
                 Margin: 0m,
-                ExpiresAt: offer.ExpiresAt);
+                ExpiresAt: offer.ExpiresAt,
+                // The real, specific airport this offer uses -- distinct from the traveller's searched
+                // origin/destination, which may be a metro/city code (e.g. "SAO") covering several
+                // airports. First segment's origin, last segment's destination, so a connection within
+                // the slice doesn't lose the actual departure/arrival airport to a mid-journey one.
+                OriginAirport: slice.Segments[0].Origin?.IataCode,
+                DestinationAirport: slice.Segments[^1].Destination?.IataCode);
         }
         catch (FormatException)
         {
@@ -145,10 +151,16 @@ internal sealed record DuffelOfferSlice(
     [property: JsonPropertyName("duration")] string? Duration,
     [property: JsonPropertyName("segments")] IReadOnlyList<DuffelSegment> Segments);
 
-/// <summary>Only <c>Id</c> is read (for <see cref="IReadOnlyList{T}.Count"/>, to derive stop count) --
-/// deliberately not carrying <c>departing_at</c>/<c>arriving_at</c>, which Duffel returns without a UTC
-/// offset and would need airport-timezone data this connector doesn't have to interpret correctly.</summary>
-internal sealed record DuffelSegment([property: JsonPropertyName("id")] string Id);
+/// <summary><c>Id</c> is read for <see cref="IReadOnlyList{T}.Count"/> (stop count); <c>Origin</c>/
+/// <c>Destination</c> for the real departure/arrival airport, both plain IATA-code strings -- safe to
+/// read, unlike <c>departing_at</c>/<c>arriving_at</c>, which Duffel returns without a UTC offset and
+/// would need airport-timezone data this connector doesn't have to interpret correctly.</summary>
+internal sealed record DuffelSegment(
+    [property: JsonPropertyName("id")] string Id,
+    [property: JsonPropertyName("origin")] DuffelAirport? Origin,
+    [property: JsonPropertyName("destination")] DuffelAirport? Destination);
+
+internal sealed record DuffelAirport([property: JsonPropertyName("iata_code")] string? IataCode);
 
 internal sealed record DuffelOfferConditions(
     [property: JsonPropertyName("refund_before_departure")] DuffelPenaltyCondition? RefundBeforeDeparture);
