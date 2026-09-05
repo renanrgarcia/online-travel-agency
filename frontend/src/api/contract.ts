@@ -103,11 +103,20 @@ export interface SearchId {
   searchId: string
 }
 
+/** The `offers-total` payload (task 26 follow-up) — the true, uncapped offer count, fired right after
+ * `ranked-offers`. A capped `ranked-offers` page alone can't tell "there may be more" apart from
+ * "that's everything" when the true count lands exactly on the cap; this removes the ambiguity rather
+ * than making the client guess from the page length alone. */
+export interface OffersTotal {
+  total: number
+}
+
 export type SearchStreamEvent =
   | { type: 'parsed-intent'; data: ParsedIntent }
   | { type: 'search-id'; data: SearchId }
   | { type: 'supplier-result'; data: SupplierResult }
   | { type: 'ranked-offers'; data: RankedOffer[] }
+  | { type: 'offers-total'; data: OffersTotal }
   | { type: 'explanation'; data: Explanation }
   | { type: 'error'; data: SearchError }
 
@@ -119,6 +128,7 @@ export const SEARCH_STREAM_EVENT_TYPES: readonly SearchStreamEventType[] = [
   'search-id',
   'supplier-result',
   'ranked-offers',
+  'offers-total',
   'explanation',
   'error',
 ]

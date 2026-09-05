@@ -32,6 +32,12 @@ export const RANKED_OFFERS_JSON =
   '{"rank":3,"offerId":"GDS-001","price":730,"currency":"USD","durationMinutes":420,"stops":1,"refundable":true,"score":1151,' +
   '"priceAssertion":{"offerId":"GDS-001","amount":730,"currency":"USD","expiresAt":"2026-09-02T17:14:39.098305+00:00","signature":"NOlJ9olh+0wuKHyZ9QhAEt7cqKQSKz6QsIE1jwh9o+o="}}]'
 
+/** The `offers-total` event (task 26 follow-up) — fired right after `ranked-offers`. Matches
+ * RANKED_OFFERS_JSON's own 3 offers exactly (a search whose true total lands exactly on what's
+ * shown), so a test using both fixtures together is proving the "nothing more" case, not the
+ * "there's more, just not fetched yet" one. */
+export const OFFERS_TOTAL_JSON = '{"total":3}'
+
 export const EXPLANATION_JSON =
   '{"text":"The best value is $590.00, taking 8h with 1 stop (non-refundable).","raw":"The best value is {{PRICE_LCC-002}}, taking {{DURATION_LCC-002}} with {{STOPS_LCC-002}} ({{REFUNDABLE_LCC-002}}).","isClean":true}'
 
