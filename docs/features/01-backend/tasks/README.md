@@ -33,6 +33,7 @@ The eval discipline these cards follow is described once, in
 | [23](23-error-handling-and-diagnostics.md) | Error handling and diagnostics | 8. Safe to expose |
 | [17](17-swap-in-real-model.md) | Swap in a real model | 9. Real model |
 | [25](25-duffel-supplier-connector.md) | Duffel supplier connector | 10. Real supplier integration |
+| [26](26-paginated-search-results.md) | Paginated search results | 11. Paginated search results |
 
 Functions infrastructure (Bicep + CI/CD) was originally task 22 here; it's now
 [`../../03-infra/tasks/01-functions-infrastructure-and-cicd.md`](../../03-infra/tasks/01-functions-infrastructure-and-cicd.md)

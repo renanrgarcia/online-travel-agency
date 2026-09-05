@@ -4,6 +4,7 @@ import { ChatView } from './chat/ChatView'
 import { latestResolvedTurnLanguage } from './chat/turnLanguage'
 import { useBookingFlow } from './chat/useBookingFlow'
 import { useSearchChat } from './chat/useSearchChat'
+import { useShowMoreOffers } from './chat/useShowMoreOffers'
 import { LanguageProvider } from './i18n/LanguageProvider'
 import { LanguageToggle } from './i18n/LanguageToggle'
 import { useLanguage } from './i18n/LanguageProvider'
@@ -12,6 +13,7 @@ function AppShell() {
   const { strings, setLanguage } = useLanguage()
   const chat = useSearchChat()
   const booking = useBookingFlow(chat)
+  const showMore = useShowMoreOffers(chat)
 
   // Once a search tells us what language its own query was actually in, that's better evidence than
   // whatever the chrome was defaulting to -- browser locale or an earlier manual pick (F07's locked
@@ -40,6 +42,7 @@ function AppShell() {
         onConfirmBooking={booking.confirmBooking}
         onCancelBooking={chat.removeTurn}
         onResetConversation={chat.resetConversation}
+        onShowMoreOffers={showMore.showMore}
       />
     </main>
   )

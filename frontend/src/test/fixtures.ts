@@ -12,6 +12,9 @@ import type { PriceAssertion, RankedOffer } from '../api/contract'
 export const PARSED_INTENT_JSON =
   '{"origin":"GRU","destination":"LIS","departureDate":"2027-03-12","passengerCount":2,"language":"en"}'
 
+/** The `search-id` event (backend task 26) — fired right after `parsed-intent`. */
+export const SEARCH_ID_JSON = '{"searchId":"401ed81f127443849d95985e853b5576"}'
+
 export const SUPPLIER_RESULT_GDS_JSON =
   '{"supplierName":"GDS","status":"Succeeded","offerCount":2,"reason":null}'
 
@@ -69,6 +72,8 @@ export function makeRankedOffer(overrides: Partial<RankedOffer> = {}): RankedOff
     refundable: false,
     score: 1071,
     priceAssertion: makePriceAssertion({ offerId: overrides.offerId ?? 'LCC-002', amount: overrides.price ?? 590 }),
+    originAirport: null,
+    destinationAirport: null,
     ...overrides,
   }
 }

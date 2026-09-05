@@ -13,6 +13,12 @@ namespace FlightAi.Api;
 /// <see cref="PriceAssertion"/> is attached to every offer, not just the explained top few (task 21) --
 /// a traveller can book any ranked offer, and the booking saga only trusts a price it can verify.
 /// </para>
+/// <para>
+/// <see cref="OriginAirport"/>/<see cref="DestinationAirport"/> (task 25 follow-up) are the specific
+/// airport this offer actually uses, distinct from the searched <c>SearchRequest.Origin</c>/
+/// <c>Destination</c>, which may be a metro/city code covering several -- so the client can disambiguate
+/// when a real supplier's offers span different physical airports within the same search.
+/// </para>
 /// </summary>
 public sealed record RankedOfferView(
     int Rank,
@@ -23,4 +29,6 @@ public sealed record RankedOfferView(
     int Stops,
     bool Refundable,
     decimal Score,
-    PriceAssertion PriceAssertion);
+    PriceAssertion PriceAssertion,
+    string? OriginAirport,
+    string? DestinationAirport);

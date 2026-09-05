@@ -44,8 +44,8 @@ alguns segundos. Os três são reimplantados automaticamente a cada merge para `
 [CI/CD e implantação](#cicd-e-implantação) abaixo), então o que está no ar sempre corresponde
 especificamente à `main` — `develop` pode estar à frente dela entre um merge e outro.
 
-**Busca** (transmite quatro eventos Server-Sent — intenção interpretada, um `supplier-result` por
-fornecedor, ofertas ranqueadas, depois uma explicação):
+**Busca** (transmite até seis eventos Server-Sent — intenção interpretada, um ID de busca para paginação
+futura, um `supplier-result` por fornecedor, ofertas ranqueadas, depois uma explicação):
 
 ```bash
 curl -N --get "https://flightai-api-dev.azurewebsites.net/api/search/stream" \
@@ -107,8 +107,10 @@ Ela pode estar à frente do que está no ar em `main` entre um merge e outro; ve
 | 7. Saga de reserva | Saga em Durable Functions, caminho feliz + compensação + idempotência | ✅ Pronto |
 | 8. Seguro para expor | CORS, rate limiting, preços com autoridade no servidor, tratamento estruturado de erros | ✅ Pronto |
 | 9. Modelo real | Trocar o substituto offline por um `IChatClient` real | ✅ Pronto |
+| 10. Integração real com fornecedor | Um conector Duffel (modo de teste) ao lado dos mocks | ✅ Pronto |
+| 11. Paginação dos resultados de busca | Um cache + endpoint de "mostrar mais" além das primeiras 10 ofertas | ✅ Pronto |
 
-O roadmap de backend acima está completo — as nove etapas prontas. Veja
+O roadmap de backend acima está completo — as onze etapas prontas. Veja
 [`docs/features/01-backend/README.md`](docs/features/01-backend/README.md) para a ordem completa de
 construção e [`docs/reference/09-lessons-learned.md`](docs/reference/09-lessons-learned.md) para o que
 quebrou pelo caminho, incluindo três bugs reais que um modelo de verdade revelou e que o substituto
@@ -125,6 +127,8 @@ offline determinístico jamais revelaria.
 | F05 | O turno de reserva — a saga a partir da UI do chat, incluindo compensação | ✅ Pronto |
 | F06 | Estados degradados | ✅ Pronto |
 | F07 | UI bilíngue (além do alternador do F02) | ✅ Pronto |
+| F09 | Verificar contra um fornecedor real — a tarefa 25 do backend está pronta, a verificação em si ainda não começou | ⬜ Não iniciado |
+| F10 | Mostrar mais ofertas | ✅ Pronto |
 
 **Infraestrutura** — [`docs/features/03-infra/`](docs/features/03-infra/README.md)
 
@@ -132,6 +136,7 @@ offline determinístico jamais revelaria.
 |---|---|---|
 | 01 | Infra do Functions (plano Consumption, Storage) + CI/CD | ✅ Pronto, no ar |
 | 02 | Static Web App + CORS para os dois backends | ✅ Pronto, no ar |
+| 04 | Chave de API do Duffel — planejado, junto com a tarefa 25 do backend acima | ⬜ Não iniciado |
 
 ## Estrutura do repositório
 

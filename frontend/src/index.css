@@ -257,9 +257,16 @@ body {
 }
 
 .offer-card__id {
+  flex-basis: 100%;
   font-size: 0.75rem;
   color: var(--text-muted);
   min-width: 4.5rem;
+  overflow-wrap: anywhere;
+}
+
+.offer-card__airport-route {
+  margin-left: 0.5rem;
+  color: var(--accent);
 }
 
 .offer-card__price {
@@ -341,6 +348,29 @@ body {
 }
 
 .offer-list__empty {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.offer-list__more {
+  margin-top: 0.75rem;
+  padding: 0.4rem 0.9rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.offer-list__more:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.offer-list__more-status {
+  margin-top: 0.75rem;
   color: var(--text-muted);
   font-style: italic;
 }

@@ -73,6 +73,15 @@ feature's existing genericity — `supplierName` rendering, F06's degraded state
 against it, rather than only against synthetic failure injection. Blocked on backend task 25 existing;
 not expected to need any new frontend code if F04 and F06 were built as generically as intended.
 
+### 7. Show more offers
+
+**Tasks:** 10
+
+The same real-supplier fallout as step 6 above, different shape: task 25 alone surfaced a single search
+returning 90+ offers, capped at 10 server-side (backend task 26). A "show more" button that appends the
+next page without ever reordering what's already shown. Blocked on backend task 26's endpoint and
+`search-id` event existing.
+
 ## Dependencies on feature 01
 
 | Needs | From |

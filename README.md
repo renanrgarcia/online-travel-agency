@@ -41,8 +41,8 @@ F1 tier cold-starts after idling, so the first request can take a few seconds. A
 automatically on every merge to `main` (see [CI/CD and deployment](#cicd-and-deployment) below), so what's
 live always matches `main` specifically — `develop` can be ahead of it between merges.
 
-**Search** (streams four Server-Sent Events — parsed intent, one `supplier-result` per connector, ranked
-offers, then an explanation):
+**Search** (streams up to six Server-Sent Events — parsed intent, a search ID for later pagination, one
+`supplier-result` per connector, ranked offers, then an explanation):
 
 ```bash
 curl -N --get "https://flightai-api-dev.azurewebsites.net/api/search/stream" \
@@ -102,9 +102,10 @@ be ahead of what's live on `main` between merges; see [CI/CD and deployment](#ci
 | 7. Booking saga | Durable Functions saga, happy path + compensation + idempotency | ✅ Done |
 | 8. Safe to expose | CORS, rate limiting, server-authoritative prices, structured error handling | ✅ Done |
 | 9. Real model | Swap the offline stand-in for a real `IChatClient` | ✅ Done |
-| 10. Real supplier integration | A Duffel (test mode) connector alongside the mocks — planned, not yet implemented | ⬜ Not started |
+| 10. Real supplier integration | A Duffel (test mode) connector alongside the mocks | ✅ Done |
+| 11. Paginated search results | A "show more" cache + endpoint past the first 10 offers | ✅ Done |
 
-The first nine backend roadmap steps are complete. See
+All eleven backend roadmap steps are complete. See
 [`docs/features/01-backend/README.md`](docs/features/01-backend/README.md) for the full build order and
 [`docs/reference/09-lessons-learned.md`](docs/reference/09-lessons-learned.md) for what broke along the
 way, including three real bugs a real model surfaced that the deterministic offline stand-in never could.
@@ -120,7 +121,8 @@ way, including three real bugs a real model surfaced that the deterministic offl
 | F05 | The booking turn — saga from the chat UI, including compensation | ✅ Done |
 | F06 | Degraded states | ✅ Done |
 | F07 | Bilingual UI (beyond F02's toggle) | ✅ Done |
-| F09 | Verify against a real supplier — blocked on backend task 25 above | ⬜ Not started |
+| F09 | Verify against a real supplier — backend task 25 is done, verification itself not yet started | ⬜ Not started |
+| F10 | Show more offers | ✅ Done |
 
 **Infrastructure** — [`docs/features/03-infra/`](docs/features/03-infra/README.md)
 

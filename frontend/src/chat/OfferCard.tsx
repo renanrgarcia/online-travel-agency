@@ -7,6 +7,12 @@ export interface OfferCardProps {
   /** Omitted in contexts with nothing to book against (e.g. F04's own tests) — the button only
    * renders when there's somewhere for the click to go. */
   onBook?: (offer: RankedOffer) => void
+  /** The metro/city-level route the traveller actually searched (parsed-intent's own
+   * origin/destination). The offer's specific airport is only called out when it diverges from
+   * this — a metro search (e.g. "SAO") can return offers from more than one physical airport in
+   * the same result set, and that's the one case travellers need to be able to tell apart. */
+  searchOrigin?: string
+  searchDestination?: string
 }
 
 /**
@@ -15,8 +21,12 @@ export interface OfferCardProps {
  * `score` is deliberately absent: a real number with no meaning outside the weighting model, useful
  * for a debug view but not for a traveller (F04's locked decision).
  */
-export function OfferCard({ offer, onBook }: OfferCardProps) {
+export function OfferCard({ offer, onBook, searchOrigin, searchDestination }: OfferCardProps) {
   const { strings } = useLanguage()
+
+  const originDiffers = offer.originAirport && offer.originAirport !== searchOrigin
+  const destinationDiffers = offer.destinationAirport && offer.destinationAirport !== searchDestination
+  const showAirportRoute = originDiffers || destinationDiffers
 
   return (
     <li className="offer-card">
@@ -24,7 +34,16 @@ export function OfferCard({ offer, onBook }: OfferCardProps) {
         {offer.rank}
       </div>
       <div className="offer-card__body">
-        <div className="offer-card__id">{offer.offerId}</div>
+        <div className="offer-card__id">
+          {offer.offerId}
+          {showAirportRoute && (
+            <span className="offer-card__airport-route">
+              {strings.offerAirportRoute
+                .replace('{origin}', offer.originAirport ?? searchOrigin ?? '')
+                .replace('{destination}', offer.destinationAirport ?? searchDestination ?? '')}
+            </span>
+          )}
+        </div>
         <div className="offer-card__price">{formatPrice(offer.price, offer.currency)}</div>
         <dl className="offer-card__details">
           <div className="offer-card__detail">

@@ -102,6 +102,20 @@ public class MockSupplierConnectorTests
         Assert.NotEqual(byPrice, byDuration);
     }
 
+    [Fact] // task 25 follow-up -- mocks have no real per-offer airport data, so they echo the search
+    public async Task OfferOriginAndDestinationAirport_EchoTheSearchedCodes()
+    {
+        var request = RequestTo("LIS");
+
+        var result = await new MockGdsConnector().SearchAsync(request, CancellationToken.None);
+
+        Assert.All(result.Offers, offer =>
+        {
+            Assert.Equal("GRU", offer.OriginAirport);
+            Assert.Equal("LIS", offer.DestinationAirport);
+        });
+    }
+
     private static async Task<List<Offer>> AllOffersAsync()
     {
         var gds = await new MockGdsConnector().SearchAsync(OrdinaryRequest, CancellationToken.None);

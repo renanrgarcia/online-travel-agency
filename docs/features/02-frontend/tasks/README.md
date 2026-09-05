@@ -14,6 +14,7 @@ feature's roadmap. The eval discipline these cards follow is described once, in
 | [06](06-degraded-states.md) | Degraded states | 4. Honesty and reach |
 | [07](07-bilingual-ui.md) | Bilingual UI | 4. Honesty and reach |
 | [09](09-verify-against-a-real-supplier.md) | Verify against a real supplier | 6. Real supplier verification |
+| [10](10-show-more-offers.md) | Show more offers | 7. Show more offers |
 
 Static Web Apps deployment was originally task 08 here; it's now
 [`../../03-infra/tasks/02-static-web-apps-deployment.md`](../../03-infra/tasks/02-static-web-apps-deployment.md)

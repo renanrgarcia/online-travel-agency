@@ -4,6 +4,7 @@ using FlightAi.Agents.Services;
 using FlightAi.Agents.Services.Intent;
 using FlightAi.Api;
 using FlightAi.Core.Interfaces.Suppliers;
+using FlightAi.Core.Models.Offers;
 using FlightAi.Core.Models.Suppliers;
 using FlightAi.Core.Services.Pricing;
 using FlightAi.Core.Services.Suppliers;
@@ -81,7 +82,7 @@ public class SearchApiPipelineTests(WebApplicationFactory<Program> factory) : IC
     }
 
     [Fact] // E1 — the contract
-    public async Task E1_NormalSearch_EmitsAllFourEventTypesInOrder()
+    public async Task E1_NormalSearch_EmitsAllFiveEventTypesInOrder()
     {
         var client = new OfflineChatClient()
             .RegisterResponse("São Paulo", NormalIntentJson)
@@ -92,7 +93,9 @@ public class SearchApiPipelineTests(WebApplicationFactory<Program> factory) : IC
         var events = await ReadAllEventsAsync(response);
 
         var order = events.Select(e => e.EventType).Distinct().ToList();
-        Assert.Equal(["parsed-intent", "supplier-result", "ranked-offers", "explanation"], order);
+        // search-id (task 26) fires right after parsed-intent, before ranking exists -- the client has
+        // an ID to page against long before ranked-offers ever arrives.
+        Assert.Equal(["parsed-intent", "search-id", "supplier-result", "ranked-offers", "explanation"], order);
     }
 
     [Fact]
@@ -125,6 +128,48 @@ public class SearchApiPipelineTests(WebApplicationFactory<Program> factory) : IC
         Assert.Equal("error", error.EventType);
         using var payload = JsonDocument.Parse(error.Data);
         Assert.Equal("missing-departure-date", payload.RootElement.GetProperty("code").GetString());
+    }
+
+    [Fact] // task 25 follow-up -- a real supplier can return far more offers than the mocks ever did
+    public async Task RankedOffers_CappedAtTen_EvenWhenASupplierReturnsMore()
+    {
+        var client = new OfflineChatClient()
+            .RegisterResponse("São Paulo", NormalIntentJson)
+            .RegisterResponse("Offer Many-14", "Best pick: {{PRICE_Many-14}}.");
+        var orchestrator = DefaultOrchestrator(new ManyOffersConnector(count: 15));
+        using var http = WithServices(client, orchestrator).CreateClient();
+
+        var response = await http.GetAsync($"/api/search/stream?q={Uri.EscapeDataString(Query)}");
+        var events = await ReadAllEventsAsync(response);
+        var rankedEvent = events.Single(e => e.EventType == "ranked-offers");
+
+        using var payload = JsonDocument.Parse(rankedEvent.Data);
+        var rankedOffers = payload.RootElement.EnumerateArray().ToList();
+
+        Assert.Equal(10, rankedOffers.Count);
+        Assert.Equal(1, rankedOffers[0].GetProperty("rank").GetInt32());
+        Assert.Equal(10, rankedOffers[^1].GetProperty("rank").GetInt32());
+        // The cheapest of the 15 (ManyOffersConnector prices descend as offerN's index grows) is
+        // genuinely still the one ranked first -- capping the list doesn't mean capping before ranking.
+        Assert.Equal("Many-14", rankedOffers[0].GetProperty("offerId").GetString());
+    }
+
+    /// <summary>Test-only connector returning more offers than task 25's <c>DisplayedOfferCount</c> cap
+    /// -- proves the cap without needing a real Duffel call, and with descending prices so the
+    /// cheapest-first assertion above is meaningful, not incidental.</summary>
+    private sealed class ManyOffersConnector(int count) : ISupplierConnector
+    {
+        public string Name => "Many";
+
+        public Task<SupplierSearchResult> SearchAsync(SearchRequest request, CancellationToken cancellationToken)
+        {
+            var offers = Enumerable.Range(0, count)
+                .Select(i => new Offer(
+                    $"Many-{i}", Price: 1000m - i, Currency: "USD", Duration: TimeSpan.FromHours(5),
+                    Stops: 0, Refundable: false, Margin: 0m, ExpiresAt: DateTimeOffset.UtcNow.AddHours(1)))
+                .ToList();
+            return Task.FromResult(SupplierSearchResult.Success(offers));
+        }
     }
 
     [Fact] // E2 — per-stage streaming is real, the reason for SSE at all
@@ -263,7 +308,8 @@ public class SearchApiPipelineTests(WebApplicationFactory<Program> factory) : IC
 
         var eventTypes = new List<string>();
         var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-        await foreach (var item in SearchPipeline.RunAsync(Query, intentAgent, orchestrator, chatClient, priceAssertionService, cts.Token))
+        var searchResultCache = new SearchResultCache(TimeSpan.FromMinutes(20));
+        await foreach (var item in SearchPipeline.RunAsync(Query, intentAgent, orchestrator, chatClient, priceAssertionService, searchResultCache, cts.Token))
             eventTypes.Add(item.EventType!);
         stopwatch.Stop();
 
@@ -291,10 +337,11 @@ public class SearchApiPipelineTests(WebApplicationFactory<Program> factory) : IC
         // original guarantee this eval predates task 21 by. ranked-offers now carries a price
         // assertion per offer, whose expiry and signature are deliberately fresh on every issue (task
         // 21 E8), so it's compared field by field instead: the business data stays deterministic, only
-        // the assertion legitimately differs.
+        // the assertion legitimately differs. search-id (task 26) is excluded the same way -- a fresh
+        // GUID every search is correct, not a determinism violation.
         Assert.Equal(
-            first.Where(e => e.EventType != "ranked-offers"),
-            second.Where(e => e.EventType != "ranked-offers"));
+            first.Where(e => e.EventType is not "ranked-offers" and not "search-id"),
+            second.Where(e => e.EventType is not "ranked-offers" and not "search-id"));
 
         var firstOffers = JsonSerializer.Deserialize<JsonElement>(first.Single(e => e.EventType == "ranked-offers").Data);
         var secondOffers = JsonSerializer.Deserialize<JsonElement>(second.Single(e => e.EventType == "ranked-offers").Data);
@@ -309,6 +356,112 @@ public class SearchApiPipelineTests(WebApplicationFactory<Program> factory) : IC
             Assert.NotEqual(
                 a.GetProperty("priceAssertion").GetProperty("signature").GetString(),
                 b.GetProperty("priceAssertion").GetProperty("signature").GetString());
+        }
+    }
+
+    private static async Task<string> GetSearchIdAsync(HttpClient http, string query)
+    {
+        var events = await ReadAllEventsAsync(await http.GetAsync($"/api/search/stream?q={Uri.EscapeDataString(query)}"));
+        var payload = JsonSerializer.Deserialize<JsonElement>(events.Single(e => e.EventType == "search-id").Data);
+        return payload.GetProperty("searchId").GetString()!;
+    }
+
+    [Fact] // task 26 E1 — the actual point of the task
+    public async Task Task26_E1_MoreThan10Offers_ShowMoreReturnsOffers11To20InRankOrder()
+    {
+        var client = new OfflineChatClient()
+            .RegisterResponse("São Paulo", NormalIntentJson)
+            .RegisterResponse("Offer Many-14", "Best pick: {{PRICE_Many-14}}.");
+        var orchestrator = DefaultOrchestrator(new ManyOffersConnector(count: 15));
+        using var http = WithServices(client, orchestrator).CreateClient();
+
+        var searchId = await GetSearchIdAsync(http, Query);
+        var response = await http.GetAsync($"/api/search/{searchId}/offers?offset=10&limit=10");
+        response.EnsureSuccessStatusCode();
+        var page = JsonSerializer.Deserialize<JsonElement>(await response.Content.ReadAsStringAsync());
+
+        Assert.Equal(5, page.GetArrayLength()); // 15 offers total, offset 10 leaves 5
+        Assert.Equal(11, page[0].GetProperty("rank").GetInt32());
+        Assert.Equal(15, page[page.GetArrayLength() - 1].GetProperty("rank").GetInt32());
+        // ManyOffersConnector's prices descend as its index grows, so rank 11 is the 11th cheapest --
+        // Many-10 through Many-0 are the 11 cheapest, meaning rank 11 is Many-4.
+        Assert.Equal("Many-4", page[0].GetProperty("offerId").GetString());
+    }
+
+    [Fact] // task 26 E2 — no hidden re-query, the thing that makes "show more" trustworthy
+    public async Task Task26_E2_SameRequestRepeatedTwice_ReturnsSameOffersExceptAssertion()
+    {
+        var client = new OfflineChatClient()
+            .RegisterResponse("São Paulo", NormalIntentJson)
+            .RegisterResponse("Offer Many-14", "Best pick: {{PRICE_Many-14}}.");
+        var orchestrator = DefaultOrchestrator(new ManyOffersConnector(count: 15));
+        using var http = WithServices(client, orchestrator).CreateClient();
+
+        var searchId = await GetSearchIdAsync(http, Query);
+        var first = JsonSerializer.Deserialize<JsonElement>(
+            await (await http.GetAsync($"/api/search/{searchId}/offers?offset=10&limit=10")).Content.ReadAsStringAsync());
+        var second = JsonSerializer.Deserialize<JsonElement>(
+            await (await http.GetAsync($"/api/search/{searchId}/offers?offset=10&limit=10")).Content.ReadAsStringAsync());
+
+        Assert.Equal(first.GetArrayLength(), second.GetArrayLength());
+        for (var i = 0; i < first.GetArrayLength(); i++)
+        {
+            var (a, b) = (first[i], second[i]);
+            Assert.Equal(a.GetProperty("offerId").GetString(), b.GetProperty("offerId").GetString());
+            Assert.Equal(a.GetProperty("price").GetDecimal(), b.GetProperty("price").GetDecimal());
+            Assert.Equal(a.GetProperty("rank").GetInt32(), b.GetProperty("rank").GetInt32());
+            Assert.NotEqual(
+                a.GetProperty("priceAssertion").GetProperty("signature").GetString(),
+                b.GetProperty("priceAssertion").GetProperty("signature").GetString());
+        }
+    }
+
+    [Fact] // task 26 E3 — an unknown searchId is a clear 404, not a crash or an empty 200
+    public async Task Task26_E3_UnknownSearchId_Returns404()
+    {
+        using var http = WithServices(new OfflineChatClient()).CreateClient();
+
+        var response = await http.GetAsync("/api/search/does-not-exist/offers?offset=0&limit=10");
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact] // task 26 E4 — running out of offers is a normal outcome, not a failure
+    public async Task Task26_E4_OffsetBeyondTotalOffers_ReturnsEmptyArray200()
+    {
+        var client = new OfflineChatClient()
+            .RegisterResponse("São Paulo", NormalIntentJson)
+            .RegisterResponse("Offer Many-14", "Best pick: {{PRICE_Many-14}}.");
+        var orchestrator = DefaultOrchestrator(new ManyOffersConnector(count: 15));
+        using var http = WithServices(client, orchestrator).CreateClient();
+
+        var searchId = await GetSearchIdAsync(http, Query);
+        var response = await http.GetAsync($"/api/search/{searchId}/offers?offset=100&limit=10");
+        response.EnsureSuccessStatusCode();
+        var page = JsonSerializer.Deserialize<JsonElement>(await response.Content.ReadAsStringAsync());
+
+        Assert.Equal(0, page.GetArrayLength());
+    }
+
+    [Fact] // task 26 E5 — a traveller who clicks "show more" minutes in must still be able to book what they see
+    public async Task Task26_E5_EachPagedOffer_CarriesAFreshlyIssuedPriceAssertion()
+    {
+        var client = new OfflineChatClient()
+            .RegisterResponse("São Paulo", NormalIntentJson)
+            .RegisterResponse("Offer Many-14", "Best pick: {{PRICE_Many-14}}.");
+        var orchestrator = DefaultOrchestrator(new ManyOffersConnector(count: 15));
+        using var http = WithServices(client, orchestrator).CreateClient();
+
+        var searchId = await GetSearchIdAsync(http, Query);
+        var before = DateTimeOffset.UtcNow;
+        var response = await http.GetAsync($"/api/search/{searchId}/offers?offset=10&limit=10");
+        response.EnsureSuccessStatusCode();
+        var page = JsonSerializer.Deserialize<JsonElement>(await response.Content.ReadAsStringAsync());
+
+        foreach (var offer in page.EnumerateArray())
+        {
+            var expiresAt = offer.GetProperty("priceAssertion").GetProperty("expiresAt").GetDateTimeOffset();
+            Assert.True(expiresAt > before, "expected a freshly issued assertion, expiring after this request started");
         }
     }
 }

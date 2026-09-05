@@ -1,3 +1,4 @@
+import { isDebugBuild } from '../config'
 import { LanguageOverride, useLanguage } from '../i18n/LanguageProvider'
 import { STRINGS, type Language, type Strings } from '../i18n/strings'
 import type { RankedOffer, SupplierStatus } from '../api/contract'
@@ -69,9 +70,12 @@ export interface AssistantTurnViewProps {
    * language this turn was answered in, so the booking turn it starts can freeze the same one (F07 E3). */
   onBookOffer?: (offer: RankedOffer, language: Language) => void
   onResetConversation?: () => void
+  /** Omitted when there's nowhere for a "show more" request to go (e.g. component-level tests).
+   * Receives this turn's own id, the same way `onResetConversation` needs no offer/language context. */
+  onShowMoreOffers?: (turnId: string) => void
 }
 
-export function AssistantTurnView({ turn, onBookOffer, onResetConversation }: AssistantTurnViewProps) {
+export function AssistantTurnView({ turn, onBookOffer, onResetConversation, onShowMoreOffers }: AssistantTurnViewProps) {
   const { language: ambientLanguage } = useLanguage()
   const { stages, status } = turn
   // Frozen once this turn's own parsed-intent resolves -- a later, differently-languaged search
@@ -136,10 +140,28 @@ export function AssistantTurnView({ turn, onBookOffer, onResetConversation }: As
                       key={offer.offerId}
                       offer={offer}
                       onBook={onBookOffer ? (o) => onBookOffer(o, turnLanguage) : undefined}
+                      searchOrigin={stages.parsedIntent?.origin}
+                      searchDestination={stages.parsedIntent?.destination}
                     />
                   ))}
                 </ol>
                 <OfferComparison offers={stages.rankedOffers} />
+                {onShowMoreOffers && stages.searchId && stages.moreOffersStatus !== 'exhausted' && (
+                  stages.moreOffersStatus === 'expired' ? (
+                    <p className="offer-list__more-status">{strings.showMoreExpired}</p>
+                  ) : stages.moreOffersStatus === 'error' ? (
+                    <p className="offer-list__more-status">{strings.showMoreError}</p>
+                  ) : (
+                    <button
+                      type="button"
+                      className="offer-list__more"
+                      disabled={stages.moreOffersStatus === 'loading'}
+                      onClick={() => onShowMoreOffers(turn.id)}
+                    >
+                      {stages.moreOffersStatus === 'loading' ? strings.showMoreLoading : strings.showMoreOffers}
+                    </button>
+                  )
+                )}
               </LanguageOverride>
             )}
           </section>
@@ -157,13 +179,15 @@ export function AssistantTurnView({ turn, onBookOffer, onResetConversation }: As
               // about tokens or guards leaking into user-facing copy (E4).
               <p className="explanation__unavailable">{strings.explanationUnavailable}</p>
             )}
-            {/* Closed by default -- opt-in debug view of the model's pre-resolution output, clearly
-                labelled as raw rather than as an answer (F06 E8). */}
-            <details className="explanation__debug">
-              <summary>{strings.explanationShowRaw}</summary>
-              <p className="explanation__raw-label">{strings.explanationRawLabel}</p>
-              <pre className="explanation__raw">{stages.explanation.raw}</pre>
-            </details>
+            {/* Absent outside a dev/debug build, not just closed -- a production user has no use for
+                the model's pre-resolution token vocabulary, closed or not (F06 E8 follow-up). */}
+            {isDebugBuild() && (
+              <details className="explanation__debug">
+                <summary>{strings.explanationShowRaw}</summary>
+                <p className="explanation__raw-label">{strings.explanationRawLabel}</p>
+                <pre className="explanation__raw">{stages.explanation.raw}</pre>
+              </details>
+            )}
           </section>
         )}
       </div>
