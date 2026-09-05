@@ -2,7 +2,7 @@ import { useCallback, useRef, useState } from 'react'
 
 import { assertNeverEvent, type RankedOffer, type SearchError, type SearchStreamEvent } from '../api/contract'
 import type { Language } from '../i18n/strings'
-import { emptyStages, OFFERS_PAGE_SIZE, type AssistantTurn, type BookingTurn, type Turn } from './types'
+import { emptyStages, type AssistantTurn, type BookingTurn, type Turn } from './types'
 
 /**
  * Owns the conversation — every turn, search and booking alike. Deliberately knows nothing about the
@@ -120,17 +120,21 @@ export function useChat(options: UseChatOptions = {}): ChatController {
               },
             }
           case 'ranked-offers':
-            // A search whose total offer count is under the page size never had a "show more" page
-            // to begin with -- caught here, on arrival, rather than leaving the button visible until
-            // a doomed first click comes back empty (found live: a niche route with under 10 offers
-            // total showed "Show more", and clicking it fetched nothing and made the button vanish
-            // with no explanation, since nothing had ever told the UI this page was already everything).
+            return { ...turn, stages: { ...turn.stages, rankedOffers: event.data } }
+          case 'offers-total':
+            // The definitive "is there more" signal (found live: a search whose true total landed
+            // exactly on the page size still showed "Show more" under the old, page-length-only
+            // heuristic, and the doomed click that followed came back empty with the button just
+            // vanishing). Fires right after ranked-offers, so rankedOffers is already set here.
             return {
               ...turn,
               stages: {
                 ...turn.stages,
-                rankedOffers: event.data,
-                moreOffersStatus: event.data.length < OFFERS_PAGE_SIZE ? 'exhausted' : turn.stages.moreOffersStatus,
+                totalOffers: event.data.total,
+                moreOffersStatus:
+                  (turn.stages.rankedOffers?.length ?? 0) >= event.data.total
+                    ? 'exhausted'
+                    : turn.stages.moreOffersStatus,
               },
             }
           case 'explanation':

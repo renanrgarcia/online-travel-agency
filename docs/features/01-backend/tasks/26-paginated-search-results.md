@@ -27,6 +27,12 @@ since a real supplier's live inventory can shift between calls.
 - Every offer returned by this endpoint gets a **freshly issued** `PriceAssertion` at request time, from
   the cached price/offerId — never a stale one carried over from the original search. The underlying
   price itself is the one the original search actually found, not re-fetched from any supplier.
+- A second new SSE event, `offers-total`, carrying `{"total": <n>}` — fired once, right after
+  `ranked-offers`. Added after the initial implementation shipped: found live, a search whose true
+  offer count landed exactly on `ranked-offers`'s own 10-entry cap still showed a "show more"
+  affordance client-side, since a capped page's length alone can't distinguish "there are more" from
+  "that's everything" when the two numbers happen to coincide. `total` is the one signal a client needs
+  to decide correctly, in every case, without a wasted round trip (see E7).
 
 ## Out of scope
 
@@ -47,6 +53,7 @@ since a real supplier's live inventory can shift between calls.
 | E4 | `offset` beyond the total offers found | An empty array, 200 OK — not an error | Running out of offers is a normal outcome, not a failure |
 | E5 | Each offer from `GET .../offers` | Carries a `PriceAssertion` whose `expiresAt` is freshly in the future relative to *this* request, not the original search's timestamp | A traveller who clicks "show more" 10 minutes in must still be able to book what they see |
 | E6 | Cache entries over time | Actually evict after the TTL — verified by checking cache state directly, not just trusting `IMemoryCache`'s own documented behavior | This project's own standard: confirm the real behavior, don't assume the library does what its docs say |
+| E7 | A search whose true offer count lands exactly on `ranked-offers`'s 10-entry cap | The `offers-total` event reports the true count (10), not the capped array's own length re-derived — the same value either way here, but proving the event carries the real, independently-computed total rather than `rankedOffers.length` | The bug this event exists to prevent: a client that inferred "may be more" purely from a full 10-entry page had no way to tell this case apart from a search with 94 offers |
 
 ### Locked decisions
 
@@ -62,12 +69,12 @@ since a real supplier's live inventory can shift between calls.
   `LookToBookBudget`, `SupplierCircuitBreaker`) rather than reaching for an abstraction that would need
   its own separate, less-clean testing story. A distributed cache (Redis or similar) is still rejected
   for the same reason as before: a single App Service F1 instance has nothing to distribute to.
-- **A new SSE event (`search-id`), not a field bolted onto `ranked-offers`.** `ranked-offers`'s payload
-  is a bare array today, already consumed as such by the frontend; wrapping it in an object to carry a
-  `searchId` alongside would be a breaking change to an existing, working contract for no necessary
-  reason.
+- **New SSE events (`search-id`, `offers-total`), not fields bolted onto `ranked-offers`.**
+  `ranked-offers`'s payload is a bare array today, already consumed as such by the frontend; wrapping it
+  in an object to carry either alongside would be a breaking change to an existing, working contract for
+  no necessary reason.
 
 ## Done when
 
-E1–E6 pass, and a real search against Duffel's test mode can be paged past its first 10 offers with no
+E1–E7 pass, and a real search against Duffel's test mode can be paged past its first 10 offers with no
 second call to Duffel.

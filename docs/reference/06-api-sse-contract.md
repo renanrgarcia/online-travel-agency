@@ -1,6 +1,6 @@
 # FlightAi.Api — the search SSE contract
 
-`GET /api/search/stream?q=<natural language query>` — one `EventSource` connection, up to six
+`GET /api/search/stream?q=<natural language query>` — one `EventSource` connection, up to seven
 Server-Sent Events streamed in true completion order, not declaration order. Ranked results reach the
 client before the explanation prompt has even been sent to a model — that ordering is the whole point:
 users see useful results the moment they're ready, and the slower, less critical explanation fills in
@@ -87,6 +87,22 @@ its own `supplier-result` event above — this cap only bounds the ranked list's
 to every ranked offer, not just the ones the explanation discusses (backend task 21): a signed,
 time-boxed proof of that offer's price, opaque to the client, round-tripped verbatim into a booking
 request rather than inspected. See `07-booking-saga.md` for how the Booking Functions app verifies it.
+
+### `offers-total`
+
+Fired once, immediately after `ranked-offers` (task 26 follow-up):
+
+```json
+{ "total": 94 }
+```
+
+`total` is the true, uncapped offer count the search actually found — not `ranked-offers`'s own
+(possibly capped-at-10) array length. This exists specifically because a capped page alone can't tell
+a client "there may be more" apart from "that's everything" when the true count happens to land
+exactly on the cap: found live, a search whose total was exactly 10 still showed a "show more"
+affordance, and the inevitable empty page that followed a click left it silently vanishing with no
+explanation. A client should compare its currently-shown count against `total`, not against
+`ranked-offers`'s own length, to decide whether to offer "show more" at all.
 
 `originAirport`/`destinationAirport` (task 25 follow-up, nullable) are the *specific* airport this offer
 actually uses — distinct from what the traveller searched (`parsed-intent`'s own `origin`/`destination`),

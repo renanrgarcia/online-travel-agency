@@ -8,6 +8,7 @@ import {
   ERROR_JSON,
   ERROR_MISSING_DEPARTURE_DATE_JSON,
   EXPLANATION_JSON,
+  OFFERS_TOTAL_JSON,
   PARSED_INTENT_JSON,
   RANKED_OFFERS_JSON,
   SEARCH_ID_JSON,
@@ -249,20 +250,37 @@ describe('useSearchChat', () => {
     expect(turn.stages.rankedOffers).toBeUndefined()
   })
 
-  // Repro: a real search whose total offer count is under the page size (a niche route with, say, 2
-  // offers total) left "Show more" visible anyway, since nothing had ever told the UI that the first,
-  // uncapped page already was the whole result set -- clicking it fetched nothing and the button just
-  // vanished with no explanation.
-  it('a ranked-offers page shorter than the page size marks "show more" exhausted immediately', () => {
+  // Repro: a search whose true total offer count lands exactly on (or under) the page size still
+  // showed "Show more", since a page's own length alone can't tell "there's more" apart from "that's
+  // everything" -- clicking it fetched nothing and the button just vanished with no explanation.
+  // offers-total is the definitive signal that removes the guesswork.
+  it('offers-total equal to what\'s already shown marks "show more" exhausted immediately', () => {
     const { result, source } = setup()
     act(() => result.current.submit('cheapest flight to a niche destination'))
 
     act(() => {
       source().emit('parsed-intent', PARSED_INTENT_JSON)
-      source().emit('ranked-offers', RANKED_OFFERS_JSON) // 2 offers -- well under the page size
+      source().emit('ranked-offers', RANKED_OFFERS_JSON) // 3 offers
+      source().emit('offers-total', OFFERS_TOTAL_JSON) // total: 3 -- exactly what's already shown
     })
 
     const turn = assistantTurnOf(result.current.turns)
+    expect(turn.stages.totalOffers).toBe(3)
     expect(turn.stages.moreOffersStatus).toBe('exhausted')
+  })
+
+  it('offers-total greater than what\'s shown leaves "show more" available', () => {
+    const { result, source } = setup()
+    act(() => result.current.submit('cheapest flight from São Paulo to Lisbon'))
+
+    act(() => {
+      source().emit('parsed-intent', PARSED_INTENT_JSON)
+      source().emit('ranked-offers', RANKED_OFFERS_JSON) // 3 offers shown
+      source().emit('offers-total', '{"total":30}') // far more exist
+    })
+
+    const turn = assistantTurnOf(result.current.turns)
+    expect(turn.stages.totalOffers).toBe(30)
+    expect(turn.stages.moreOffersStatus).not.toBe('exhausted')
   })
 })

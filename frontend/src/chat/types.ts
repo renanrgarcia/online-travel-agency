@@ -11,14 +11,16 @@ import type { Language } from '../i18n/strings'
  *
  * `supplierResults` is a list because the server sends one per connector; the rest are single events.
  */
-/** Matches backend task 25's own cap on `ranked-offers` and task 26's page size — a page (including
- * the very first one) either comes back at this size (there may be more) or short (there is not). */
+/** Matches backend task 25's own cap on `ranked-offers` and task 26's page size for a "show more"
+ * request. Whether there's actually anything past that first page is decided by comparing against
+ * {@link AssistantStages.totalOffers} (the `offers-total` event), never guessed from this alone --
+ * the true count can land exactly on this cap, which a page's length can't distinguish from "more". */
 export const OFFERS_PAGE_SIZE = 10
 
-/** Where a "show more" page (F10) stands for this turn. Absent/`'idle'` means the most recent page —
- * including the very first, uncapped `ranked-offers` one — came back full; there may be more.
- * `'exhausted'` means a page (the first one included) came back short of {@link OFFERS_PAGE_SIZE}
- * (backend task 26 E4): a normal end, not an error. `'expired'` means the `searchId` aged out of the
+/** Where a "show more" page (F10) stands for this turn. Absent/`'idle'` means there may be more —
+ * either `totalOffers` hasn't arrived yet, or it says the shown count is still under it.
+ * `'exhausted'` means the shown count has reached `totalOffers` (backend task 26 E4 / the
+ * `offers-total` event): a normal end, not an error. `'expired'` means the `searchId` aged out of the
  * server's cache (backend task 26 E3) — a new search is needed, not a retry. */
 export type MoreOffersStatus = 'idle' | 'loading' | 'exhausted' | 'expired' | 'error'
 
@@ -28,6 +30,9 @@ export interface AssistantStages {
   searchId?: string
   supplierResults: SupplierResult[]
   rankedOffers?: RankedOffer[]
+  /** From the `offers-total` event (task 26 follow-up) — the true, uncapped offer count. The
+   * definitive signal for whether "show more" has anything left to fetch; see {@link MoreOffersStatus}. */
+  totalOffers?: number
   explanation?: Explanation
   moreOffersStatus?: MoreOffersStatus
 }

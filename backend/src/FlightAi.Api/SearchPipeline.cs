@@ -149,6 +149,15 @@ public static class SearchPipeline
             .ToList();
         searchResultCache.Store(searchId, cachedOffers);
 
+        // A capped ranked-offers page alone can't tell a client "there may be more" apart from "that's
+        // everything" when the true count happens to land exactly on DisplayedOfferCount -- found live:
+        // a search with exactly 10 offers total still showed "show more", and the click's inevitable
+        // empty page vanished the button with no explanation. A separate event, not a field folded into
+        // ranked-offers, for the same reason search-id above is its own event: ranked-offers's payload
+        // is a bare array, already consumed as such, and wrapping it for one more integer would be a
+        // needless breaking change to a working contract.
+        yield return Event("offers-total", new { total = cachedOffers.Count });
+
         if (ranked.Count == 0)
         {
             // No offers to explain -- every connector failed, timed out, or (task 13 E8) was cancelled

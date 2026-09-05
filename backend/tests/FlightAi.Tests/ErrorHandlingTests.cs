@@ -115,7 +115,7 @@ public class ErrorHandlingTests(WebApplicationFactory<Program> factory) : IClass
     }
 
     [Fact] // E3 -- exception-handling middleware must not touch the happy path
-    public async Task E3_NormalSearch_StillCompletesAllFiveEvents()
+    public async Task E3_NormalSearch_StillCompletesAllSixEvents()
     {
         var client = new OfflineChatClient()
             .RegisterResponse("São Paulo", NormalIntentJson)
@@ -128,7 +128,7 @@ public class ErrorHandlingTests(WebApplicationFactory<Program> factory) : IClass
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal(
-            ["parsed-intent", "search-id", "supplier-result", "ranked-offers", "explanation"],
+            ["parsed-intent", "search-id", "supplier-result", "ranked-offers", "offers-total", "explanation"],
             events.Select(e => e.EventType).Distinct());
     }
 
