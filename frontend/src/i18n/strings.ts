@@ -54,6 +54,7 @@ export interface Strings {
   offerDuration: string
   offerRefundable: string
   offerNonRefundable: string
+  offerAirportRoute: string
   stopsNonstop: string
   stopsOne: string
   stopsMany: string
@@ -63,6 +64,10 @@ export interface Strings {
   comparisonStops: string
   comparisonRefundable: string
   bookOffer: string
+  showMoreOffers: string
+  showMoreLoading: string
+  showMoreExpired: string
+  showMoreError: string
   bookingTravellerEmailLabel: string
   bookingTravellerEmailPlaceholder: string
   bookingConfirm: string
@@ -130,6 +135,7 @@ const en: Strings = {
   offerDuration: 'Duration',
   offerRefundable: 'Refundable',
   offerNonRefundable: 'Non-refundable',
+  offerAirportRoute: 'Flies {origin} → {destination}',
   stopsNonstop: 'nonstop',
   stopsOne: '1 stop',
   stopsMany: '{n} stops',
@@ -139,6 +145,10 @@ const en: Strings = {
   comparisonStops: 'Stops',
   comparisonRefundable: 'Refundable',
   bookOffer: 'Book this offer',
+  showMoreOffers: 'Show more offers',
+  showMoreLoading: 'Loading more…',
+  showMoreExpired: 'This search has aged out — start a new one to see more offers.',
+  showMoreError: "Couldn't load more offers. Try again shortly.",
   bookingTravellerEmailLabel: 'Traveller email',
   bookingTravellerEmailPlaceholder: 'you@example.com',
   bookingConfirm: 'Confirm booking',
@@ -206,6 +216,7 @@ const ptBR: Strings = {
   offerDuration: 'Duração',
   offerRefundable: 'Reembolsável',
   offerNonRefundable: 'Não reembolsável',
+  offerAirportRoute: 'Voo {origin} → {destination}',
   stopsNonstop: 'sem escalas',
   stopsOne: '1 escala',
   stopsMany: '{n} escalas',
@@ -215,6 +226,10 @@ const ptBR: Strings = {
   comparisonStops: 'Escalas',
   comparisonRefundable: 'Reembolsável',
   bookOffer: 'Reservar esta oferta',
+  showMoreOffers: 'Mostrar mais ofertas',
+  showMoreLoading: 'Carregando mais…',
+  showMoreExpired: 'Esta busca expirou — inicie uma nova para ver mais ofertas.',
+  showMoreError: 'Não foi possível carregar mais ofertas. Tente novamente em instantes.',
   bookingTravellerEmailLabel: 'E-mail do passageiro',
   bookingTravellerEmailPlaceholder: 'voce@exemplo.com',
   bookingConfirm: 'Confirmar reserva',

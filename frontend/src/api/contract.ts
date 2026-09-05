@@ -68,6 +68,12 @@ export interface RankedOffer {
   score: number
   /** Attached to every offer, not just the explained top few — any ranked offer can be booked. */
   priceAssertion: PriceAssertion
+  /** The specific airport this offer actually uses, distinct from the metro/city code the traveller
+   * searched (`parsed-intent`'s own origin/destination) — a real supplier can return offers from more
+   * than one physical airport within the same metro search. Null for offers with nothing more specific
+   * to report than the searched code itself (see docs/reference/06-api-sse-contract.md). */
+  originAirport: string | null
+  destinationAirport: string | null
 }
 
 /**
@@ -91,8 +97,15 @@ export interface SearchError {
  * Every event the stream can deliver. Discriminated on `type`, so narrowing on it also narrows
  * `data`, and a `switch` that misses a case fails to compile against {@link assertNeverEvent}.
  */
+/** The `search-id` payload (backend task 26) — reserves the id a "show more" page needs
+ * (`GET /api/search/{searchId}/offers`) well before `ranked-offers` even arrives. */
+export interface SearchId {
+  searchId: string
+}
+
 export type SearchStreamEvent =
   | { type: 'parsed-intent'; data: ParsedIntent }
+  | { type: 'search-id'; data: SearchId }
   | { type: 'supplier-result'; data: SupplierResult }
   | { type: 'ranked-offers'; data: RankedOffer[] }
   | { type: 'explanation'; data: Explanation }
@@ -103,6 +116,7 @@ export type SearchStreamEventType = SearchStreamEvent['type']
 /** The event names subscribed to. Anything else the server sends is ignored (F01 E8). */
 export const SEARCH_STREAM_EVENT_TYPES: readonly SearchStreamEventType[] = [
   'parsed-intent',
+  'search-id',
   'supplier-result',
   'ranked-offers',
   'explanation',

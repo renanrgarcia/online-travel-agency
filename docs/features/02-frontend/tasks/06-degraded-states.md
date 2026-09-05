@@ -30,13 +30,16 @@ UI collapses them into one spinner that never resolves.
 | E5 | Zero offers, all suppliers failed | A clear "nothing found", distinguishable from a still-loading state | Backend task 13 emits a deterministic explanation for this; the UI should match its calm |
 | E6 | An `error` event | The parse failure is shown with the reason, and the composer re-enables | A rejected query is a normal thing a user can fix by rephrasing |
 | E7 | The connection drops mid-stream | Stages already received stay; the interruption is stated; no infinite spinner | F01 disables auto-retry precisely so this is a decision made here rather than a silent re-run |
-| E8 | A debug affordance for `raw` | Off by default, opt-in, clearly labelled as the model's unrendered output | The contract includes `raw` for exactly this; making it visible by default would expose the token vocabulary to every user for no benefit |
+| E8 | A debug affordance for `raw` | Present, closed by default, only in a dev/debug build — absent entirely from a production build | A closed-by-default disclosure still exposed the token vocabulary to any production user who clicked it, for no benefit to them; gating it out of the production build entirely (`isDebugBuild()` in `frontend/src/config.ts`, reading Vite's `import.meta.env.DEV`) is stricter than the original opt-in design |
 
 ### Locked decisions
 
 - **`isClean: false` never renders as prose** (E3), in any view, including the debug one — the debug
   view shows `raw` explicitly labelled as raw, which is a different thing from presenting it as an
   answer.
+- **The debug disclosure (E8) only exists in a dev/debug build.** Superseded from the original
+  "opt-in, closed by default" design: closed-by-default still left it clickable by any production
+  user, so it's now absent from the rendered output entirely outside `import.meta.env.DEV`.
 - **A failed supplier is reported, never hidden.** Users deserve to know the result set is partial.
 - **No automatic retry anywhere.** Retries against a budgeted, rate-limited backend are the client
   deciding to spend a resource it can't see.

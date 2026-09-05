@@ -23,6 +23,7 @@ function TestChatView(props: Pick<ChatViewProps, 'turns' | 'isStreaming' | 'onSu
       onConfirmBooking={() => {}}
       onCancelBooking={() => {}}
       onResetConversation={() => {}}
+      onShowMoreOffers={() => {}}
     />
   )
 }

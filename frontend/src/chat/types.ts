@@ -11,11 +11,20 @@ import type { Language } from '../i18n/strings'
  *
  * `supplierResults` is a list because the server sends one per connector; the rest are single events.
  */
+/** Where a "show more" page (F10) stands for this turn. Absent/`'idle'` means either nothing's been
+ * requested yet or the last page came back full — there may be more. `'exhausted'` means the last page
+ * came back short (backend task 26 E4): a normal end, not an error. `'expired'` means the `searchId`
+ * aged out of the server's cache (backend task 26 E3) — a new search is needed, not a retry. */
+export type MoreOffersStatus = 'idle' | 'loading' | 'exhausted' | 'expired' | 'error'
+
 export interface AssistantStages {
   parsedIntent?: ParsedIntent
+  /** From the `search-id` event (backend task 26) — the key a "show more" page is fetched under. */
+  searchId?: string
   supplierResults: SupplierResult[]
   rankedOffers?: RankedOffer[]
   explanation?: Explanation
+  moreOffersStatus?: MoreOffersStatus
 }
 
 export type AssistantTurnStatus = 'streaming' | 'complete' | 'failed'

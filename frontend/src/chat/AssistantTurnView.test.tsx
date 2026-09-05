@@ -3,11 +3,17 @@ import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
 import { AssistantTurnView } from './AssistantTurnView'
+import { isDebugBuild } from '../config'
 import { LanguageProvider } from '../i18n/LanguageProvider'
 import { STRINGS } from '../i18n/strings'
 import { makeRankedOffer } from '../test/fixtures'
 import type { ParsedIntent, SupplierResult, SupplierStatus } from '../api/contract'
 import type { AssistantTurn } from './types'
+
+// Real `isDebugBuild` reads Vite's `import.meta.env.DEV`, true under Vitest by default -- mocked so
+// the "absent in production" case below can flip it without depending on how the test runner itself
+// happens to be configured.
+vi.mock('../config', () => ({ isDebugBuild: vi.fn(() => true) }))
 
 /**
  * One test per eval in docs/features/02-frontend/tasks/06-degraded-states.md,
@@ -200,6 +206,22 @@ describe('AssistantTurnView — degraded states (F06)', () => {
     expect(details).toHaveAttribute('open')
     expect(screen.getByText(/PRICE_LCC-002/)).toBeInTheDocument()
   })
+
+  it('E8 follow-up — the debug disclosure is absent entirely outside a dev/debug build', () => {
+    vi.mocked(isDebugBuild).mockReturnValueOnce(false)
+    const turn = baseTurn({
+      status: 'complete',
+      stages: {
+        supplierResults: [],
+        rankedOffers: [makeRankedOffer()],
+        explanation: { text: 'The best value is $590.00.', raw: 'The best value is {{PRICE_LCC-002}}.', isClean: true },
+      },
+    })
+    render(<AssistantTurnView turn={turn} />, { wrapper: LanguageProvider })
+
+    expect(screen.queryByText(strings.explanationShowRaw)).not.toBeInTheDocument()
+    expect(screen.queryByText(/PRICE_LCC-002/)).not.toBeInTheDocument()
+  })
 })
 
 describe('AssistantTurnView — bilingual UI (F07)', () => {
@@ -362,5 +384,59 @@ describe('AssistantTurnView — verified against a real supplier (F09)', () => {
     expect(duffelCard.getByText('214.50 GBP')).toBeInTheDocument()
     expect(duffelCard.getByText('off_00009hthhomAxpvE0yTFHK')).toBeInTheDocument()
     expect(duffelCard.getByText('nonstop')).toBeInTheDocument()
+  })
+})
+
+describe('AssistantTurnView — show more offers (F10)', () => {
+  function turnWithOffers(overrides: Partial<AssistantTurn['stages']> = {}): AssistantTurn {
+    return baseTurn({
+      stages: {
+        supplierResults: [],
+        rankedOffers: [makeRankedOffer({ rank: 1, offerId: 'A' }), makeRankedOffer({ rank: 2, offerId: 'B' })],
+        searchId: 'search-1',
+        ...overrides,
+      },
+    })
+  }
+
+  it('renders a "show more" button that calls back with this turn\'s own id', async () => {
+    const user = userEvent.setup()
+    const onShowMoreOffers = vi.fn()
+    const turn = turnWithOffers()
+    render(<AssistantTurnView turn={turn} onShowMoreOffers={onShowMoreOffers} />, { wrapper: LanguageProvider })
+
+    await user.click(screen.getByRole('button', { name: strings.showMoreOffers }))
+    expect(onShowMoreOffers).toHaveBeenCalledWith('assistant-0')
+  })
+
+  it('shows nothing extra without a searchId — an older/mock-only turn has nothing to page into', () => {
+    const turn = turnWithOffers({ searchId: undefined })
+    render(<AssistantTurnView turn={turn} onShowMoreOffers={vi.fn()} />, { wrapper: LanguageProvider })
+
+    expect(screen.queryByRole('button', { name: strings.showMoreOffers })).not.toBeInTheDocument()
+  })
+
+  it('E2 — an exhausted list hides the button entirely, with no error banner', () => {
+    const turn = turnWithOffers({ moreOffersStatus: 'exhausted' })
+    render(<AssistantTurnView turn={turn} onShowMoreOffers={vi.fn()} />, { wrapper: LanguageProvider })
+
+    expect(screen.queryByRole('button', { name: strings.showMoreOffers })).not.toBeInTheDocument()
+    expect(screen.queryByText(strings.showMoreExpired)).not.toBeInTheDocument()
+  })
+
+  it('E3 — an expired searchId shows a calm message instead of the button', () => {
+    const turn = turnWithOffers({ moreOffersStatus: 'expired' })
+    render(<AssistantTurnView turn={turn} onShowMoreOffers={vi.fn()} />, { wrapper: LanguageProvider })
+
+    expect(screen.getByText(strings.showMoreExpired)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: strings.showMoreOffers })).not.toBeInTheDocument()
+  })
+
+  it('disables the button and swaps its label while a page is loading', () => {
+    const turn = turnWithOffers({ moreOffersStatus: 'loading' })
+    render(<AssistantTurnView turn={turn} onShowMoreOffers={vi.fn()} />, { wrapper: LanguageProvider })
+
+    const button = screen.getByRole('button', { name: strings.showMoreLoading })
+    expect(button).toBeDisabled()
   })
 })

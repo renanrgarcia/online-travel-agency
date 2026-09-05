@@ -10,6 +10,7 @@ import {
   EXPLANATION_JSON,
   PARSED_INTENT_JSON,
   RANKED_OFFERS_JSON,
+  SEARCH_ID_JSON,
   SUPPLIER_RESULT_GDS_JSON,
   SUPPLIER_RESULT_LCC_FAILED_JSON,
   SUPPLIER_RESULT_NDC_JSON,
@@ -232,5 +233,19 @@ describe('useSearchChat', () => {
     act(() => source().emit('ranked-offers', '{ not json'))
 
     expect(assistantTurnOf(result.current.turns).status).toBe('streaming')
+  })
+
+  it('F10 — search-id arrives before ranked-offers, giving a "show more" page something to key off', () => {
+    const { result, source } = setup()
+    act(() => result.current.submit('lisbon'))
+
+    act(() => {
+      source().emit('parsed-intent', PARSED_INTENT_JSON)
+      source().emit('search-id', SEARCH_ID_JSON)
+    })
+
+    const turn = assistantTurnOf(result.current.turns)
+    expect(turn.stages.searchId).toBe('401ed81f127443849d95985e853b5576')
+    expect(turn.stages.rankedOffers).toBeUndefined()
   })
 })

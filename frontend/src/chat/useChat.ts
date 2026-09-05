@@ -20,6 +20,10 @@ export interface ChatController {
   applyEvent: (turnId: string, event: SearchStreamEvent) => void
   completeTurn: (turnId: string) => void
   failTurn: (turnId: string, message: string) => void
+  /** Generic per-turn updater for an assistant turn, same shape as {@link updateBooking} below — lets
+   * a feature-specific hook (F10's "show more") own its own network + state logic without `useChat`
+   * needing to know about it. A no-op if `turnId` isn't an assistant turn. */
+  updateAssistantTurn: (turnId: string, update: (turn: AssistantTurn) => AssistantTurn) => void
   /** Creates a new booking turn in `collecting-details`, with a `bookingId` generated once here and
    * never regenerated for this attempt (F05 E4). `language` is the language the source assistant turn
    * was answered in (F07 E3) — frozen onto the booking turn, not read back from ambient chrome state.
@@ -105,6 +109,8 @@ export function useChat(options: UseChatOptions = {}): ChatController {
         switch (event.type) {
           case 'parsed-intent':
             return { ...turn, stages: { ...turn.stages, parsedIntent: event.data } }
+          case 'search-id':
+            return { ...turn, stages: { ...turn.stages, searchId: event.data.searchId } }
           case 'supplier-result':
             return {
               ...turn,
@@ -193,6 +199,7 @@ export function useChat(options: UseChatOptions = {}): ChatController {
     applyEvent,
     completeTurn,
     failTurn,
+    updateAssistantTurn,
     startBooking,
     updateBooking,
     removeTurn,

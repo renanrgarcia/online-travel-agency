@@ -18,3 +18,14 @@ export function getApiBaseUrl(): string {
 export function getBookingApiBaseUrl(): string {
   return import.meta.env.VITE_BOOKING_API_BASE_URL ?? ''
 }
+
+/**
+ * True for a local dev server (`vite dev`, and Vitest by extension), false for a `vite build`
+ * production bundle regardless of where it's deployed. Gates the "show raw model output" debug
+ * disclosure (F06 E8 follow-up): closed-by-default wasn't enough on its own — a production user
+ * clicking it still exposed the model's token vocabulary for no benefit to them, so the affordance
+ * itself is now absent outside a dev/debug build, not just collapsed.
+ */
+export function isDebugBuild(): boolean {
+  return import.meta.env.DEV
+}

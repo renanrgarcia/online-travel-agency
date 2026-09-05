@@ -122,4 +122,37 @@ describe('OfferCard / OfferComparison', () => {
     expect(screen.queryByText('1071')).not.toBeInTheDocument()
     expect(screen.queryByText('2222')).not.toBeInTheDocument()
   })
+
+  it('shows the offer-specific airport when it diverges from the searched metro/city route', () => {
+    render(
+      <LanguageProvider>
+        <ol>
+          <OfferCard
+            offer={offer({ originAirport: 'CGH', destinationAirport: 'LIS' })}
+            searchOrigin="SAO"
+            searchDestination="LIS"
+          />
+        </ol>
+      </LanguageProvider>,
+    )
+
+    expect(screen.getByText('Flies CGH → LIS')).toBeInTheDocument()
+  })
+
+  it('says nothing about the airport when it matches the search, or is null (mocks, exact-airport searches)', () => {
+    render(
+      <LanguageProvider>
+        <ol>
+          <OfferCard
+            offer={offer({ offerId: 'A', originAirport: 'SAO', destinationAirport: 'LIS' })}
+            searchOrigin="SAO"
+            searchDestination="LIS"
+          />
+          <OfferCard offer={offer({ offerId: 'B', originAirport: null, destinationAirport: null })} />
+        </ol>
+      </LanguageProvider>,
+    )
+
+    expect(screen.queryByText(/Flies/)).not.toBeInTheDocument()
+  })
 })
