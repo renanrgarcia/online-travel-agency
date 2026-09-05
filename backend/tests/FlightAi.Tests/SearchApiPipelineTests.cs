@@ -82,7 +82,7 @@ public class SearchApiPipelineTests(WebApplicationFactory<Program> factory) : IC
     }
 
     [Fact] // E1 — the contract
-    public async Task E1_NormalSearch_EmitsAllFiveEventTypesInOrder()
+    public async Task E1_NormalSearch_EmitsAllSixEventTypesInOrder()
     {
         var client = new OfflineChatClient()
             .RegisterResponse("São Paulo", NormalIntentJson)
@@ -94,8 +94,11 @@ public class SearchApiPipelineTests(WebApplicationFactory<Program> factory) : IC
 
         var order = events.Select(e => e.EventType).Distinct().ToList();
         // search-id (task 26) fires right after parsed-intent, before ranking exists -- the client has
-        // an ID to page against long before ranked-offers ever arrives.
-        Assert.Equal(["parsed-intent", "search-id", "supplier-result", "ranked-offers", "explanation"], order);
+        // an ID to page against long before ranked-offers ever arrives. offers-total (task 26 follow-up)
+        // fires right after ranked-offers, once the true, uncapped count is known.
+        Assert.Equal(
+            ["parsed-intent", "search-id", "supplier-result", "ranked-offers", "offers-total", "explanation"],
+            order);
     }
 
     [Fact]
@@ -152,6 +155,41 @@ public class SearchApiPipelineTests(WebApplicationFactory<Program> factory) : IC
         // The cheapest of the 15 (ManyOffersConnector prices descend as offerN's index grows) is
         // genuinely still the one ranked first -- capping the list doesn't mean capping before ranking.
         Assert.Equal("Many-14", rankedOffers[0].GetProperty("offerId").GetString());
+    }
+
+    [Fact] // task 26 follow-up -- the bare-array ranked-offers page alone can't tell "more" from "that's it"
+    public async Task OffersTotal_ReportsTheTrueUncappedCount_WhenMoreThanTheCap()
+    {
+        var client = new OfflineChatClient()
+            .RegisterResponse("São Paulo", NormalIntentJson)
+            .RegisterResponse("Offer Many-14", "Best pick: {{PRICE_Many-14}}.");
+        var orchestrator = DefaultOrchestrator(new ManyOffersConnector(count: 15));
+        using var http = WithServices(client, orchestrator).CreateClient();
+
+        var events = await ReadAllEventsAsync(await http.GetAsync($"/api/search/stream?q={Uri.EscapeDataString(Query)}"));
+        var totalEvent = events.Single(e => e.EventType == "offers-total");
+
+        using var payload = JsonDocument.Parse(totalEvent.Data);
+        Assert.Equal(15, payload.RootElement.GetProperty("total").GetInt32());
+    }
+
+    [Fact] // task 26 follow-up -- found live: a search whose true total lands exactly on the cap
+    // still showed "show more" client-side, since a 10-item ranked-offers page alone is
+    // indistinguishable from "there are more". offers-total is what removes the ambiguity.
+    public async Task OffersTotal_EqualsTheCap_WhenTheTrueCountLandsExactlyOnIt()
+    {
+        var client = new OfflineChatClient()
+            .RegisterResponse("São Paulo", NormalIntentJson)
+            .RegisterResponse("Offer Many-9", "Best pick: {{PRICE_Many-9}}.");
+        var orchestrator = DefaultOrchestrator(new ManyOffersConnector(count: 10));
+        using var http = WithServices(client, orchestrator).CreateClient();
+
+        var events = await ReadAllEventsAsync(await http.GetAsync($"/api/search/stream?q={Uri.EscapeDataString(Query)}"));
+        var rankedOffers = JsonDocument.Parse(events.Single(e => e.EventType == "ranked-offers").Data).RootElement;
+        var totalEvent = JsonDocument.Parse(events.Single(e => e.EventType == "offers-total").Data).RootElement;
+
+        Assert.Equal(10, rankedOffers.GetArrayLength());
+        Assert.Equal(10, totalEvent.GetProperty("total").GetInt32());
     }
 
     /// <summary>Test-only connector returning more offers than task 25's <c>DisplayedOfferCount</c> cap
