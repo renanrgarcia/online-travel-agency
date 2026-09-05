@@ -121,8 +121,8 @@ way, including three real bugs a real model surfaced that the deterministic offl
 | F05 | The booking turn — saga from the chat UI, including compensation | ✅ Done |
 | F06 | Degraded states | ✅ Done |
 | F07 | Bilingual UI (beyond F02's toggle) | ✅ Done |
-| F09 | Verify against a real supplier — blocked on backend task 25 above | ⬜ Not started |
-| F10 | Show more offers — blocked on backend task 26 above | ⬜ Not started |
+| F09 | Verify against a real supplier — backend task 25 is done, verification itself not yet started | ⬜ Not started |
+| F10 | Show more offers | ✅ Done |
 
 **Infrastructure** — [`docs/features/03-infra/`](docs/features/03-infra/README.md)
 
