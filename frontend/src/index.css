@@ -257,9 +257,11 @@ body {
 }
 
 .offer-card__id {
+  flex-basis: 100%;
   font-size: 0.75rem;
   color: var(--text-muted);
   min-width: 4.5rem;
+  overflow-wrap: anywhere;
 }
 
 .offer-card__price {
