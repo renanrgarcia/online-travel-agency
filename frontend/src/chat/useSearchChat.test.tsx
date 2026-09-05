@@ -248,4 +248,21 @@ describe('useSearchChat', () => {
     expect(turn.stages.searchId).toBe('401ed81f127443849d95985e853b5576')
     expect(turn.stages.rankedOffers).toBeUndefined()
   })
+
+  // Repro: a real search whose total offer count is under the page size (a niche route with, say, 2
+  // offers total) left "Show more" visible anyway, since nothing had ever told the UI that the first,
+  // uncapped page already was the whole result set -- clicking it fetched nothing and the button just
+  // vanished with no explanation.
+  it('a ranked-offers page shorter than the page size marks "show more" exhausted immediately', () => {
+    const { result, source } = setup()
+    act(() => result.current.submit('cheapest flight to a niche destination'))
+
+    act(() => {
+      source().emit('parsed-intent', PARSED_INTENT_JSON)
+      source().emit('ranked-offers', RANKED_OFFERS_JSON) // 2 offers -- well under the page size
+    })
+
+    const turn = assistantTurnOf(result.current.turns)
+    expect(turn.stages.moreOffersStatus).toBe('exhausted')
+  })
 })

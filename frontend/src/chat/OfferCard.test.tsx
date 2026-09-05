@@ -136,7 +136,7 @@ describe('OfferCard / OfferComparison', () => {
       </LanguageProvider>,
     )
 
-    expect(screen.getByText('Flies CGH → LIS')).toBeInTheDocument()
+    expect(screen.getByText('Flies São Paulo–Congonhas → Lisbon')).toBeInTheDocument()
   })
 
   it('says nothing about the airport when it matches the search, or is null (mocks, exact-airport searches)', () => {
