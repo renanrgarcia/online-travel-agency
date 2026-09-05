@@ -103,6 +103,15 @@ mode is the option that survived validating every free/cheap flight-fare API act
 (`reference/12-supplier-api-options.md`): genuinely free, no expiry, no quota, so there's no cost
 pressure ever forcing a move to a live token.
 
+## 11. Paginated search results
+
+**Source:** `reference/06-api-sse-contract.md` · **Tasks:** 26
+
+Real supplier data is the reason this step exists — task 25 alone surfaced a single search returning
+90+ offers, capped at 10 for the traveller-facing list. A "show more" affordance needs somewhere to page
+into without re-querying a supplier and risking a different result set than what was already shown; this
+step is that server-side cache and the endpoint over it, not the button itself (frontend task F10).
+
 ---
 
 Infrastructure for the Functions app (Bicep + CI/CD, extending what already covers the App Service) is
