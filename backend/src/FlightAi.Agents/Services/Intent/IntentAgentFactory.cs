@@ -18,13 +18,20 @@ public static class IntentAgentFactory
     // "pt-BR" equality check (task 18), so every resolved token silently fell back to English inside
     // otherwise-Portuguese prose. OfflineChatClient never exercised this since its canned responses
     // hardcode the exact string.
+    //
+    // Origin/Destination as IATA codes (task 25): the mock connectors never read these fields, so the
+    // gap was invisible until DuffelConnector needed real, resolvable airport codes to call a real API
+    // with. Every existing fixture already used codes like "GRU"/"LIS" -- this makes that assumption an
+    // explicit instruction instead of one nothing enforced.
     private const string Instructions =
         "Extract flight search parameters from the traveller's query as JSON matching the requested " +
         "schema. Infer the Language field from the language the query itself was written in — never " +
         "ask for it separately. Language must be exactly \"en\" for English or \"pt-BR\" for Portuguese " +
         "— never a bare language code like \"pt\" or a different regional variant. " +
         "DepartureDate must be an ISO 8601 date string in exactly yyyy-MM-dd format. " +
-        "If the traveller does not provide a departure date, return null; never invent or infer a date.";
+        "If the traveller does not provide a departure date, return null; never invent or infer a date. " +
+        "Origin and Destination must each be a 3-letter IATA airport code (e.g. \"GRU\", \"LIS\") — " +
+        "translate a city or airport name to its IATA code yourself; never return a free-text place name.";
 
     public static IntentAgent Create(IChatClient chatClient)
     {

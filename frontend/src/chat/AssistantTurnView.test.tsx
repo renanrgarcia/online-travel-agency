@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
@@ -10,8 +10,9 @@ import type { ParsedIntent, SupplierResult, SupplierStatus } from '../api/contra
 import type { AssistantTurn } from './types'
 
 /**
- * One test per eval in docs/features/02-frontend/tasks/06-degraded-states.md and
- * docs/features/02-frontend/tasks/07-bilingual-ui.md.
+ * One test per eval in docs/features/02-frontend/tasks/06-degraded-states.md,
+ * docs/features/02-frontend/tasks/07-bilingual-ui.md, and
+ * docs/features/02-frontend/tasks/09-verify-against-a-real-supplier.md.
  */
 
 const strings = STRINGS.en
@@ -257,5 +258,109 @@ describe('AssistantTurnView — bilingual UI (F07)', () => {
 
     expect(screen.getByText(STRINGS['pt-BR'].offerCountMany.replace('{n}', '3'))).toBeInTheDocument()
     expect(screen.queryByText('3 offers')).not.toBeInTheDocument()
+  })
+})
+
+/**
+ * F09's own claim is that a fourth, real supplier needs zero new frontend code -- F06's degraded-state
+ * handling and F04's offer cards are already generic over `supplierName`/`SupplierStatus`/`Offer`, not
+ * hardcoded to the three mocks. Backend task 25 (the real Duffel connector these evals are meant to run
+ * against) doesn't exist yet, so this locks the claim down now with realistic Duffel-shaped data --
+ * a name the mocks never used, a currency not in the frontend's own symbol table, and an offer-id
+ * format nothing like the mocks' `LCC-002` style -- so the same tests can be pointed at the real
+ * connector's actual payloads later with no rewrite, just a fixture swap.
+ */
+describe('AssistantTurnView — verified against a real supplier (F09)', () => {
+  it('E1 — a fourth, real supplier name renders with the exact same list styling as the three mocks', () => {
+    const turn = baseTurn({
+      stages: {
+        supplierResults: [
+          supplierResult({ supplierName: 'GDS' }),
+          supplierResult({ supplierName: 'NDC' }),
+          supplierResult({ supplierName: 'LCC' }),
+          supplierResult({ supplierName: 'Duffel' }),
+        ],
+      },
+    })
+    const { container } = render(<AssistantTurnView turn={turn} />, { wrapper: LanguageProvider })
+
+    const names = Array.from(container.querySelectorAll('.supplier-list__name')).map((n) => n.textContent)
+    expect(names).toEqual(['GDS', 'NDC', 'LCC', 'Duffel'])
+    // Same category class for all four -- nothing branches on the specific name.
+    container.querySelectorAll('.supplier-list__item').forEach((item) => {
+      expect(item.className).toMatch(/supplier-list__item--ok/)
+    })
+  })
+
+  it('E2 — Duffel timing out renders exactly like any other timed-out supplier', () => {
+    const turn = baseTurn({
+      stages: {
+        supplierResults: [
+          supplierResult({ supplierName: 'GDS' }),
+          supplierResult({
+            supplierName: 'Duffel',
+            status: 'TimedOut',
+            offerCount: 0,
+            reason: 'request exceeded the configured timeout',
+          }),
+        ],
+      },
+    })
+    render(<AssistantTurnView turn={turn} />, { wrapper: LanguageProvider })
+
+    expect(screen.getByText(strings.supplierStatusTimedOut)).toBeInTheDocument()
+    const duffelItem = screen.getByText('Duffel').closest('.supplier-list__item')
+    expect(duffelItem?.className).toMatch(/supplier-list__item--warn/)
+  })
+
+  it('E3 — a failed Duffel connector renders like any other failed supplier, and the other offers stay usable', () => {
+    const turn = baseTurn({
+      stages: {
+        supplierResults: [
+          supplierResult({ supplierName: 'GDS' }),
+          supplierResult({
+            supplierName: 'Duffel',
+            status: 'Failed',
+            offerCount: 0,
+            reason: 'origin could not be resolved to an IATA code',
+          }),
+        ],
+        rankedOffers: [makeRankedOffer()],
+      },
+    })
+    const { container } = render(<AssistantTurnView turn={turn} />, { wrapper: LanguageProvider })
+
+    expect(screen.getByText(strings.supplierStatusFailed)).toBeInTheDocument()
+    const duffelItem = screen.getByText('Duffel').closest('.supplier-list__item')
+    expect(duffelItem?.className).toMatch(/supplier-list__item--warn/)
+    expect(container.querySelector('.offer-card')).not.toBeNull()
+  })
+
+  it('E4 — an offer from Duffel renders in the same card layout as the mocks, including a currency and id shape the mocks never produce', () => {
+    const duffelOffer = makeRankedOffer({
+      rank: 1,
+      offerId: 'off_00009hthhomAxpvE0yTFHK',
+      price: 214.5,
+      currency: 'GBP',
+      durationMinutes: 95,
+      stops: 0,
+      refundable: false,
+    })
+    const mockOffer = makeRankedOffer({ rank: 2, offerId: 'LCC-002' })
+    const turn = baseTurn({
+      stages: { supplierResults: [], rankedOffers: [duffelOffer, mockOffer] },
+    })
+    const { container } = render(<AssistantTurnView turn={turn} />, { wrapper: LanguageProvider })
+
+    const cards = container.querySelectorAll('.offer-card')
+    expect(cards).toHaveLength(2)
+    // The two-offer set is also within the comparison table's own top-3, so price/stops legitimately
+    // repeat there too -- scope to the card itself rather than the whole document.
+    const duffelCard = within(cards[0] as HTMLElement)
+    // GBP has no entry in offerFormatting.ts's CURRENCY_SYMBOLS -- this is the existing verbatim
+    // fallback (F04 E2) doing its job, not new code written for Duffel specifically.
+    expect(duffelCard.getByText('214.50 GBP')).toBeInTheDocument()
+    expect(duffelCard.getByText('off_00009hthhomAxpvE0yTFHK')).toBeInTheDocument()
+    expect(duffelCard.getByText('nonstop')).toBeInTheDocument()
   })
 })

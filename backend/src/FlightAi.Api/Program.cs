@@ -1,4 +1,5 @@
 using System.ClientModel;
+using System.Net.Http.Headers;
 using System.Threading.RateLimiting;
 using FlightAi.Agents.Services.Intent;
 using FlightAi.Api;
@@ -61,7 +62,26 @@ builder.Services.AddSingleton<IChatClient>(_ => string.IsNullOrEmpty(geminiApiKe
     ? DemoOfflineChatClient.Create()
     : BuildGeminiChatClient(geminiApiKey));
 builder.Services.AddSingleton(sp => IntentAgentFactory.Create(sp.GetRequiredService<IChatClient>()));
-builder.Services.AddSingleton(BuildSupplierOrchestrator());
+
+// A real supplier alongside the mocks, only when a token is configured (task 25) -- mirrors task 17's
+// "real service behind configuration, mocks stay forever" pattern exactly. Test-mode Duffel token only,
+// per docs/reference/12-supplier-api-options.md's locked recommendation; base address, bearer token, and
+// the Duffel-Version header live here since DuffelConnector itself should only know how to build one
+// request and map one response, not how it gets authenticated.
+var duffelApiKey = builder.Configuration["Duffel:ApiKey"];
+var duffelConfigured = !string.IsNullOrEmpty(duffelApiKey);
+if (duffelConfigured)
+{
+    builder.Services.AddHttpClient<DuffelConnector>(client =>
+    {
+        client.BaseAddress = new Uri("https://api.duffel.com/");
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", duffelApiKey);
+        client.DefaultRequestHeaders.TryAddWithoutValidation("Duffel-Version", "v2");
+        client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+    });
+}
+
+builder.Services.AddSingleton(sp => BuildSupplierOrchestrator(sp, duffelConfigured));
 
 // Signs each offer's price so the booking saga (a separate host, task 21) can verify it came from a
 // real search rather than trusting whatever a client's booking request claims. No safe default for the
@@ -133,14 +153,26 @@ static IChatClient BuildGeminiChatClient(string apiKey)
     return client.GetChatClient("gemini-3.5-flash-lite").AsIChatClient();
 }
 
-static SupplierFanOutOrchestrator BuildSupplierOrchestrator()
+static SupplierFanOutOrchestrator BuildSupplierOrchestrator(IServiceProvider services, bool duffelConfigured)
 {
-    ISupplierConnector[] connectors = [new MockGdsConnector(), new MockNdcConnector(), new MockLccConnector()];
-    var policy = new SupplierPolicy(
+    List<ISupplierConnector> connectors = [new MockGdsConnector(), new MockNdcConnector(), new MockLccConnector()];
+    if (duffelConfigured)
+        connectors.Add(services.GetRequiredService<DuffelConnector>());
+
+    var mockPolicy = new SupplierPolicy(
         Timeout: TimeSpan.FromSeconds(5),
         BudgetCeiling: 100, BudgetWindow: TimeSpan.FromMinutes(1),
         BreakerFailureThreshold: 3, BreakerCooldown: TimeSpan.FromMinutes(1));
-    var policies = connectors.ToDictionary(c => c.Name, _ => policy);
+
+    // Looser than the mocks' effectively-instant responses (task 25) -- a real HTTP round trip to a
+    // real external API needs real headroom, and a genuinely lower daily budget since, unlike a mock,
+    // calling it too often is a real thing to be mindful of even in test mode.
+    var duffelPolicy = new SupplierPolicy(
+        Timeout: TimeSpan.FromSeconds(15),
+        BudgetCeiling: 20, BudgetWindow: TimeSpan.FromMinutes(1),
+        BreakerFailureThreshold: 3, BreakerCooldown: TimeSpan.FromMinutes(1));
+
+    var policies = connectors.ToDictionary(c => c.Name, c => c.Name == "Duffel" ? duffelPolicy : mockPolicy);
 
     return new SupplierFanOutOrchestrator(connectors, policies);
 }

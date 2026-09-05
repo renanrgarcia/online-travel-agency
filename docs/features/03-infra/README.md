@@ -47,6 +47,15 @@ fee, provisioned alongside a user-assigned managed identity and an RBAC role ass
 plain secret, which is new territory for this project's Bicep. Depends on task 01 (the Function App this
 extends), not on task 02.
 
+### 4. Duffel API key
+
+**Tasks:** 04 · pairs with backend task 25
+
+Threads a Duffel test-mode token into `FlightAi.Api`'s configuration, repeating the exact
+`geminiApiKey` pattern (empty default, App Service Configuration, never Key Vault at this scale) for a
+second real dependency. Depends on nothing structurally new — backend task 25's own deployment gate
+depends on this one, not the reverse.
+
 ## Cost
 
 Every resource here targets a free or near-free tier — see [`docs/deployment.md`](../../deployment.md)'s

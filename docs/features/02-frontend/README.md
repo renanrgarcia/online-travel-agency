@@ -62,6 +62,17 @@ bilingual requirement the target market implies.
 Azure Static Web Apps, under the same Bicep and CI/CD treatment as the backend — now its own feature,
 see [`../03-infra/`](../03-infra/README.md), task 02, originally numbered F08 here.
 
+### 6. Real supplier verification
+
+**Tasks:** 09 · `08` deliberately left a gap, same reasoning as backend's own 08 — it was this
+feature's original number for what's now infra task 02, and this project doesn't reincarnate a retired
+task number for something unrelated.
+
+Once backend task 25 adds a real supplier (Duffel, test mode) alongside the mocks, confirm this
+feature's existing genericity — `supplierName` rendering, F06's degraded states — actually holds up
+against it, rather than only against synthetic failure injection. Blocked on backend task 25 existing;
+not expected to need any new frontend code if F04 and F06 were built as generically as intended.
+
 ## Dependencies on feature 01
 
 | Needs | From |

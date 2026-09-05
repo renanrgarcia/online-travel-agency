@@ -50,6 +50,11 @@ public class ErrorHandlingTests(WebApplicationFactory<Program> factory) : IClass
             // default, so every test hitting the real HTTP pipeline needs one -- same key,
             // same mechanism SearchApiPipelineTests uses.
             builder.UseSetting("PriceAssertion:SigningKey", "test-signing-key-not-a-real-secret");
+            // Forced empty regardless of the local machine's real user secrets (task 25) -- this class
+            // never overrides SupplierFanOutOrchestrator, so it relies entirely on Program.cs's own
+            // wiring, which would otherwise add a real, network-calling DuffelConnector whenever a
+            // developer happens to have Duffel:ApiKey configured locally for manual testing.
+            builder.UseSetting("Duffel:ApiKey", "");
             builder.ConfigureServices(services =>
             {
                 // Last registration wins for a single (non-IEnumerable) service resolution, same pattern

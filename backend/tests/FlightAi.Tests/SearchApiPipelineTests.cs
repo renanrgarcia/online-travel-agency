@@ -42,6 +42,15 @@ public class SearchApiPipelineTests(WebApplicationFactory<Program> factory) : IC
         factory.WithWebHostBuilder(builder =>
         {
             builder.UseSetting("PriceAssertion:SigningKey", TestSigningKey);
+            // Found live (task 25): WebApplicationFactory runs in Development by default, which loads
+            // user secrets -- so a developer with a real Duffel:ApiKey configured locally (for manual
+            // testing, task 25) got a genuine 4th connector wired into these tests via Program.cs's own
+            // DI, breaking E7/E9's connector-count and determinism assumptions depending on what
+            // happened to be in their user-secrets.json. Forced empty here so the test suite's behavior
+            // never depends on the local machine's secrets, the same guarantee IChatClient already had
+            // (it's always explicitly overridden below) but SupplierFanOutOrchestrator didn't, since
+            // most tests here rely on Program.cs's own real wiring rather than passing a custom one.
+            builder.UseSetting("Duffel:ApiKey", "");
             builder.ConfigureServices(services =>
             {
                 // Last registration wins for a single (non-IEnumerable) service resolution -- the

@@ -92,6 +92,17 @@ empty `500` and isn't logged anywhere durable either, found live while verifying
 Gemini's free tier or the Microsoft Foundry pattern, once the offline path works end to end. Task 17's
 20-run stress test is the real payoff of steps 1 and 6 — which is why both should land before it.
 
+## 10. Real supplier integration
+
+**Source:** `reference/12-supplier-api-options.md`, `reference/03-suppliers-and-budget.md` · **Tasks:** 25
+
+The mocks stay forever (same locked decision as the model layer, step 9), but a real supplier alongside
+them proves `ISupplierConnector`'s boundary against a dependency this project didn't co-design — real
+error shapes, real latency, real staleness, none of which a hand-rolled mock reproduces. Duffel's test
+mode is the option that survived validating every free/cheap flight-fare API actually available today
+(`reference/12-supplier-api-options.md`): genuinely free, no expiry, no quota, so there's no cost
+pressure ever forcing a move to a live token.
+
 ---
 
 Infrastructure for the Functions app (Bicep + CI/CD, extending what already covers the App Service) is
